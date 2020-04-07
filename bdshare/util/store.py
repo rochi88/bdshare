@@ -1,12 +1,6 @@
 # -*- coding:utf-8 -*-
-"""
-Created on 2015/02/04
-@author: Jimmy Liu
-@group : waditu
-@contact: jimmysoa@sina.cn
-"""
+
 import pandas as pd
-import tushare as ts
 from pandas import compat
 import os
 

@@ -6,4 +6,4 @@ __author__ = 'Raisul Islam'
 """
 for trading data
 """
-from dshare.stock.trading import (get_current_trade_data, get_hist_data)
+from bdshare.stock.trading import (get_current_trade_data, get_hist_data)
