@@ -23,8 +23,6 @@ setup_args = dict(
 
 install_requires = [
     'beautifulsoup4',	# bdshare require
-    'lxml', # bdshare require
-    'xlrd', # bdshare require
     'requests', # bdshae require
     'pandas'
 ]
