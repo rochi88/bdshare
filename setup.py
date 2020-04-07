@@ -16,16 +16,16 @@ setup_args = dict(
     packages=find_packages(),
     author='Raisul Islam',
     author_email='raisul.exe@gmail.com',
-    keywords=['backtrader','backtester'],
+    keywords=['crawling','dse'],
     url='https://github.com/rochi88/dshare',
     download_url='https://github.com/rochi88/dshare/archive/master.zip'
 )
 
 install_requires = [
-    'beautifulsoup4',	# tushare require
-    'lxml', # tushare require
-    'xlrd', # tushare require
-    'requests', # tushae require
+    'beautifulsoup4',	# dshare require
+    'lxml', # dshare require
+    'xlrd', # dshare require
+    'requests', # dshae require
     'pandas'
 ]
 
