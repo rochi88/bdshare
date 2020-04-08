@@ -1,6 +1,7 @@
+import codecs
 import os
 
-__version__ = '0.0.1'
+__version__ = codecs.open(os.path.join(os.path.dirname(__file__), 'VERSION.txt')).read()
 __author__ = 'Raisul Islam'
 
 """
