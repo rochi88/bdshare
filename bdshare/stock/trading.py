@@ -7,6 +7,10 @@ from bdshare.stock import vars as vs
 
 
 def get_current_trade_data():
+    """
+        get last stock price.
+        :return: dataframe
+    """
     r = requests.get(vs.DSE_LSP_URL)
     soup = BeautifulSoup(r.text, 'html.parser')
     quotes=[] # a list to store quotes 
@@ -19,7 +23,14 @@ def get_current_trade_data():
 
 
 def get_hist_data(start=None, end=None, code='All Instrument'):
-    # data to be sent to api 
+    """
+        get historical stock price.
+        :param start: str, Start date e.g.: '2020-03-01'
+        :param end: str, End date e.g.: '2020-03-02'
+        :param code: str, Instrument symbol e.g.: 'ACI'
+        :return: dataframe
+    """
+    # data to be sent to post request
     data = {'DayEndSumDate1': start,
             'DayEndSumDate2': end,
             'Symbol': code,
