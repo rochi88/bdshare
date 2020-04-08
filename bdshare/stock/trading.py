@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
-from bdshare.stock import vars as vs
+from bdshare.util import vars as vs
 
 
 def get_current_trade_data():
