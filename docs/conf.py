@@ -21,9 +21,6 @@ project = 'bdshare'
 copyright = '2020, raisul'
 author = 'raisul'
 
-# The full version, including alpha/beta/rc tags
-release = '0.1.0'
-
 
 # -- General configuration ---------------------------------------------------
 
