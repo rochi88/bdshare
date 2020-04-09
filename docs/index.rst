@@ -1,5 +1,5 @@
 .. bdshare documentation master file, created by
-   sphinx-quickstart on Thu Apr  9 13:11:45 2020.
+   sphinx-quickstart on Thu Apr  9 13:19:55 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
