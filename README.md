@@ -2,7 +2,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/bdshare/badge/?version=latest)](https://bdshare.readthedocs.io/en/latest/?badge=latest)
 
-A utility for crawling historical and Real-time Quotes data of stock exchange of Bangladesh. At preesent this utility can collect data from dhaka stock exchange only.
+A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At preesent this utility can collect data from dhaka stock exchange only.
 
 ### <a name="contents"></a>Contents
 - [Installation](#install)
