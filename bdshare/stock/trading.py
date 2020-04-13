@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 from bdshare.util import vars as vs
+from collections import OrderedDict 
 
 
 def get_current_trade_data():
@@ -86,13 +87,13 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument'):
     soup = BeautifulSoup(r.text, 'html.parser')
 
     # columns: date, open, high, close, low, volume
-    quotes=['date', 'open', 'high', 'close', 'low', 'volume'] # a list to store quotes 
+    quotes=[] # a list to store quotes 
 
 
     table = soup.find('table', attrs={'cellspacing' : '1'})
 
-    for row in table.find_all('tr'):
+    for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
-        quotes.append((cols[1].text.strip().replace(",", ""), cols[5].text.strip().replace(",", ""), cols[3].text.strip().replace(",", ""), cols[6].text.strip().replace(",", ""), cols[4].text.strip().replace(",", ""), cols[10].text.strip().replace(",", "")))
+        quotes.append({'date' : cols[1].text.strip().replace(",", ""), 'open' : cols[6].text.strip().replace(",", ""), 'high' : cols[4].text.strip().replace(",", ""), 'close' : cols[7].text.strip().replace(",", ""), 'low' : cols[5].text.strip().replace(",", ""), 'volume' : cols[11].text.strip().replace(",", "")})
     df = pd.DataFrame(quotes)
     return df
