@@ -8,6 +8,7 @@
 
 ### Changed
 - `setup.py`
+- `HISTORY.md` to `CHANGELOG.md`
 
 ### Removed
 

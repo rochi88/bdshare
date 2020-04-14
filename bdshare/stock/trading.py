@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 from bdshare.util import vars as vs
-from collections import OrderedDict 
 
 
 def get_current_trade_data():
