@@ -17,7 +17,17 @@ def get_current_trade_data():
     table = soup.find('table') 
     for row in table.find_all('tr'):
         cols = row.find_all('td')
-        quotes.append((cols[1].text.strip().replace(",", ""), cols[2].text.strip().replace(",", ""), cols[3].text.strip().replace(",", ""), cols[4].text.strip().replace(",", ""), cols[5].text.strip().replace(",", ""), cols[6].text.strip().replace(",", ""), cols[7].text.strip().replace("--", "0"), cols[8].text.strip().replace(",", ""), cols[9].text.strip().replace(",", ""),cols[10].text.strip().replace(",", "")))
+        quotes.append((cols[1].text.strip().replace(",", ""), 
+                        cols[2].text.strip().replace(",", ""), 
+                        cols[3].text.strip().replace(",", ""), 
+                        cols[4].text.strip().replace(",", ""), 
+                        cols[5].text.strip().replace(",", ""), 
+                        cols[6].text.strip().replace(",", ""), 
+                        cols[7].text.strip().replace("--", "0"), 
+                        cols[8].text.strip().replace(",", ""), 
+                        cols[9].text.strip().replace(",", ""),
+                        cols[10].text.strip().replace(",", "")
+                        ))
     df = pd.DataFrame(quotes)
     return df
 
@@ -62,7 +72,18 @@ def get_hist_data(start=None, end=None, code='All Instrument'):
 
     for row in table.find_all('tr'):
         cols = row.find_all('td')
-        quotes.append((cols[1].text.strip().replace(",", ""), cols[2].text.strip().replace(",", ""), cols[3].text.strip().replace(",", ""), cols[4].text.strip().replace(",", ""), cols[5].text.strip().replace(",", ""), cols[6].text.strip().replace(",", ""), cols[7].text.strip().replace(",", ""), cols[8].text.strip().replace(",", ""), cols[9].text.strip().replace(",", ""),cols[10].text.strip().replace(",", ""),cols[11].text.strip().replace(",", "")))
+        quotes.append((cols[1].text.strip().replace(",", ""), 
+                        cols[2].text.strip().replace(",", ""), 
+                        cols[3].text.strip().replace(",", ""), 
+                        cols[4].text.strip().replace(",", ""), 
+                        cols[5].text.strip().replace(",", ""), 
+                        cols[6].text.strip().replace(",", ""), 
+                        cols[7].text.strip().replace(",", ""), 
+                        cols[8].text.strip().replace(",", ""), 
+                        cols[9].text.strip().replace(",", ""),
+                        cols[10].text.strip().replace(",", ""),
+                        cols[11].text.strip().replace(",", "")
+                        ))
     df = pd.DataFrame(quotes)
     return df
 
@@ -93,6 +114,12 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument'):
 
     for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
-        quotes.append({'date' : cols[1].text.strip().replace(",", ""), 'open' : cols[6].text.strip().replace(",", ""), 'high' : cols[4].text.strip().replace(",", ""), 'close' : cols[7].text.strip().replace(",", ""), 'low' : cols[5].text.strip().replace(",", ""), 'volume' : cols[11].text.strip().replace(",", "")})
+        quotes.append({'date' : cols[1].text.strip().replace(",", ""), 
+                        'open' : cols[6].text.strip().replace(",", ""), 
+                        'high' : cols[4].text.strip().replace(",", ""), 
+                        'close' : cols[7].text.strip().replace(",", ""), 
+                        'low' : cols[5].text.strip().replace(",", ""), 
+                        'volume' : cols[11].text.strip().replace(",", "")
+                        })
     df = pd.DataFrame(quotes)
     return df
