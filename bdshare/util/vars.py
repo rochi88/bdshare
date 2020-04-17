@@ -8,3 +8,4 @@ DSE_LPE_URL = "https://www.dsebd.org/latest_PE_all.php"
 DSE_NEWS_URL = "https://www.dsebd.org/news_archive_view.php"
 
 DSE_MARKET_INF_URL = "http://dsebd.org/recent_market_information.php"
+DSE_CLOSE_PRICE_URL = "http://dsebd.org/dse_close_price_archive.php"

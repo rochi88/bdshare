@@ -27,6 +27,12 @@ from bdshare import get_current_trade_data
 df = get_current_trade_data()
 print(df.to_string())
 ```
+```python
+from bdshare import get_current_trade_data
+
+df = get_current_trade_data('GP') # get specific instrument data
+print(df.to_string())
+```
 
 #### Get historical data
 ```python
@@ -47,7 +53,7 @@ print(df.to_string())
  - [x] refine logic for parameters 
  - [x] examples;
  - [x] DSE daily data and historical data crawling
- - [ ] DSE news,pe crawling
+ - [x] DSE news,p/e crawling
  - [ ] Add CSE support
 
 
