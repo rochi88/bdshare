@@ -90,6 +90,7 @@ def get_hist_data(start=None, end=None, code='All Instrument'):
                         'volume' : cols[11].text.strip().replace(",", "")
                     })
     df = pd.DataFrame(quotes)
+    df = df.set_index('date')
     return df
 
 
@@ -127,6 +128,10 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument'):
                         'volume' : cols[11].text.strip().replace(",", "")
                         })
     df = pd.DataFrame(quotes)
+    if 'date' in df.columns:
+        df = df.set_index('date')
+    else:
+        print('No data found')
     return df
 
 def get_close_price_data(start=None, end=None, code='All Instrument'):
@@ -161,4 +166,5 @@ def get_close_price_data(start=None, end=None, code='All Instrument'):
                         'ycp' : cols[4].text.strip().replace(",", "")
                         })
     df = pd.DataFrame(quotes)
+    df = df.set_index('date')
     return df
