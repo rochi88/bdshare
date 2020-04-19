@@ -1,4 +1,5 @@
 import os
+import time
 import requests 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -90,16 +91,22 @@ def get_hist_data(start=None, end=None, code='All Instrument'):
                         'volume' : cols[11].text.strip().replace(",", "")
                     })
     df = pd.DataFrame(quotes)
-    df = df.set_index('date')
+    if 'date' in df.columns:
+        df = df.set_index('date')
+        df = df.sort_index(ascending = False)
+    else:
+        print('No data found')
     return df
 
 
-def get_basic_hist_data(start=None, end=None, code='All Instrument'):
+def get_basic_hist_data(start=None, end=None, code='All Instrument', retry_count=3, pause=0.001):
     """
         get historical stock price.
         :param start: str, Start date e.g.: '2020-03-01'
         :param end: str, End date e.g.: '2020-03-02'
         :param code: str, Instrument symbol e.g.: 'ACI'
+        :param retry_count : int, e.g.: 3
+        :param pause : int, e.g.: 0
         :return: dataframe
     """
     # data to be sent to post request
@@ -108,31 +115,37 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument'):
             'Symbol': code,
             'ViewDayEndArchive': 'View Day End Archive'}
 
-    r = requests.post(url = vs.DSE_DEA_URL, data = data) 
+    for _ in range(retry_count):
+        time.sleep(pause)
+        try:
+            r = requests.post(url = vs.DSE_DEA_URL, data = data) 
+        except Exception as e:
+            print(e)
+        else:
+            soup = BeautifulSoup(r.text, 'html.parser')
 
-    soup = BeautifulSoup(r.text, 'html.parser')
-
-    # columns: date, open, high, close, low, volume
-    quotes=[] # a list to store quotes 
+            # columns: date, open, high, close, low, volume
+            quotes=[] # a list to store quotes 
 
 
-    table = soup.find('table', attrs={'cellspacing' : '1'})
+            table = soup.find('table', attrs={'cellspacing' : '1'})
 
-    for row in table.find_all('tr')[1:]:
-        cols = row.find_all('td')
-        quotes.append({'date' : cols[1].text.strip().replace(",", ""), 
-                        'open' : cols[6].text.strip().replace(",", ""), 
-                        'high' : cols[4].text.strip().replace(",", ""), 
-                        'close' : cols[7].text.strip().replace(",", ""), 
-                        'low' : cols[5].text.strip().replace(",", ""), 
-                        'volume' : cols[11].text.strip().replace(",", "")
-                        })
-    df = pd.DataFrame(quotes)
-    if 'date' in df.columns:
-        df = df.set_index('date')
-    else:
-        print('No data found')
-    return df
+            for row in table.find_all('tr')[1:]:
+                cols = row.find_all('td')
+                quotes.append({'date' : cols[1].text.strip().replace(",", ""), 
+                                'open' : cols[6].text.strip().replace(",", ""), 
+                                'high' : cols[4].text.strip().replace(",", ""), 
+                                'close' : cols[7].text.strip().replace(",", ""), 
+                                'low' : cols[5].text.strip().replace(",", ""), 
+                                'volume' : cols[11].text.strip().replace(",", "")
+                                })
+            df = pd.DataFrame(quotes)
+            if 'date' in df.columns:
+                df = df.set_index('date')
+                df = df.sort_index(ascending = False)
+            else:
+                print('No data found')
+            return df
 
 def get_close_price_data(start=None, end=None, code='All Instrument'):
     """
@@ -166,5 +179,9 @@ def get_close_price_data(start=None, end=None, code='All Instrument'):
                         'ycp' : cols[4].text.strip().replace(",", "")
                         })
     df = pd.DataFrame(quotes)
-    df = df.set_index('date')
+    if 'date' in df.columns:
+        df = df.set_index('date')
+        df = df.sort_index(ascending = False)
+    else:
+        print('No data found')
     return df
