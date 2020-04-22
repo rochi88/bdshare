@@ -134,9 +134,9 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument', retry_count
                 cols = row.find_all('td')
                 quotes.append({'date' : cols[1].text.strip().replace(",", ""), 
                                 'open' : cols[6].text.strip().replace(",", ""), 
-                                'high' : cols[4].text.strip().replace(",", ""), 
+                                'high' : cols[4].text.strip().replace(",", ""),  
+                                'low' : cols[5].text.strip().replace(",", ""),
                                 'close' : cols[7].text.strip().replace(",", ""), 
-                                'low' : cols[5].text.strip().replace(",", ""), 
                                 'volume' : cols[11].text.strip().replace(",", "")
                                 })
             df = pd.DataFrame(quotes)
