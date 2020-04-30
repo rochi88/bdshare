@@ -9,3 +9,5 @@ DSE_NEWS_URL = "https://www.dsebd.org/news_archive_view.php"
 
 DSE_MARKET_INF_URL = "http://dsebd.org/recent_market_information.php"
 DSE_CLOSE_PRICE_URL = "http://dsebd.org/dse_close_price_archive.php"
+
+CSE_LSP_URL = "https://www.cse.com.bd/market/current_price"

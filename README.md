@@ -2,7 +2,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/bdshare/badge/?version=latest)](https://bdshare.readthedocs.io/en/latest/?badge=latest)
 
-A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At preesent this utility can collect data from dhaka stock exchange only.
+A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At preesent this utility can collect data from dhaka and chittagong stock exchange.
 
 ### <a name="contents"></a>Contents
 - [Installation](#install)
@@ -54,7 +54,8 @@ print(df.to_string())
  - [x] examples;
  - [x] DSE daily data and historical data crawling
  - [x] DSE news,p/e crawling
- - [ ] Add CSE support
+ - [x] Add CSE support for last trading price
+ - [ ] Add P/E and historical data scraping form CSE
 
 
 ### Documentation
