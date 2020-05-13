@@ -1,10 +1,6 @@
 from setuptools import setup, find_packages
-import codecs
-import os
+from bdshare import __version__
 
-
-def read(fname):
-    return codecs.open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 with open('README.md') as readme_file:
     README = readme_file.read()
@@ -14,7 +10,7 @@ with open('CHANGELOG.md') as history_file:
 
 setup_args = dict(
     name='bdshare',
-    version=read('bdshare/VERSION.txt'),
+    version=__version__,
     description='A utility for crawling historical and Real-time Quotes of dse',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,
