@@ -128,7 +128,7 @@ def get_hist_data(start=None, end=None, code='All Instrument'):
     return df
 
 
-def get_basic_hist_data(start=None, end=None, code='All Instrument', retry_count=3, pause=0.001):
+def get_basic_hist_data(start=None, end=None, code='All Instrument', index=None, retry_count=3, pause=0.001):
     """
         get historical stock price.
         :param start: str, Start date e.g.: '2020-03-01'
@@ -170,7 +170,9 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument', retry_count
                                 })
             df = pd.DataFrame(quotes)
             if 'date' in df.columns:
-                df = df.set_index('date')
+                if (index=='date'):
+                    df = df.set_index('date')
+                    df = df.sort_index(ascending = False)
                 df = df.sort_index(ascending = False)
             else:
                 print('No data found')
