@@ -1,5 +1,23 @@
 # Change log
 
+## [0.1.2] - 2020-05-21
+
+### Added
+- modified index declaration
+
+### Changed
+
+### Removed
+
+## [0.1.1] - 2020-05-20
+
+### Added
+- modified index declaration
+
+### Changed
+
+### Removed
+
 ## [0.1.0] - 2020-04-08
 
 ### Added
