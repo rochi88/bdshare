@@ -162,18 +162,18 @@ def get_basic_hist_data(start=None, end=None, code='All Instrument', index=None,
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
                 quotes.append({'date' : cols[1].text.strip().replace(",", ""), 
-                                'open' : cols[6].text.strip().replace(",", ""), 
-                                'high' : cols[4].text.strip().replace(",", ""),  
-                                'low' : cols[5].text.strip().replace(",", ""),
-                                'close' : cols[7].text.strip().replace(",", ""), 
-                                'volume' : cols[11].text.strip().replace(",", "")
+                                'open' : float(cols[6].text.strip().replace(",", "")), 
+                                'high' : float(cols[4].text.strip().replace(",", "")),  
+                                'low' : float(cols[5].text.strip().replace(",", "")),
+                                'close' : float(cols[7].text.strip().replace(",", "")), 
+                                'volume' : int(cols[11].text.strip().replace(",", ""))
                                 })
             df = pd.DataFrame(quotes)
             if 'date' in df.columns:
                 if (index=='date'):
                     df = df.set_index('date')
-                    df = df.sort_index(ascending = False)
-                df = df.sort_index(ascending = False)
+                    df = df.sort_index(ascending = True)
+                df = df.sort_index(ascending = True)
             else:
                 print('No data found')
             return df
