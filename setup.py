@@ -18,7 +18,7 @@ setup_args = dict(
     packages=find_packages(),
     author='Raisul Islam',
     author_email='raisul.exe@gmail.com',
-    keywords=['crawling','dse'],
+    keywords=['crawling', 'dse'],
     url='https://github.com/rochi88/bdshare',
     download_url='https://github.com/rochi88/bdshare/archive/master.zip'
 )
@@ -26,21 +26,22 @@ setup_args = dict(
 install_requires = [
     'beautifulsoup4',
     'requests',
+    'html5lib',
     'pandas'
 ]
 
-classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Topic :: Software Development :: Libraries :: Python Modules',
 ]
 
 if __name__ == '__main__':

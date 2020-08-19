@@ -1,5 +1,16 @@
 # Change log
 
+## [0.1.3] - 2020-08-20
+
+### Added
+- html5lib
+- added get params
+
+### Changed
+- post request to get
+
+### Removed
+
 ## [0.1.2] - 2020-05-21
 
 ### Added
