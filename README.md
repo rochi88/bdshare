@@ -17,6 +17,10 @@ A utility for crawling historical and Real-time data from stock exchanges of Ban
 ```sh
 $ pip install bdshare
 ```
+or upgrade
+```sh
+$ pip install -U bdshare
+```
 
 ### <a name="usage"></a>[Example Use](#contents)
 
