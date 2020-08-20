@@ -1,5 +1,14 @@
 # Change log
 
+## [0.1.4] - 2020-08-22
+
+### Added
+- added get_market_inf_more_data
+
+### Changed
+
+### Removed
+
 ## [0.1.3] - 2020-08-20
 
 ### Added
