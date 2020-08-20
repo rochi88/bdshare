@@ -18,4 +18,4 @@ from bdshare.stock.news import (get_agm_news, get_all_news)
 """
 for market data
 """
-from bdshare.stock.market import (get_market_inf, get_latest_pe)
+from bdshare.stock.market import (get_market_inf, get_latest_pe, get_market_inf_more_data)
