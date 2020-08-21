@@ -17,7 +17,6 @@
 
 # -- Project information -----------------------------------------------------
 # General information about the project.
-import sphinx_theme
 project = u'bdshare'
 copyright = u'2020, Raisul Islam'
 author = u'Raisul Islam'
@@ -75,9 +74,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 #html_theme = 'alabaster'
 #html_theme = 'default'
-#html_theme = 'sphinx_theme'
-html_theme = 'neo_rtd_theme'
-html_theme_path = [sphinx_theme.get_html_theme_path()]
+html_theme = 'sphinx_theme'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
