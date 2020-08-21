@@ -6,6 +6,7 @@
 - added get_market_inf_more_data
 
 ### Changed
+- Changed documentation
 
 ### Removed
 

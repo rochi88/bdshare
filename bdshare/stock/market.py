@@ -98,7 +98,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
                                'DSEX Index': float(cols[5].text.strip().replace(",", "")),
                                'DSES Index': float(cols[6].text.strip().replace(",", "")),
                                'DS30 Index': float(cols[7].text.strip().replace(",", "")),
-                               'DGEN Index': float(cols[8].text.strip().replace("-", ""))
+                               'DGEN Index': float(cols[8].text.strip().replace("-", "0"))
                                })
             df = pd.DataFrame(quotes)
             if 'date' in df.columns:
