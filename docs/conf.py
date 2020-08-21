@@ -10,17 +10,26 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import sys
+import os
+import shlex
 
 
 # -- Project information -----------------------------------------------------
+# General information about the project.
+project = u'bdshare'
+copyright = u'2020, Raisul Islam'
+author = u'Raisul Islam'
 
-project = 'bdshare'
-copyright = '2020, raisul'
-author = 'raisul'
 
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+version = '0.1.5'
+# The full version, including alpha/beta/rc tags.
+release = '0.1.5'
 
 # -- General configuration ---------------------------------------------------
 
@@ -28,13 +37,15 @@ author = 'raisul'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+#source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -53,8 +64,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+#html_theme = 'alabaster'
 #html_theme = 'default'
+html_theme = 'sphinx_rtd_theme'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
