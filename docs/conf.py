@@ -14,7 +14,6 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 # -- Project information -----------------------------------------------------
 # General information about the project.
 project = u'bdshare'
@@ -46,6 +45,7 @@ language = None
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.githubpages',
+    "sphinx_rtd_theme",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,7 +74,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 #html_theme = 'alabaster'
 #html_theme = 'default'
-html_theme = 'sphinx_theme'
+html_theme = "sphinx_rtd_theme"
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
