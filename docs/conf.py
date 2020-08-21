@@ -56,6 +56,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'alabaster'
 #html_theme = 'default'
 
+# The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
 # Add any paths that contain custom static files (such as style sheets) here,

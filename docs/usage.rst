@@ -2,7 +2,8 @@
 Usage
 ========
 
-#### Get DSE last or current trading data
+Get DSE last or current trading data
+====================================
 .. code-block:: python
   from bdshare import get_current_trade_data
 
@@ -16,14 +17,15 @@ Usage
   print(df.to_string())
 
 
-#### Get historical data
+Get historical data
+===================
 .. code-block:: python
   from bdshare import get_hist_data
 
   df = get_hist_data('2020-03-01','2020-03-02') # get all instrument data
   print(df.to_string())
 
-or
+
 .. code-block:: python
   from bdshare import get_hist_data
 
@@ -31,14 +33,15 @@ or
   print(df.to_string())
 
 
-#### Get OHLCV historical data
+Get OHLCV historical data
+=========================
 .. code-block:: python
   from bdshare import get_basic_hist_data
 
   df = get_basic_hist_data('2020-03-01','2020-03-02') # get all instrument data
   print(df.to_string())
 
-or
+
 .. code-block:: python
   from bdshare import get_basic_hist_data
 
@@ -46,7 +49,8 @@ or
   print(df.to_string())
 
 
-#### Get DSE Index data
+Get DSE Index data
+==================
 .. code-block:: python
   from bdshare import get_market_inf_more_data
 
@@ -54,7 +58,8 @@ or
   print(df.to_string())
 
 
-#### Get CSE last or current trading data
+Get CSE last or current trading data
+====================================
 .. code-block:: python
   from bdshare import get_cse_current_trade_data
 
