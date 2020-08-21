@@ -1,6 +1,6 @@
-========
+=====
 Usage
-========
+=====
 
 Get DSE last or current trading data
 ------------------------------------

@@ -10,13 +10,14 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import sys
-import os
-import shlex
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
 # General information about the project.
+import sphinx_theme
 project = u'bdshare'
 copyright = u'2020, Raisul Islam'
 author = u'Raisul Islam'
@@ -44,15 +45,16 @@ language = None
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-#source_suffix = '.rst'
-source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
+#source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -73,7 +75,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 #html_theme = 'alabaster'
 #html_theme = 'default'
-html_theme = 'sphinx_rtd_theme'
+#html_theme = 'sphinx_theme'
+html_theme = 'neo_rtd_theme'
+html_theme_path = [sphinx_theme.get_html_theme_path()]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
