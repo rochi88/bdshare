@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from bdshare import __version__
+from bdshare import __version__ , __author__
 
 
 with open('README.md') as readme_file:
@@ -16,7 +16,7 @@ setup_args = dict(
     long_description=README + '\n\n' + HISTORY,
     license='MIT',
     packages=find_packages(),
-    author='Raisul Islam',
+    author=__author__,
     author_email='raisul.exe@gmail.com',
     keywords=['crawling', 'dse'],
     url='https://github.com/rochi88/bdshare',

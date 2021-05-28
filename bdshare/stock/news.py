@@ -1,8 +1,6 @@
-import os
 import requests 
 from bs4 import BeautifulSoup
 import pandas as pd
-from datetime import datetime
 from bdshare.util import vars as vs
 
 def get_agm_news():
@@ -10,7 +8,7 @@ def get_agm_news():
         get stock agm declarations.
         :return: dataframe
     """
-    r = requests.get(vs.DSE_AGM_URL)
+    r = requests.get(vs.DSE_URL+vs.DSE_AGM_URL)
     soup = BeautifulSoup(r.text, 'html.parser')
     quotes=[] # a list to store quotes 
 
@@ -44,7 +42,7 @@ def get_all_news(start=None, end=None, code=None):
             'Symbol': code,
             'ViewNews': 'View News'}
 
-    r = requests.post(url = vs.DSE_NEWS_URL, data = data) 
+    r = requests.post(url = vs.DSE_URL+vs.DSE_NEWS_URL, data = data) 
 
     soup = BeautifulSoup(r.text, 'html.parser')
 
