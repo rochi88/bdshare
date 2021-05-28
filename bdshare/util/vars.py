@@ -7,7 +7,7 @@ DSE_LSP_URL = "latest_share_price_scroll_l.php"
 DSE_DEA_URL = "day_end_archive.php"
 DSE_AGM_URL = "Company_AGM.htm"
 DSE_LPE_URL = "latest_PE_all.php"
-DSE_NEWS_URL = "news_archive_view.php"
+DSE_NEWS_URL = "old_news.php"
 DSE_CLOSE_PRICE_URL = "dse_close_price_archive.php"
 
 DSE_MARKET_INF_URL = "recent_market_information.php"

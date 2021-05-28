@@ -21,12 +21,7 @@ class Test(unittest.TestCase):
 
     def test_get_basic_hist_data(self):
         end = dt.datetime.now().date()
-        df = get_basic_hist_data(end, end,'BATBC') # get specific instrument data
-        print(df.to_string())
-        print(df.dtypes)
-
-    def test2_get_basic_hist_data(self):
-        df = get_basic_hist_data('2020-01-01', '2020-03-25', 'BATBC')
+        df = get_basic_hist_data('2020-01-01', end,'BATBC')
         print(df.to_string())
         print(df.dtypes)
 

@@ -10,6 +10,8 @@
 
 ### Changed
 - Changed documentation
+- changed get_agm_news 
+- changed get_all_news
 
 
 ## [0.1.4] - 2020-08-22
