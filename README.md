@@ -7,7 +7,8 @@ A utility for crawling historical and Real-time data from stock exchanges of Ban
 ### <a name="contents"></a>Contents
 - [Installation](#install)
 - [Example Use](#usage)
-- [TODO's and Road Map:](#roadmap)
+- [List of functions](#functions)
+- [Todo's and Road Map:](#roadmap)
 
 
 ## Quickstart
@@ -90,6 +91,33 @@ df = get_cse_current_trade_data('GP') # get specific instrument data
 print(df.to_string())
 ```
 
+### <a name="functions"></a> [List of functions](#contents)
+
+#### Trading data
+|Function|Params|Description|
+|---|---|---|
+|get_current_trade_data()|||
+|get_dsex_data()|||
+|get_current_trading_code()|||
+|get_hist_data()|||
+|get_basic_hist_data()|||
+|get_close_price_data()|||
+|get_cse_current_trade_data()|||
+
+#### Trading news
+|Function|Params|Description|
+|---|---|---|
+|get_agm_news()|||
+|get_all_news()|||
+
+#### Market data
+|Function|Params|Description|
+|---|---|---|
+|get_market_inf()|||
+|get_latest_pe()|||
+|get_market_inf_more_data()|||
+|get_market_depth_data()|||
+
 ### <a name="roadmap"></a> [TODO's and Road Map:](#contents)
  - [x] refine logic for parameters 
  - [x] examples;
@@ -97,6 +125,7 @@ print(df.to_string())
  - [x] DSE news,p/e crawling
  - [x] Add CSE support for last trading price
  - [x] Add DSE Index data support
+ - [x] Add DSEX Index data support
  - [ ] Add P/E and historical data scraping form CSE
 
 

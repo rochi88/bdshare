@@ -58,16 +58,16 @@ def get_dsex_data(symbol=None, retry_count=1, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.get(vs.DSE_URL+vs.DSEX_INDEX_VALUEL)
+            r = requests.get(vs.DSE_URL+vs.DSEX_INDEX_VALUE)
             if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL+vs.DSEX_INDEX_VALUEL)
+                r = requests.get(vs.DSE_ALT_URL+vs.DSEX_INDEX_VALUE)
         except Exception as e:
             print(e)
         else:
             soup = BeautifulSoup(r.content, 'html5lib')
             quotes = []  # a list to store quotes
             table = soup.find('table', attrs={
-                                'class': 'table table-bordered background-white shares-table fixedHeader'})
+                                'class': 'table table-bordered background-white shares-table'})
 
             # print(table)
             for row in table.find_all('tr')[1:]:
