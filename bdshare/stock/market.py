@@ -14,19 +14,20 @@ def get_market_inf():
     soup = BeautifulSoup(r.text, 'html.parser')
     quotes = []  # a list to store quotes
 
-    table = soup.find('table', attrs={'class': 'TFtable', 'cellpadding': '0'})
+    table = soup.find('table', attrs={'class': 'table table-bordered background-white text-center', '_id': 'data-table'})
 
-    for row in table.find_all('tr'):
+    for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
-        quotes.append((cols[1].text.strip().replace(",", ""),
-                       cols[2].text.strip().replace(",", ""),
-                       cols[3].text.strip().replace(",", ""),
-                       cols[4].text.strip().replace(",", ""),
-                       cols[5].text.strip().replace(",", ""),
-                       cols[6].text.strip().replace(",", ""),
-                       cols[7].text.strip().replace(",", ""),
-                       cols[8].text.strip().replace(",", "")
-                       ))
+        quotes.append({'Date': cols[0].text.strip().replace(",", ""),
+                       'Total Trade': cols[1].text.strip().replace(",", ""),
+                       'Total Volume': cols[2].text.strip().replace(",", ""),
+                       'Total Value (mn)': cols[3].text.strip().replace(",", ""),
+                       'Total Market Cap. (mn)': cols[4].text.strip().replace(",", ""),
+                       'DSEX Index': cols[5].text.strip().replace(",", ""),
+                       'DSES Index': cols[6].text.strip().replace(",", ""),
+                       'DS30 Index': cols[7].text.strip().replace(",", ""),
+                       'DGEN Index': cols[8].text.strip().replace(",", "")
+        })
     df = pd.DataFrame(quotes)
     return df
 
@@ -88,7 +89,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
 
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
-                quotes.append({'date': cols[0].text.strip().replace(",", ""),
+                quotes.append({'Date': cols[0].text.strip().replace(",", ""),
                                'Total Trade': int(cols[1].text.strip().replace(",", "")),
                                'Total Volume': int(cols[2].text.strip().replace(",", "")),
                                'Total Value in Taka(mn)': float(cols[3].text.strip().replace(",", "")),
