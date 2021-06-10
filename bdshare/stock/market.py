@@ -73,14 +73,14 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.post(url=vs.DSE_URL+vs.DSE_MARKET_INF_MORE_URL, params=data)
+            r = requests.post(
+                url=vs.DSE_URL+vs.DSE_MARKET_INF_MORE_URL, data=data)
         except Exception as e:
             print(e)
         else:
             #soup = BeautifulSoup(r.text, 'html.parser')
             soup = BeautifulSoup(r.content, 'html5lib')
 
-            # columns: date, open, high, close, low, volume
             quotes = []  # a list to store quotes
 
             table = soup.find('table', attrs={
@@ -123,9 +123,11 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.post(url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
+            r = requests.post(
+                url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
             if r.status_code != 200:
-                r = requests.post(url=vs.DSE_ALT_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
+                r = requests.post(url=vs.DSE_ALT_URL +
+                                  vs.DSE_MARKET_DEPTH_URL, params=data)
         except Exception as e:
             print(e)
         else:
