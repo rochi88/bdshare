@@ -14,19 +14,20 @@ def get_market_inf():
     soup = BeautifulSoup(r.text, 'html.parser')
     quotes = []  # a list to store quotes
 
-    table = soup.find('table', attrs={'class': 'TFtable', 'cellpadding': '0'})
+    table = soup.find('table', attrs={'class': 'table table-bordered background-white text-center', '_id': 'data-table'})
 
-    for row in table.find_all('tr'):
+    for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
-        quotes.append((cols[1].text.strip().replace(",", ""),
-                       cols[2].text.strip().replace(",", ""),
-                       cols[3].text.strip().replace(",", ""),
-                       cols[4].text.strip().replace(",", ""),
-                       cols[5].text.strip().replace(",", ""),
-                       cols[6].text.strip().replace(",", ""),
-                       cols[7].text.strip().replace(",", ""),
-                       cols[8].text.strip().replace(",", "")
-                       ))
+        quotes.append({'Date': cols[0].text.strip().replace(",", ""),
+                       'Total Trade': cols[1].text.strip().replace(",", ""),
+                       'Total Volume': cols[2].text.strip().replace(",", ""),
+                       'Total Value (mn)': cols[3].text.strip().replace(",", ""),
+                       'Total Market Cap. (mn)': cols[4].text.strip().replace(",", ""),
+                       'DSEX Index': cols[5].text.strip().replace(",", ""),
+                       'DSES Index': cols[6].text.strip().replace(",", ""),
+                       'DS30 Index': cols[7].text.strip().replace(",", ""),
+                       'DGEN Index': cols[8].text.strip().replace(",", "")
+        })
     df = pd.DataFrame(quotes)
     return df
 
@@ -73,14 +74,14 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.post(url=vs.DSE_URL+vs.DSE_MARKET_INF_MORE_URL, params=data)
+            r = requests.post(
+                url=vs.DSE_URL+vs.DSE_MARKET_INF_MORE_URL, data=data)
         except Exception as e:
             print(e)
         else:
             #soup = BeautifulSoup(r.text, 'html.parser')
             soup = BeautifulSoup(r.content, 'html5lib')
 
-            # columns: date, open, high, close, low, volume
             quotes = []  # a list to store quotes
 
             table = soup.find('table', attrs={
@@ -88,7 +89,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
 
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
-                quotes.append({'date': cols[0].text.strip().replace(",", ""),
+                quotes.append({'Date': cols[0].text.strip().replace(",", ""),
                                'Total Trade': int(cols[1].text.strip().replace(",", "")),
                                'Total Volume': int(cols[2].text.strip().replace(",", "")),
                                'Total Value in Taka(mn)': float(cols[3].text.strip().replace(",", "")),
@@ -123,9 +124,11 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.post(url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
+            r = requests.post(
+                url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
             if r.status_code != 200:
-                r = requests.post(url=vs.DSE_ALT_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
+                r = requests.post(url=vs.DSE_ALT_URL +
+                                  vs.DSE_MARKET_DEPTH_URL, params=data)
         except Exception as e:
             print(e)
         else:
