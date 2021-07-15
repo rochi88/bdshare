@@ -102,6 +102,7 @@ print(df.to_string())
 |get_hist_data()|||
 |get_basic_hist_data()|||
 |get_close_price_data()|||
+|get_last_trade_price_data()|||
 |get_cse_current_trade_data()|||
 
 #### Trading news

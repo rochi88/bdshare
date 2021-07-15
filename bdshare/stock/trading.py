@@ -261,6 +261,11 @@ def get_close_price_data(start=None, end=None, code='All Instrument'):
         return df
 
 
+def get_last_trade_price_data():
+    df = pd.read_fwf('https://dsebd.org/datafile/quotes.txt', sep='\t', skiprows=4)
+    return df
+
+
 def get_cse_current_trade_data(symbol=None):
     """
         get last stock price.
