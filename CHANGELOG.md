@@ -1,6 +1,14 @@
 # Change log
 
 
+## [0.2.1] - 2021-08-01
+
+### Added
+- 
+
+### Changed
+- `get_current_trading_code()`
+
 ## [0.2.0] - 2021-06-01
 
 ### Added

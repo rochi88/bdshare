@@ -105,7 +105,8 @@ def get_current_trading_code():
     #soup = BeautifulSoup(r.text, 'html.parser')
     soup = BeautifulSoup(r.content, 'html5lib')
     quotes = []  # a list to store quotes
-    table = soup.find('table')
+    table = soup.find('table', attrs={
+                                'class': 'table table-bordered background-white shares-table fixedHeader'})
     for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
         quotes.append({'symbol': cols[1].text.strip().replace(",", "")})
