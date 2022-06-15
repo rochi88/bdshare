@@ -2,10 +2,10 @@ version: 2
 #formats: all
 sphinx:
   configuration: docs/conf.py
-  fail_on_warning: true
+  fail_on_warning: false
 python:
   # For available versions, see:
   # https://docs.readthedocs.io/en/stable/config-file/v2.html#build-image
-  version: "3.7"
+  version: "3.10"
   install:
     - requirements: docs/requirements.txt
