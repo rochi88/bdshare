@@ -11,7 +11,7 @@ app.debug = True
 
 @app.route('/')
 def index():
-    df = get_basic_hist_data('2019-03-01','2020-03-01','ACI')
+    df = get_basic_hist_data('2022-03-01','2022-10-01','ACI')
 				
     graphs = [
         dict(
