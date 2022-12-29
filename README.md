@@ -18,6 +18,10 @@ A utility for crawling historical and Real-time data from stock exchanges of Ban
 
 ### <a name="install"></a>[Installation](#contents)
 
+Required Packages
+```sh
+$ pip install requests beautifulsoup4 pandas
+```
 ```sh
 $ pip install bdshare
 ```
