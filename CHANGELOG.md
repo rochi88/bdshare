@@ -1,5 +1,13 @@
 # Change log
 
+## [0.4.0] - 2023-03-12
+
+### Added
+- n/a
+
+### Changed
+- changed package manager
+
 ## [0.3.2] - 2022-10-10
 
 ### Added
