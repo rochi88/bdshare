@@ -5,7 +5,7 @@
 ![StyleCI](https://github.styleci.io/repos/253465924/shield?branch=master)
 
 
-A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At present this utility can collect data from Dhaka and Chittagong stock exchange.
+A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At present this utility can collect data from Dhaka stock exchange.
 
 ### <a name="contents"></a>Contents
 - [Installation](#install)
