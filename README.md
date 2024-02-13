@@ -1,4 +1,12 @@
-# Bdshare
+
+  ____      _     _                    
+ | __ )  __| |___| |__   __ _ _ __ ___ 
+ |  _ \ / _` / __| '_ \ / _` | '__/ _ \
+ | |_) | (_| \__ \ | | | (_| | | |  __/
+ |____/ \__,_|___/_| |_|\__,_|_|  \___|
+                                       
+---
+
 
 [![Documentation Status](https://readthedocs.org/projects/bdshare/badge/?version=latest)](https://bdshare.readthedocs.io/en/latest/?badge=latest)
 ![PyPI](https://img.shields.io/pypi/v/bdshare)
