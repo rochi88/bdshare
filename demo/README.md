@@ -4,7 +4,7 @@ A simple plotly.js example served with flask
 ## Usage
 
 ```bash
-$ python ex_flask.py
+$ python app.py
 ```
 
  * Running on http://0.0.0.0:9999/ (Press CTRL+C to quit)

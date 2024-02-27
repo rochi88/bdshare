@@ -1,4 +1,4 @@
-FROM python:3.10.1-buster
+FROM python:3.11-slim-buster
 
 # time-zone
 RUN set -x \
@@ -9,8 +9,17 @@ RUN set -x \
     && echo "Asia/Dhaka" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir beautifulsoup4
-RUN pip install --no-cache-dir requests
-RUN pip install --no-cache-dir html5lib
-RUN pip install --no-cache-dir pandas
-RUN pip install --no-cache-dir bdshare --upgrade
+
+WORKDIR /demo
+
+COPY ./demo/ ./
+
+RUN pip install --upgrade pip
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 9999
+
+# COPY . .
+
+CMD [ "python", "app.py" ]
