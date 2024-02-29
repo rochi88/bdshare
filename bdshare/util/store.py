@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import pandas as pd
-import bdshare as ds
+from pandas import compat
 import os
 
 
@@ -21,7 +21,7 @@ class Store(object):
         if path is None:
             path = self.path
         file_path = '%s%s%s.%s'
-        if isinstance(name) and name is not '':
+        if isinstance(name, compat.string_types) and name is not '':
             if (path is None) or (path == ''):
                 file_path = '.'.join([name, to])
             else:
