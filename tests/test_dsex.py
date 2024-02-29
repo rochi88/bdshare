@@ -6,5 +6,6 @@ Created on 2021-Jun-09
 from bdshare import get_dsex_data, Store
 
 df = get_dsex_data()
-Store(data=df)
+
 print(df.to_string())
+Store(data=df).save()
