@@ -123,12 +123,13 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
 
     for _ in range(retry_count):
         time.sleep(pause)
+        session  = requests.Session()
+        session.head('https://dsebd.org/mkt_depth_3.php')
+        headers = {'X-Requested-With':'XMLHttpRequest'}
+        session.headers.update(headers)
         try:
-            r = requests.post(
-                url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, params=data)
-            if r.status_code != 200:
-                r = requests.post(url=vs.DSE_ALT_URL +
-                                  vs.DSE_MARKET_DEPTH_URL, params=data)
+            r = session.post(
+                url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, data=data)
         except Exception as e:
             print(e)
         else:
@@ -139,7 +140,7 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
             quotes = []  # a list to store quotes
 
             table = soup.find('table', attrs={
-                              'class': 'table table-stripped'})
+                              'class': 'table'})
 
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
