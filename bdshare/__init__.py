@@ -20,3 +20,5 @@ for market data
 from bdshare.stock.market import (get_market_inf, get_latest_pe, get_market_inf_more_data, get_market_depth_data)
 
 from bdshare.util.store import Store
+
+from bdshare.util.upass import (get_token, set_token)

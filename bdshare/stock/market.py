@@ -113,7 +113,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
 def get_market_depth_data(index=None, retry_count=3, pause=0.001):
     """
         get market depth data.
-        :param index: str, End date e.g.: 'aci'
+        :param index: str, e.g.: 'aci'
         :param retry_count : int, e.g.: 3
         :param pause : int, e.g.: 0
         :return: dataframe
@@ -124,7 +124,7 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         session  = requests.Session()
-        session.head('https://dsebd.org/mkt_depth_3.php')
+        session.head(vs.DSE_URL+vs.DSE_MARKET_DEPTH_REFERER_URL)
         headers = {'X-Requested-With':'XMLHttpRequest'}
         session.headers.update(headers)
         try:
@@ -133,33 +133,25 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
         except Exception as e:
             print(e)
         else:
-            #soup = BeautifulSoup(r.text, 'html.parser')
             soup = BeautifulSoup(r.content, 'html5lib')
+            
+            matrix = ["Open Price ", "Day's High : ", "Last Trade Price", "Day's Low : ", "Yesterday Close Price ", "No. of Trade : ", "Close Price ", "Total Volume : ", "Total Value (mn): "]
 
-            # columns: date, open, high, close, low, volume
-            quotes = []  # a list to store quotes
+            quotes = [] 
 
             table = soup.find('table', attrs={
                               'class': 'table'})
+            
+            print(table)
 
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
-                quotes.append({'date': cols[0].text.strip().replace(",", ""),
-                               'Total Trade': int(cols[1].text.strip().replace(",", "")),
-                               'Total Volume': int(cols[2].text.strip().replace(",", "")),
-                               'Total Value in Taka(mn)': float(cols[3].text.strip().replace(",", "")),
-                               'Total Market Cap. in Taka(mn)': float(cols[4].text.strip().replace(",", "")),
-                               'DSEX Index': float(cols[5].text.strip().replace(",", "")),
-                               'DSES Index': float(cols[6].text.strip().replace(",", "")),
-                               'DS30 Index': float(cols[7].text.strip().replace(",", "")),
-                               'DGEN Index': float(cols[8].text.strip().replace("-", "0"))
-                               })
+                for head in matrix:
+                    for col in range(len(cols)):
+                        print(head)
+                        print(col)
+                        if(head in cols[col]):
+                            quotes.append({head: float(cols[col+1].text.strip().replace(":", ""))})
+                        
             df = pd.DataFrame(quotes)
-            if 'date' in df.columns:
-                if (index == 'date'):
-                    df = df.set_index('date')
-                    df = df.sort_index(ascending=True)
-                df = df.sort_index(ascending=True)
-            else:
-                print('No data found')
             return df

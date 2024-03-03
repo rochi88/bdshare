@@ -9,7 +9,7 @@ Created on 2024/02/29
 
 import pandas as pd
 import os
-import cons as ct
+from . import cons as ct
 
 BK = 'bk'
 
