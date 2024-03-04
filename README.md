@@ -110,28 +110,27 @@ Store(df).save()
 #### Trading data
 |Function|Params|Description|
 |---|---|---|
-|get_current_trade_data()|||
-|get_dsex_data()|||
-|get_current_trading_code()|||
-|get_hist_data()|||
-|get_basic_hist_data()|||
-|get_close_price_data()|||
+|get_current_trade_data()|symbol:str|get last stock price|
+|get_dsex_data()|symbol:str|get dseX share price|
+|get_current_trading_code()||get last stock codes|
+|get_hist_data()|start:str, end:str|get historical stock price|
+|get_basic_hist_data()|start:str, end:str, code:str|get historical stock price|
+|get_close_price_data()|start:str, end:str, code:str|get stock close price|
 |get_last_trade_price_data()|||
-|get_cse_current_trade_data()|||
 
 #### Trading news
 |Function|Params|Description|
 |---|---|---|
-|get_agm_news()|||
-|get_all_news()|||
+|get_agm_news()||get stock agm declarations|
+|get_all_news()|start:str, end:str, code:str|get dse news|
 
 #### Market data
 |Function|Params|Description|
 |---|---|---|
-|get_market_inf()|||
-|get_latest_pe()|||
-|get_market_inf_more_data()|||
-|get_market_depth_data()|str|get_market_depth_data('ACI')|
+|get_market_inf()||get stock market information|
+|get_latest_pe()||get last stock P/E|
+|get_market_inf_more_data()|start:str, end:str|get historical stock price|
+|get_market_depth_data()|index:str|get_market_depth_data('ACI')|
 
 ### <a name="roadmap"></a> [TODO's and Road Map:](#contents)
  - [x] refine logic for parameters 

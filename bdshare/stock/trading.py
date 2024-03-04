@@ -265,36 +265,3 @@ def get_close_price_data(start=None, end=None, code='All Instrument'):
 def get_last_trade_price_data():
     df = pd.read_fwf('https://dsebd.org/datafile/quotes.txt', sep='\t', skiprows=4)
     return df
-
-
-def get_cse_current_trade_data(symbol=None):
-    """
-        get last stock price.
-        :param symbol: str, Instrument symbol e.g.: 'ACI' or 'aci'
-        :return: dataframe
-    """
-    try:
-        r = requests.get(vs.CSE_URL+vs.CSE_LSP_URL)
-    except Exception as e:
-        print(e)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    quotes = []  # a list to store quotes
-    table = soup.find('table', attrs={'id': 'dataTable'})
-    for row in table.find_all('tr')[1:]:
-        cols = row.find_all('td')
-        quotes.append({'symbol': cols[1].text.strip().replace(",", ""),
-                       'ltp': cols[2].text.strip().replace(",", ""),
-                       'open': cols[3].text.strip().replace(",", ""),
-                       'high': cols[4].text.strip().replace(",", ""),
-                       'low': cols[5].text.strip().replace(",", ""),
-                       'ycp': cols[6].text.strip().replace(",", ""),
-                       'trade': cols[7].text.strip().replace(",", ""),
-                       'value': cols[8].text.strip().replace(",", ""),
-                       'volume': cols[9].text.strip().replace(",", "")
-                       })
-    df = pd.DataFrame(quotes)
-    if symbol:
-        df = df.loc[df.symbol == symbol.upper()]
-        return df
-    else:
-        return df
