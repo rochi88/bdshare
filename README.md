@@ -129,7 +129,7 @@ print(df.to_string())
 |get_market_inf()|||
 |get_latest_pe()|||
 |get_market_inf_more_data()|||
-|get_market_depth_data()|||
+|get_market_depth_data()|str|get_market_depth_data('aci')|
 
 ### <a name="roadmap"></a> [TODO's and Road Map:](#contents)
  - [x] refine logic for parameters 
@@ -139,7 +139,6 @@ print(df.to_string())
  - [x] Add CSE support for last trading price
  - [x] Add DSE Index data support
  - [x] Add DSEX Index data support
- - [ ] Add P/E and historical data scraping form CSE
 
 
 ### Documentation
