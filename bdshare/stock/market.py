@@ -140,22 +140,19 @@ def get_market_depth_data(index, retry_count=3, pause=0.001):
 
             matrix = ['buy_price', 'buy_volume', 'sell_price', 'sell_volume']
 
-            index = 0
-
-            p = '[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
-
             table = soup.find('table', attrs={
                               'class': 'table table-stripped'})
 
             for row in table.find_all('tr')[:1]:
                 cols = row.find_all('td', valign="top")
+                index = 0
 
                 for mainrow in cols:
                     for row in mainrow.find_all('tr')[2:]:
-                        for col in row.find_all('td'):
-                            result.append({matrix[index]:float(re.search(p, col[0])),
-                                           matrix[index+1]:int(re.search(p, col[1]))})
-                    index+2
+                        newcols = row.find_all('td')
+                        result.append({matrix[index]:float(newcols[0].text.strip()),
+                                    matrix[index+1]:int(newcols[1].text.strip())})
+                    index = index+2
 
             df = pd.DataFrame(result)
             return df
