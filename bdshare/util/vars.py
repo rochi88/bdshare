@@ -17,6 +17,3 @@ DSE_MARKET_DEPTH_URL = "ajax/load-instrument.php"
 DSE_MARKET_DEPTH_REFERER_URL="mkt_depth_3.php"
 
 DSEX_INDEX_VALUE = "dseX_share.php"
-
-CSE_URL = "https://www.cse.com.bd/"
-CSE_LSP_URL = "market/current_price"

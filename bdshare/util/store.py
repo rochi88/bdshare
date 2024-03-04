@@ -5,7 +5,13 @@ from datetime import datetime
 import os
 
 class Store(object):
-
+    """
+        Store dataframe
+        :param data: dataframe,
+        :param name: str,
+        :param path: str,
+        :return: none
+    """
     def __init__(self, data=None, name=None, path=None):
         if isinstance(data, pd.DataFrame):
             self.data = data

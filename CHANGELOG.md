@@ -1,5 +1,13 @@
 # Change log
 
+## [1.0.0] - 2024-03-09
+
+### Added
+- Updated docs
+
+### Changed
+- n/a
+
 ## [0.7.2] - 2024-03-04
 
 ### Added

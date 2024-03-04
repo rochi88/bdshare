@@ -89,18 +89,20 @@ df = get_market_inf_more_data('2022-03-01','2022-03-02') # get historical market
 print(df.to_string())
 ```
 
-#### Get CSE last or current trading data
+#### Get DSE Market Depth data
 ```python
-from bdshare import get_cse_current_trade_data
+from bdshare import get_market_depth_data
 
-df = get_cse_current_trade_data() # get all instrument data
+df = get_market_depth_data('ACI') # get current buy and sell data
 print(df.to_string())
 ```
-```python
-from bdshare import get_cse_current_trade_data
 
-df = get_cse_current_trade_data('GP') # get specific instrument data
-print(df.to_string())
+#### Save data to csv file
+```python
+from bdshare import get_basic_hist_data, Store
+
+df = get_basic_hist_data('2022-03-01','2022-03-02') # get all instrument data
+Store(df).save()
 ```
 
 ### <a name="functions"></a> [List of functions](#contents)
@@ -133,12 +135,14 @@ print(df.to_string())
 
 ### <a name="roadmap"></a> [TODO's and Road Map:](#contents)
  - [x] refine logic for parameters 
- - [x] examples;
+ - [x] Demo example;
  - [x] DSE daily data and historical data crawling
  - [x] DSE news,p/e crawling
- - [x] Add CSE support for last trading price
- - [x] Add DSE Index data support
  - [x] Add DSEX Index data support
+ - [x] Create tests
+ - [x] Store dat to csv
+ - [x] DSE market depth data
+ - [x] Add docker support in demo example
 
 
 ### Documentation
