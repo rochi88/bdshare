@@ -1,9 +1,49 @@
 # Change log
 
-## [0.5.0] - 2023-12-31
+## [0.7.2] - 2024-03-04
+
+### Added
+- Updated docs
+
+### Changed
+- n/a
+
+## [0.7.1] - 2024-03-04
 
 ### Added
 - n/a
+
+### Changed
+- fixed market depth data api
+
+## [0.7.0] - 2024-03-04
+
+### Added
+- n/a
+
+### Changed
+- n/a
+
+## [0.6.0] - 2024-03-03
+
+### Added
+- n/a
+
+### Changed
+- n/a
+
+## [0.5.1] - 2024-02-29
+
+### Added
+- n/a
+
+### Changed
+- n/a
+
+## [0.5.0] - 2024-02-29
+
+### Added
+- fixed store datafrave to csv file method
 
 ### Changed
 - n/a

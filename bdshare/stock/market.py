@@ -114,7 +114,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
 def get_market_depth_data(index, retry_count=3, pause=0.001):
     """
         get market depth data.
-        :param index: str, e.g.: 'aci'
+        :param index: str, e.g.: 'ACI'
         :param retry_count : int, e.g.: 3
         :param pause : int, e.g.: 0
         :return: dataframe

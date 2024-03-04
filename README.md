@@ -129,7 +129,7 @@ print(df.to_string())
 |get_market_inf()|||
 |get_latest_pe()|||
 |get_market_inf_more_data()|||
-|get_market_depth_data()|str|get_market_depth_data('aci')|
+|get_market_depth_data()|str|get_market_depth_data('ACI')|
 
 ### <a name="roadmap"></a> [TODO's and Road Map:](#contents)
  - [x] refine logic for parameters 
