@@ -6,6 +6,6 @@ Created on 2024-Mar-01
 
 from bdshare import get_market_depth_data
 
-df = get_market_depth_data('GP')
+df = get_market_depth_data('1JANATAMF')
 
 print(df.to_string())

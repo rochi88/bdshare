@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from bdshare.util import vars as vs
+import re
 
 
 def get_market_inf():
@@ -110,7 +111,7 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
             return df
 
 
-def get_market_depth_data(index=None, retry_count=3, pause=0.001):
+def get_market_depth_data(index, retry_count=3, pause=0.001):
     """
         get market depth data.
         :param index: str, e.g.: 'aci'
@@ -134,24 +135,27 @@ def get_market_depth_data(index=None, retry_count=3, pause=0.001):
             print(e)
         else:
             soup = BeautifulSoup(r.content, 'html5lib')
-            
-            matrix = ["Open Price ", "Day's High : ", "Last Trade Price", "Day's Low : ", "Yesterday Close Price ", "No. of Trade : ", "Close Price ", "Total Volume : ", "Total Value (mn): "]
 
-            quotes = [] 
+            result = [] 
+
+            matrix = ['buy_price', 'buy_volume', 'sell_price', 'sell_volume']
+
+            index = 0
+
+            p = '[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+'
 
             table = soup.find('table', attrs={
-                              'class': 'table'})
-            
-            print(table)
+                              'class': 'table table-stripped'})
 
-            for row in table.find_all('tr')[1:]:
-                cols = row.find_all('td')
-                for head in matrix:
-                    for col in range(len(cols)):
-                        print(head)
-                        print(col)
-                        if(head in cols[col]):
-                            quotes.append({head: float(cols[col+1].text.strip().replace(":", ""))})
-                        
-            df = pd.DataFrame(quotes)
+            for row in table.find_all('tr')[:1]:
+                cols = row.find_all('td', valign="top")
+
+                for mainrow in cols:
+                    for row in mainrow.find_all('tr')[2:]:
+                        for col in row.find_all('td'):
+                            result.append({matrix[index]:float(re.search(p, col[0])),
+                                           matrix[index+1]:int(re.search(p, col[1]))})
+                    index+2
+
+            df = pd.DataFrame(result)
             return df
