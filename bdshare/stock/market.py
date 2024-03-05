@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from bdshare.util import vars as vs
-import re
 
 
 def get_market_inf():
