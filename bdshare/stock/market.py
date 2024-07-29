@@ -38,10 +38,12 @@ def get_latest_pe():
         :return: dataframe
     """
     r = requests.get(vs.DSE_URL+vs.DSE_LPE_URL)
-    soup = BeautifulSoup(r.text, 'html.parser')
+    # soup = BeautifulSoup(r.text, 'html.parser')
+    soup = BeautifulSoup(r.content, 'html5lib')
+
     quotes = []  # a list to store quotes
-    table = soup.find('table')
-    for row in table.find_all('tr'):
+    table = soup.find('table', attrs={'class': 'table table-bordered background-white shares-table fixedHeader'})
+    for row in table.find_all('tr')[1:]:
         cols = row.find_all('td')
         quotes.append((cols[1].text.strip().replace(",", ""),
                        cols[2].text.strip().replace(",", ""),
