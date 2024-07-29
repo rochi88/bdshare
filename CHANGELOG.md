@@ -1,5 +1,19 @@
 # Change log
 
+## [1.0.3] - 2024-07-29
+
+### Added
+
+- n/a
+
+### Changed
+
+- n/a
+
+### Fixed
+
+- check fix for latest P/E url [#6]
+
 ## [1.0.2] - 2024-07-29
 
 ### Added
