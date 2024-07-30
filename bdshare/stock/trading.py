@@ -9,7 +9,7 @@ def get_current_trade_data(symbol=None, retry_count=1, pause=0.001):
     """
         get last stock price.
         :param symbol: str, Instrument symbol e.g.: 'ACI' or 'aci'
-        :return: dataframecd 
+        :return: dataframe
     """
 
     for _ in range(retry_count):
