@@ -1,8 +1,8 @@
 from flask import Flask, render_template
 from bdshare import get_basic_hist_data
 
+import datetime
 import plotly
-
 import json
 
 app = Flask(__name__)
@@ -11,7 +11,10 @@ app.debug = True
 
 @app.route('/')
 def index():
-    df = get_basic_hist_data('2022-03-01','2022-10-01','ACI')
+    # get current date
+    # start_date = datetime.date.now() - datetime.timedelta(days=2*365)
+    # current_date = datetime.date.today()
+    df = get_basic_hist_data('2022-10-01','2024-09-26','ACI')
 				
     graphs = [
         dict(
