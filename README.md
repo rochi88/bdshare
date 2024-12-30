@@ -4,6 +4,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/bdshare/badge/?version=latest)](https://bdshare.readthedocs.io/en/latest/?badge=latest)
 ![PyPI](https://img.shields.io/pypi/v/bdshare)
+![StyleCI](https://github.styleci.io/repos/253465924/shield?branch=master)
 
 
 A utility for crawling historical and Real-time data from stock exchanges of Bangladesh. At present this utility can collect data from Dhaka stock exchange.
