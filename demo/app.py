@@ -48,7 +48,7 @@ def index():
 
     # Add "ids" to each of the graphs to pass up to the client
     # for templating
-    ids = ['graph-{}'.format(i+1) for i, _ in enumerate(graphs)]
+    ids = ['graph-{}'.format(i + 1) for i, _ in enumerate(graphs)]
 
     # Convert the figures to JSON
     # PlotlyJSONEncoder appropriately converts pandas, datetime, etc
