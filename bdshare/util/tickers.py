@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*- 
+# -*- coding:utf-8 -*-
 
 """
 Created on 2024/03/04
@@ -7,6 +7,7 @@ Created on 2024/03/04
 @contact: raisul.me@gmail.com
 """
 import json
+
 
 class Tickers(object):
     def __init__(self):

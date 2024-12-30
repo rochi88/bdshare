@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
+
 class Store(object):
     """
         Store dataframe
@@ -25,19 +26,17 @@ class Store(object):
             self.name = f'{datetime.now().strftime("%Y%m%d-%H%M%S")}'
 
         file_path = '%s%s%s.%s'
-        if isinstance(self.name, str) and self.name is not '':
+        if isinstance(self.name, str) and self.name != '':
             if (self.path is None) or (self.path == ''):
                 file_path = '.'.join([self.name, to])
                 self.data.to_csv(file_path, index=False)
             else:
                 try:
                     if os.path.exists(self.path) is False:
-                        os.mkdir(self.path) 
-                    file_path = file_path%(self.path, '', self.name, to)
+                        os.mkdir(self.path)
+                    file_path = file_path % (self.path, '', self.name, to)
                     self.data.to_csv(file_path, index=False)
-                except:
+                except:  # noqa: E722
                     pass
-            
         else:
             print('input error')
-

@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*- 
+# -*- coding:utf-8 -*-
 
 """
 Created on 2024/03/03
@@ -10,6 +10,7 @@ Created on 2024/03/03
 import pandas as pd
 import os
 from . import cons as ct
+
 
 def set_session(session):
     df = pd.DataFrame([session], columns=['session'])

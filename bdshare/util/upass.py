@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*- 
+# -*- coding:utf-8 -*-
 
 """
 Created on 2024/02/29
@@ -14,7 +14,14 @@ from . import cons as ct
 
 BK = 'bk'
 
+
 def set_token(token):
+    """
+    Set the user's token in a local file.
+
+    :param token: str, the token
+    :return: None
+    """
     df = pd.DataFrame([token], columns=['token'])
     user_home = os.path.expanduser('~')
     fp = os.path.join(user_home, ct.TOKEN_F_P)
@@ -33,7 +40,7 @@ def get_token():
 
 
 def set_broker(broker='', user='', passwd=''):
-    df = pd.DataFrame([[broker, user, passwd]], 
+    df = pd.DataFrame([[broker, user, passwd]],
                       columns=['broker', 'user', 'passwd'],
                       dtype=object)
     if os.path.exists(BK):
@@ -52,7 +59,7 @@ def get_broker(broker=''):
         if broker == '':
             return df
         else:
-            return  df[df.broker == broker]
+            return df[df.broker == broker]
     else:
         return None
 

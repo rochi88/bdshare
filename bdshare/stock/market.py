@@ -13,9 +13,9 @@ def get_market_inf(retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.get(vs.DSE_URL+vs.DSE_MARKET_INF_URL)
+            r = requests.get(vs.DSE_URL + vs.DSE_MARKET_INF_URL)
             if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL+vs.DSE_MARKET_INF_URL)
+                r = requests.get(vs.DSE_ALT_URL + vs.DSE_MARKET_INF_URL)
         except Exception as e:
             print(e)
         else:
@@ -27,17 +27,18 @@ def get_market_inf(retry_count=3, pause=0.001):
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
                 quotes.append({'Date': cols[0].text.strip().replace(",", ""),
-                            'Total Trade': cols[1].text.strip().replace(",", ""),
-                            'Total Volume': cols[2].text.strip().replace(",", ""),
-                            'Total Value (mn)': cols[3].text.strip().replace(",", ""),
-                            'Total Market Cap. (mn)': cols[4].text.strip().replace(",", ""),
-                            'DSEX Index': cols[5].text.strip().replace(",", ""),
-                            'DSES Index': cols[6].text.strip().replace(",", ""),
-                            'DS30 Index': cols[7].text.strip().replace(",", ""),
-                            'DGEN Index': cols[8].text.strip().replace(",", "")
-                })
+                               'Total Trade': cols[1].text.strip().replace(",", ""),
+                               'Total Volume': cols[2].text.strip().replace(",", ""),
+                               'Total Value (mn)': cols[3].text.strip().replace(",", ""),
+                               'Total Market Cap. (mn)': cols[4].text.strip().replace(",", ""),
+                               'DSEX Index': cols[5].text.strip().replace(",", ""),
+                               'DSES Index': cols[6].text.strip().replace(",", ""),
+                               'DS30 Index': cols[7].text.strip().replace(",", ""),
+                               'DGEN Index': cols[8].text.strip().replace(",", "")
+                               })
             df = pd.DataFrame(quotes)
             return df
+
 
 def get_company_inf(symbol=None, retry_count=3, pause=0.001):
     """
@@ -50,14 +51,15 @@ def get_company_inf(symbol=None, retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.get(vs.DSE_URL+vs.DSE_COMPANY_INF_URL, params=data)
+            r = requests.get(vs.DSE_URL + vs.DSE_COMPANY_INF_URL, params=data)
             if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL+vs.DSE_COMPANY_INF_URL, params=data)
+                r = requests.get(vs.DSE_ALT_URL + vs.DSE_COMPANY_INF_URL, params=data)
         except Exception as e:
             print(e)
         else:
             soup = BeautifulSoup(r.content, 'html5lib')
             print(soup)
+
 
 def get_latest_pe(retry_count=3, pause=0.001):
     """
@@ -67,9 +69,9 @@ def get_latest_pe(retry_count=3, pause=0.001):
     for _ in range(retry_count):
         time.sleep(pause)
         try:
-            r = requests.get(vs.DSE_URL+vs.DSE_LPE_URL)
+            r = requests.get(vs.DSE_URL + vs.DSE_LPE_URL)
             if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL+vs.DSE_LPE_URL)
+                r = requests.get(vs.DSE_ALT_URL + vs.DSE_LPE_URL)
         except Exception as e:
             print(e)
         else:
@@ -80,17 +82,18 @@ def get_latest_pe(retry_count=3, pause=0.001):
             for row in table.find_all('tr')[1:]:
                 cols = row.find_all('td')
                 quotes.append((cols[1].text.strip().replace(",", ""),
-                            cols[2].text.strip().replace(",", ""),
-                            cols[3].text.strip().replace(",", ""),
-                            cols[4].text.strip().replace(",", ""),
-                            cols[5].text.strip().replace(",", ""),
-                            cols[6].text.strip().replace(",", ""),
-                            cols[7].text.strip().replace(",", ""),
-                            cols[8].text.strip().replace(",", ""),
-                            cols[9].text.strip().replace(",", "")
-                            ))
+                               cols[2].text.strip().replace(",", ""),
+                               cols[3].text.strip().replace(",", ""),
+                               cols[4].text.strip().replace(",", ""),
+                               cols[5].text.strip().replace(",", ""),
+                               cols[6].text.strip().replace(",", ""),
+                               cols[7].text.strip().replace(",", ""),
+                               cols[8].text.strip().replace(",", ""),
+                               cols[9].text.strip().replace(",", "")
+                               ))
             df = pd.DataFrame(quotes)
             return df
+
 
 def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pause=0.001):
     """
@@ -110,11 +113,11 @@ def get_market_inf_more_data(start=None, end=None, index=None, retry_count=3, pa
         time.sleep(pause)
         try:
             r = requests.post(
-                url=vs.DSE_URL+vs.DSE_MARKET_INF_MORE_URL, data=data)
+                url=vs.DSE_URL + vs.DSE_MARKET_INF_MORE_URL, data=data)
         except Exception as e:
             print(e)
         else:
-            #soup = BeautifulSoup(r.text, 'html.parser')
+            # soup = BeautifulSoup(r.text, 'html.parser')
             soup = BeautifulSoup(r.content, 'html5lib')
 
             quotes = []  # a list to store quotes
@@ -158,19 +161,19 @@ def get_market_depth_data(index, retry_count=3, pause=0.001):
 
     for _ in range(retry_count):
         time.sleep(pause)
-        session  = requests.Session()
-        session.head(vs.DSE_URL+vs.DSE_MARKET_DEPTH_REFERER_URL)
-        headers = {'X-Requested-With':'XMLHttpRequest'}
+        session = requests.Session()
+        session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL)
+        headers = {'X-Requested-With': 'XMLHttpRequest'}
         session.headers.update(headers)
         try:
             r = session.post(
-                url=vs.DSE_URL+vs.DSE_MARKET_DEPTH_URL, data=data)
+                url=vs.DSE_URL + vs.DSE_MARKET_DEPTH_URL, data=data)
         except Exception as e:
             print(e)
         else:
             soup = BeautifulSoup(r.content, 'html5lib')
 
-            result = [] 
+            result = []
 
             matrix = ['buy_price', 'buy_volume', 'sell_price', 'sell_volume']
 
@@ -184,9 +187,9 @@ def get_market_depth_data(index, retry_count=3, pause=0.001):
                 for mainrow in cols:
                     for row in mainrow.find_all('tr')[2:]:
                         newcols = row.find_all('td')
-                        result.append({matrix[index]:float(newcols[0].text.strip()),
-                                    matrix[index+1]:int(newcols[1].text.strip())})
-                    index = index+2
+                        result.append({matrix[index]: float(newcols[0].text.strip()),
+                                       matrix[index + 1]: int(newcols[1].text.strip())})
+                    index = index + 2
 
             df = pd.DataFrame(result)
             return df

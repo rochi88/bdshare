@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*- 
+# -*- coding:utf-8 -*-
 """
 Created on 2024/02/29
 @author: Raisul Islam
@@ -10,16 +10,18 @@ from bdshare.util import upass
 
 
 PRICE_COLS = ['open', 'close', 'high', 'low', 'pre_close']
-FORMAT = lambda x: '%.2f' % x
+FORMAT = lambda x: '%.2f' % x  # noqa: E731
 FREQS = {'D': '1DAY',
          'W': '1WEEK',
          'Y': '1YEAR',
-        }
+         }
 
 
 def api_data(token=''):
     """
-    Initialize the API. For the first time, you can record your token credentials through bs.set_token('your token'). The temporary token can be passed in through this parameter.
+    Initialize the API. For the first time, you can record your token
+    credentials through bs.set_token('your token'). The temporary token
+    can be passed in through this parameter.
     """
     if token == '' or token is None:
         token = upass.get_token()
@@ -27,4 +29,4 @@ def api_data(token=''):
         api = client.DataApi(token)
         return api
     else:
-        raise Exception('api init error.') 
+        raise Exception('api init error.')

@@ -19,7 +19,13 @@ def index():
     graphs = [
         dict(
             data=[
-                dict(x=df['date'], open=df['open'], high=df['high'], low=df['low'], close=df['close'], type='candlestick'),
+                dict(
+                    x=df['date'],
+                    open=df['open'],
+                    high=df['high'],
+                    low=df['low'],
+                    close=df['close'],
+                    type='candlestick'),
             ],
             layout=dict(
                 title='first graph'
@@ -28,7 +34,11 @@ def index():
 
         dict(
             data=[
-                dict(x=df['date'], y=df['close'], mode='lines+markers', type='scatter'),
+                dict(
+                    x=df['date'],
+                    y=df['close'],
+                    mode='lines+markers',
+                    type='scatter'),
             ],
             layout=dict(
                 title='second graph'
