@@ -1,10 +1,17 @@
 # _*_ coding:utf-8 _*_
 '''
-Created on 2021-May-29
+Created on 2024-Dec-31
 @author: Raisul Islam
 '''
-from bdshare import get_current_trade_data
 
-df = get_current_trade_data()
-print(df.to_json(orient='records'))
-print(df.to_string())
+from bdshare import get_company_inf
+
+df = get_company_inf('GP')
+
+print(f'Total tables: {len(df)}')
+
+# for i in range(len(df)):
+#     print(f'Table {i}')
+#     print(df[i].to_string())
+
+print(df[8])

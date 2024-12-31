@@ -4,7 +4,6 @@ Created on 2021-May-28
 @author: Raisul Islam
 '''
 import unittest
-# import datetime as dt
 from bdshare import get_agm_news, get_all_news
 
 
@@ -15,7 +14,6 @@ class Test(unittest.TestCase):
         print(df.to_string())
 
     def test_get_all_news(self):
-        # end = dt.datetime.now().date()
         df = get_all_news('BATBC')
         print(df.to_string())
 
