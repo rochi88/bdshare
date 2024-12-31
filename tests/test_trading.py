@@ -15,14 +15,16 @@ class Test(unittest.TestCase):
         print(df.to_string())
 
     def test_get_market_inf_more_data(self):
+        start = dt.datetime.now().date() - dt.timedelta(days=2 * 365)
         end = dt.datetime.now().date()
-        df = get_market_inf_more_data('2020-01-01', end, index='date')
+        df = get_market_inf_more_data(start, end, index='date')
         print(df.to_string())
         print(df.dtypes)
 
     def test_get_basic_hist_data(self):
+        start = dt.datetime.now().date() - dt.timedelta(days=2 * 365)
         end = dt.datetime.now().date()
-        df = get_basic_hist_data('2020-01-01', end, 'BATBC')
+        df = get_basic_hist_data(start, end, 'BATBC')
         print(df.to_string())
         print(df.dtypes)
 

@@ -68,9 +68,12 @@ print(df.to_string())
 ```
 or
 ```python
+import datetime as dt
 from bdshare import get_basic_hist_data
 
-df = get_basic_hist_data('2022-03-01','2022-03-02','GP') # get specific instrument data
+start = dt.datetime.now().date() - dt.timedelta(days=2 * 365)
+end = dt.datetime.now().date()
+df = get_basic_hist_data(start, end, 'GP') # get specific instrument data
 print(df.to_string())
 ```
 
@@ -99,9 +102,12 @@ print(df.to_string())
 
 #### Save data to csv file
 ```python
+import datetime as dt
 from bdshare import get_basic_hist_data, Store
 
-df = get_basic_hist_data('2022-03-01','2022-03-02') # get all instrument data
+start = dt.datetime.now().date() - dt.timedelta(days=2 * 365)
+end = dt.datetime.now().date()
+df = get_basic_hist_data(start, end) # get all instrument data
 Store(df).save()
 ```
 
