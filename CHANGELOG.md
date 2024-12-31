@@ -1,10 +1,10 @@
 # Change log
 
-## [1.0.4] - 2025-01-10
+## [1.1.0] - 2024-12-31
 
 ### Added
 
-- n/a
+- new function for getting company info
 
 ### Changed
 
@@ -13,6 +13,20 @@
 ### Fixed
 
 - n/a
+
+## [1.0.4] - 2024-12-30
+
+### Added
+
+- n/a
+
+### Changed
+
+- changed lint
+
+### Fixed
+
+- fixed typo
 
 ## [1.0.3] - 2024-07-29
 
