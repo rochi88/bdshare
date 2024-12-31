@@ -1,5 +1,33 @@
 # Change log
 
+## [1.1.2] - 2024-12-31
+
+### Added
+
+- n/a
+
+### Changed
+
+- update tests
+
+### Fixed
+
+- n/a
+
+## [1.1.1] - 2024-12-31
+
+### Added
+
+- n/a
+
+### Changed
+
+- update runner
+
+### Fixed
+
+- n/a
+
 ## [1.1.0] - 2024-12-31
 
 ### Added
