@@ -57,8 +57,8 @@ def get_company_inf(symbol=None, retry_count=3, pause=0.001):
         except Exception as e:
             print(e)
         else:
-            soup = BeautifulSoup(r.content, 'html5lib')
-            print(soup)
+            tables = pd.read_html(r.content)
+            return tables[400:]
 
 
 def get_latest_pe(retry_count=3, pause=0.001):
