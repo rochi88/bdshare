@@ -5,7 +5,7 @@ Created on 2024-Dec-31
 '''
 import unittest
 import datetime as dt
-from bdshare import get_latest_pe, get_market_inf, get_market_depth_data, get_market_inf_more_data
+from bdshare import get_latest_pe, get_market_inf, get_market_depth_data, get_market_inf_more_data  # noqa
 
 
 class Test(unittest.TestCase):
