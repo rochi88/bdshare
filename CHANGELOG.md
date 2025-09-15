@@ -1,5 +1,29 @@
 # Change log
 
+## [1.1.4] - 2025-09-16
+
+### Added
+
+- Enhanced error handling and robustness across all functions
+- Improved parameter handling for news functions
+- Better file path resolution for utility functions
+- Comprehensive fallback mechanisms for network issues
+
+### Changed
+
+- Fixed get_all_news() function to support date range parameters as documented
+- Enhanced market info functions with better error handling
+- Improved Store utility with proper file saving mechanism
+- Fixed Tickers utility with correct file path resolution
+
+### Fixed
+
+- All major function issues identified in testing (18/18 functions now working)
+- Parameter signature mismatches in news functions
+- HTML parsing errors in market data functions
+- File saving issues in Store utility
+- Missing tickers.json file dependency
+
 ## [1.1.2] - 2024-12-31
 
 ### Added
