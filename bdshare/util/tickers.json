@@ -1,3034 +1,404 @@
 {
-    "meta": {
-      "file_name": "tickers.json",
-      "file_description": "Provides (name(s), sector, ticker) of listed companies in Bangladesh stock market.",
-      "package": "github.com/rochi88/bdshare",
-      "license": "MIT License",
-      "author": "Raisul Islam",
-      "encoding": "utf-8"
-    },
-  
-    "data": {
-      "companies": [
-        {
-          "ticker": "ABBANK",
-          "sector": "bank",
-          "names": [
-            "এবি ব্যাংক",
-            "AB Bank"
-          ]
-        },
-        {
-          "ticker": "ALARABANK",
-          "sector": "bank",
-          "names": [
-            "আল-আরাফাহ্‌ ইসলামী ব্যাংক",
-            "আল-আরাফাহ ইসলামী ব্যাংক",
-            "Al-Arafah Islami Bank"
-          ]
-        },
-        {
-          "ticker": "BANKASIA",
-          "sector": "bank",
-          "names": [
-            "ব্যাংক এশিয়া",
-            "Bank Asia"
-          ]
-        },
-        {
-          "ticker": "BRACBANK",
-          "sector": "bank",
-          "names": [
-            "ব্র্যাক ব্যাংক",
-            "ব্রাক ব্যাংক",
-            "BRAC Bank"
-          ]
-        },
-        {
-          "ticker": "CITYBANK",
-          "sector": "bank",
-          "names": [
-            "সিটি ব্যাংক",
-            "The City Bank",
-            "City Bank"
-          ]
-        },
-        {
-          "ticker": "DHAKABANK",
-          "sector": "bank",
-          "names": [
-            "ঢাকা ব্যাংক",
-            "Dhaka Bank"
-          ]
-        },
-        {
-          "ticker": "DUTCHBANGL",
-          "sector": "bank",
-          "names": [
-            "ডাচ-বাংলা ব্যাংক",
-            "ডাচ্-বাংলা ব্যাংক",
-            "ডিবিবিএল",
-            "Dutch-Bangla Bank",
-            "DBBL"
-          ]
-        },
-        {
-          "ticker": "EBL",
-          "sector": "bank",
-          "names": [
-            "ইস্টার্ন ব্যাংক",
-            "ইস্টার্ণ ব্যাংক",
-            "ইবিএল",
-            "Eastern Bank",
-            "EBL"
-          ]
-        },
-        {
-          "ticker": "EXIMBANK",
-          "sector": "bank",
-          "names": [
-            "এক্সপোর্ট ইমপোর্ট ব্যাংক অব বাংলাদেশ",
-            "এক্সিম ব্যাংক",
-            "Exim Bank"
-          ]
-        },
-        {
-          "ticker": "FIRSTSBANK",
-          "sector": "bank",
-          "names": [
-            "ফার্স্ট সিকিউরিটি ইসলামী ব্যাংক",
-            "First Security Islami Bank"
-          ]
-        },
-        {
-          "ticker": "ICBIBANK",
-          "sector": "bank",
-          "names": [
-            "আইসিবি ইসলামিক ব্যাংক",
-            "ICB Islamic Bank"
-          ]
-        },
-        {
-          "ticker": "IFIC",
-          "sector": "bank",
-          "names": [
-            "আইএফআইসি ব্যাংক",
-            "IFIC Bank"
-          ]
-        },
-        {
-          "ticker": "ISLAMIBANK",
-          "sector": "bank",
-          "names": [
-            "ইসলামী ব্যাংক",
-            "Islami Bank Bangladesh"
-          ]
-        },
-        {
-          "ticker": "JAMUNABANK",
-          "sector": "bank",
-          "names": [
-            "যমুনা ব্যাংক",
-            "Jamuna Bank"
-          ]
-        },
-        {
-          "ticker": "MERCANBANK",
-          "sector": "bank",
-          "names": [
-            "মার্কেন্টাইল ব্যাংক",
-            "Mercantile Bank"
-          ]
-        },
-        {
-          "ticker": "MTB",
-          "sector": "bank",
-          "names": [
-            "মিউচ্যুয়াল ট্রাস্ট ব্যাংক",
-            "এমটিবি",
-            "Mutual Trust Bank",
-            "MTB"
-          ]
-        },
-        {
-          "ticker": "NBL",
-          "sector": "bank",
-          "names": [
-            "ন্যাশনাল ব্যাংক",
-            "এনবিএল",
-            "National Bank",
-            "NBL"
-          ]
-        },
-        {
-          "ticker": "NCCBANK",
-          "sector": "bank",
-          "names": [
-            "ন্যাশনাল ক্রেডিট এন্ড কমার্স ব্যাংক",
-            "এনসিসি ব্যাংক",
-            "National Credit and Commerce Bank",
-            "NCC Bank"
-          ]
-        },
-        {
-          "ticker": "ONEBANKLTD",
-          "sector": "bank",
-          "names": [
-            "ওয়ান ব্যাংক",
-            "One Bank"
-          ]
-        },
-        {
-          "ticker": "PREMIERBAN",
-          "sector": "bank",
-          "names": [
-            "প্রিমিয়ার ব্যাংক",
-            "Premier Bank"
-          ]
-        },
-        {
-          "ticker": "PRIMEBANK",
-          "sector": "bank",
-          "names": [
-            "প্রাইম ব্যাংক",
-            "Prime Bank"
-          ]
-        },
-        {
-          "ticker": "PUBALIBANK",
-          "sector": "bank",
-          "names": [
-            "পূবালী ব্যাংক",
-            "Pubali Bank"
-          ]
-        },
-        {
-          "ticker": "RUPALIBANK",
-          "sector": "bank",
-          "names": [
-            "রূপালী ব্যাংক",
-            "Rupali Bank"
-          ]
-        },
-        {
-          "ticker": "SHAHJABANK",
-          "sector": "bank",
-          "names": [
-            "শাহজালাল ইসলামী ব্যাংক",
-            "শাহজালাল ইসলামি ব্যাংক",
-            "Shahjalal Islami Bank"
-          ]
-        },
-        {
-          "ticker": "SIBL",
-          "sector": "bank",
-          "names": [
-            "সোস্যাল ইসলামী ব্যাংক",
-            "এসআইবিএল",
-            "Social Islami Bank",
-            "SIBL"
-          ]
-        },
-        {
-          "ticker": "SOUTHEASTB",
-          "sector": "bank",
-          "names": [
-            "সাউথইস্ট ব্যাংক",
-            "Southeast Bank"
-          ]
-        },
-        {
-          "ticker": "STANDBANKL",
-          "sector": "bank",
-          "names": [
-            "স্টান্ডার্ড ব্যাংক",
-            "স্ট্যান্ডার্ড ব্যাংক",
-            "Standard Bank"
-          ]
-        },
-        {
-          "ticker": "TRUSTBANK",
-          "sector": "bank",
-          "names": [
-            "ট্রাস্ট ব্যাংক",
-            "Trust Bank"
-          ]
-        },
-        {
-          "ticker": "UCB",
-          "sector": "bank",
-          "names": [
-            "ইউনাইটেড কমার্শিয়াল ব্যাংক",
-            "ইউসিবি",
-            "United Commercial Bank",
-            "UCB"
-          ]
-        },
-        {
-          "ticker": "UTTARABANK",
-          "sector": "bank",
-          "names": [
-            "উত্তরা ব্যাংক",
-            "Uttara Bank"
-          ]
-        },
-        {
-          "ticker": "1JANATAMF",
-          "sector": "mutual_fund",
-          "names": [
-            "ফার্স্ট জনতা ব্যাংক মিউচ্যুয়াল ফান্ড",
-            "জনতা ব্যাংক ফার্স্ট মিউচ্যুয়াল ফান্ড",
-            "জনতা ব্যাংক মিউচ্যুয়াল ফান্ড",
-            "জনতা ব্যাংক ১ম মিউচ্যুয়াল ফান্ড",
-            "১ম জনতা ব্যাংক মিউচ্যুয়াল ফান্ড",
-            "জনতা ব্যাংক প্রথম মিউচ্যুয়াল ফান্ড",
-            "জনতা ব্যাংক প্রথম মিউচ্যুয়াল ফান্ড",
-            "ফার্স্ট জনতা ব্যাংক মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "1STPRIMFMF",
-          "sector": "mutual_fund",
-          "names": [
-            "প্রাইম ফাইন্যান্স ফার্স্ট মিউচ্যুয়াল ফান্ড",
-            "ফার্স্ট প্রাইম ফাইন্যান্স মিউচ্যুয়াল ফান্ড",
-            "প্রাইম ফাইন্যান্স মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ABB1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এ বি ব্যাংক ফার্স্ট মিউচ্যুয়াল ফান্ড",
-            "এবি ব্যাংক ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "AIBL1STIMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এআইবিএল ১ম ইসলামিক মিউচ্যুয়াল ফান্ড",
-            "এআইবিএল ফার্স্ট ইসলামিক মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ATCSLGF",
-          "sector": "mutual_fund",
-          "names": [
-            "এশিয়ান টাইগার সন্ধানী লাইফ গ্রোথ ফান্ড"
-          ]
-        },
-        {
-          "ticker": "CAPMBDBLMF",
-          "sector": "mutual_fund",
-          "names": [
-            "সি এ পি এম বিডিবিএল মিউচ্যুয়াল ফান্ড ওয়ান",
-            "সিএপিএম বিডিবিএল মিউচ্যুয়াল ফান্ড ওয়ান"
-          ]
-        },
-        {
-          "ticker": "CAPMIBBLMF",
-          "sector": "mutual_fund",
-          "names": [
-            "সিএপিএম আইবিবিএল ইসলামী মিঊচ্যুয়াল ফান্ড",
-            "সি এ পি এম আইবিবিএল ইসলামী মিঊচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "DBH1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "ডিবিএইচ ফাস্ট মিউচ্যুয়াল ফান্ড",
-            "ফাস্ট ডিবিএইচ মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "EBL1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "ইবিএল ১ম মিউচ্যুয়াল ফান্ড",
-            "ইবিএল ফার্স্ট মিউচ্যুয়াল ফান্ড",
-            "ফার্স্ট ইবিএল মিউচ্যুয়াল ফান্ড",
-            "ইবিএল মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "EBLNRBMF",
-          "sector": "mutual_fund",
-          "names": [
-            "ইবিএল এনআরবি মিউচ্যুয়াল ফান্ড লি.",
-            "ইবিএল এনআরবি মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "EXIM1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এক্সিম ব্যাংক ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "FBFIF",
-          "sector": "mutual_fund",
-          "names": [
-            "ফার্স্ট বাংলাদেশ ফিক্সড ইনকাম ফান্ড"
-          ]
-        },
-        {
-          "ticker": "GRAMEENS2",
-          "sector": "mutual_fund",
-          "names": [
-            "গ্রামীন ওয়ান : স্কিম টু"
-          ]
-        },
-        {
-          "ticker": "GREENDELMF",
-          "sector": "mutual_fund",
-          "names": [
-            "গ্রীন ডেল্টা মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ICB3RDNRB",
-          "sector": "mutual_fund",
-          "names": [
-            "আইসিবি এএমসিএল থার্ড এনআরবি মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ICBAGRANI1",
-          "sector": "mutual_fund",
-          "names": [
-            "আইসিবি এএমসিএল ফার্স্ট অগ্রণী ব্যাংক মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ICBAMCL2ND",
-          "sector": "mutual_fund",
-          "names": [
-            "আইসিবি এএমসিএল সেকেন্ড মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "ICBEPMF1S1",
-          "sector": "mutual_fund",
-          "names": [
-            "আইসিবি এমপ্লোয়ি প্রোভিডেন্ট মিউচ্যুয়াল ফান্ড ওয়ান: স্ক্রিম ওয়ান"
-          ]
-        },
-        {
-          "ticker": "ICBSONALI1",
-          "sector": "mutual_fund",
-          "names": [
-            "আইসিবি এএমসিএল সোনালি ব্যাংক লিঃ ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "IFIC1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "আইএফআইসি ১ম মিউচ্যুয়াল ফান্ড",
-            "আইএফআইসি ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "IFILISLMF1",
-          "sector": "mutual_fund",
-          "names": [
-            "আইএফআইএল ইসলামিক মিউচ্যুয়াল ফান্ড-১",
-            "আইএফআইএল ইসলামিক মিউচুয়াল ফান্ড ওয়ান"
-          ]
-        },
-        {
-          "ticker": "LRGLOBMF1",
-          "sector": "mutual_fund",
-          "names": [
-            "এল আর গ্লোবাল বাংলাদেশ মিউচ্যুয়াল ফান্ড ওয়ান",
-            "এলআর গ্লোবাল বাংলাদেশ মিউচ্যুয়াল ফান্ড ওয়ান"
-          ]
-        },
-        {
-          "ticker": "MBL1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এমবিএল ১ম মি: ফান্ড",
-            "এমবিএল ফার্স্ট মিউচ্যুয়াল ফান্ড",
-            "এমবিএল ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "NCCBLMF1",
-          "sector": "mutual_fund",
-          "names": [
-            "এনসিসিবিএল মিউচ্যুয়াল ফান্ড-ওয়ান",
-            "এনসিসিবিএল মিউচ্যুয়াল ফান্ড ওয়ান",
-            "এনসিসিবিএল মিউচ্যুয়াল ফান্ড-১"
-          ]
-        },
-        {
-          "ticker": "NLI1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এনএলআই ফাস্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "PF1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "ফিনিক্স ফাইন্যান্স ১ম মিউচ্যুয়াল ফান্ড",
-            "ফিনিক্স ফাইন্যান্স ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "PHPMF1",
-          "sector": "mutual_fund",
-          "names": [
-            "পিএইচপি ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "POPULAR1MF",
-          "sector": "mutual_fund",
-          "names": [
-            "পপুলার লাইফ ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "PRIME1ICBA",
-          "sector": "mutual_fund",
-          "names": [
-            "প্রাইম ব্যাংক ১ম আইসিবি এএমসিএল মিউচ্যুয়াল ফান্ড",
-            "প্রাইম ব্যাংক ফার্স্ট আইসিবি এএমসিএল মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "RELIANCE1",
-          "sector": "mutual_fund",
-          "names": [
-            "রিলায়েন্স ওয়ান দা ফার্স্ট স্কিম অব রিলায়েন্স ইন্সুরেন্স মিউচ্যুয়াল ফান্ড",
-            "রিলায়েন্স ওয়ান' দ্য ফার্স্ট স্কিম অব রিলায়েন্স ইন্স্যুরেন্স মিউচুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "SEBL1STMF",
-          "sector": "mutual_fund",
-          "names": [
-            "সাউথইস্ট ব্যাংক ১ম মিউচু্য়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "SEMLFBSLGF",
-          "sector": "mutual_fund",
-          "names": [
-            "এসইএমএল এফবিএলএসএল গ্রোথ ফান্ড"
-          ]
-        },
-        {
-          "ticker": "SEMLIBBLSF",
-          "sector": "mutual_fund",
-          "names": [
-            "এস ই এম এল আইবিবিএল শারিয়াহ ফান্ড"
-          ]
-        },
-        {
-          "ticker": "SEMLLECMF",
-          "sector": "mutual_fund",
-          "names": [
-            "এস ই এম এল লেকচার ইক্যুইটি ম্যানেজমেন্ট ফান্ড"
-          ]
-        },
-        {
-          "ticker": "TRUSTB1MF",
-          "sector": "mutual_fund",
-          "names": [
-            "ট্রাস্ট ব্যাংক ফার্স্ট মিউচ্যুয়াল ফান্ড"
-          ]
-        },
-        {
-          "ticker": "VAMLBDMF1",
-          "sector": "mutual_fund",
-          "names": [
-            "ভ্যানগার্ড এ এম এল বিডি ফিন্যান্স মিউচ্যুয়াল ফান্ড ওয়ান"
-          ]
-        },
-        {
-          "ticker": "VAMLRBBF",
-          "sector": "mutual_fund",
-          "names": [
-            "ভ্যানগার্ড এ এম এল রূপালী ব্যাংক ব্যালান্সড ফান্ড"
-          ]
-        },
-        {
-          "ticker": "AFTABAUTO",
-          "sector": "engineering",
-          "names": [
-            "আফতাব অটোমোবাইল",
-            "Aftab Automobiles"
-          ]
-        },
-        {
-          "ticker": "ANWARGALV",
-          "sector": "engineering",
-          "names": [
-            "আনোয়ার গ্যালভানাইজিং",
-            "Anwar Galvanizing"
-          ]
-        },
-        {
-          "ticker": "APOLOISPAT",
-          "sector": "engineering",
-          "names": [
-            "এপোলো ইস্পাত",
-            "এ্যাপোলো ইস্পাত",
-            "অ্যাপোলো ইস্পাত",
-            "Appollo Ispat"
-          ]
-        },
-        {
-          "ticker": "ATLASBANG",
-          "sector": "engineering",
-          "names": [
-            "এটলাস বাংলাদেশ",
-            "Atlas Bangladesh"
-          ]
-        },
-        {
-          "ticker": "AZIZPIPES",
-          "sector": "engineering",
-          "names": [
-            "আজিজ পাইপ",
-            "Aziz Pipes"
-          ]
-        },
-        {
-          "ticker": "BBS",
-          "sector": "engineering",
-          "names": [
-            "বাংলাদেশ বিল্ডিং সিস্টেম",
-            "বিবিএস",
-            "Bangladesh Building Systems"
-          ]
-        },
-        {
-          "ticker": "BBSCABLES",
-          "sector": "engineering",
-          "names": [
-            "বিবিএস ক্যাবল",
-            "BBS Cables"
-          ]
-        },
-        {
-          "ticker": "BDAUTOCA",
-          "sector": "engineering",
-          "names": [
-            "বিডি অটোকার",
-            "বাংলাদেশ অটোকার",
-            "Bangladesh Autocars",
-            "Bd. Autocars"
-          ]
-        },
-        {
-          "ticker": "BDLAMPS",
-          "sector": "engineering",
-          "names": [
-            "বিডি ল্যাম্প",
-            "বাংলাদেশ ল্যাম্প",
-            "Bangladesh Lamps"
-          ]
-        },
-        {
-          "ticker": "BDTHAI",
-          "sector": "engineering",
-          "names": [
-            "বিডি থাই",
-            "বাংলাদেশ থাই",
-            "Bd.Thai Aluminium"
-          ]
-        },
-        {
-          "ticker": "BENGALWTL",
-          "sector": "engineering",
-          "names": [
-            "বেঙ্গল উইন্ডসোর",
-            "Bengal Windsor"
-          ]
-        },
-        {
-          "ticker": "BSRMLTD",
-          "sector": "engineering",
-          "names": [
-            "বিএসআরএম লিমিটেড",
-            "বাংলাদেশ স্টিল রি-রোলিং মিল",
-            "বাংলাদেশ স্টীল রি-রোলিং মিল",
-            "Bangladesh Steel Re-Rolling Mills"
-          ]
-        },
-        {
-          "ticker": "BSRMSTEEL",
-          "sector": "engineering",
-          "names": [
-            "বিএসআরএম স্টিল",
-            "বিএসআরএম স্টীল",
-            "BSRM Steels"
-          ]
-        },
-        {
-          "ticker": "COPPERTECH",
-          "sector": "engineering",
-          "names": [
-            "কপারটেক ইন্ডাস্ট্রি",
-            "Coppertech Industries"
-          ]
-        },
-        {
-          "ticker": "DESHBANDHU",
-          "sector": "engineering",
-          "names": [
-            "দেশবন্ধু পলিমার",
-            "Deshbandhu Polymer"
-          ]
-        },
-        {
-          "ticker": "ECABLES",
-          "sector": "engineering",
-          "names": [
-            "ইস্টার্ন ক্যাবল",
-            "Eastern Cables"
-          ]
-        },
-        {
-          "ticker": "GOLDENSON",
-          "sector": "engineering",
-          "names": [
-            "গোল্ডেন সন",
-            "Golden Son"
-          ]
-        },
-        {
-          "ticker": "GPHISPAT",
-          "sector": "engineering",
-          "names": [
-            "জিপিএইচ ইস্পাত",
-            "GPH Ispat"
-          ]
-        },
-        {
-          "ticker": "IFADAUTOS",
-          "sector": "engineering",
-          "names": [
-            "ইফাদ অটো",
-            "IFAD Autos"
-          ]
-        },
-        {
-          "ticker": "KAY\u0026QUE",
-          "sector": "engineering",
-          "names": [
-            "কে এন্ড কিউ",
-            "কে অ্যান্ড কিউ",
-            "Kay \u0026 Que Bangladesh"
-          ]
-        },
-        {
-          "ticker": "KDSALTD",
-          "sector": "engineering",
-          "names": [
-            "কেডিএস এক্সেসরিজ",
-            "KDS Accessories"
-          ]
-        },
-        {
-          "ticker": "MONNOSTAF",
-          "sector": "engineering",
-          "names": [
-            "মুন্নু জুট",
-            "Monno Jute"
-          ]
-        },
-        {
-          "ticker": "NAHEEACP",
-          "sector": "engineering",
-          "names": [
-            "নাহি অ্যালুমিনিয়াম",
-            "Nahee Aluminum"
-          ]
-        },
-        {
-          "ticker": "NAVANACNG",
-          "sector": "engineering",
-          "names": [
-            "নাভানা সিএনজি",
-            "Navana CNG"
-          ]
-        },
-        {
-          "ticker": "NPOLYMAR",
-          "sector": "engineering",
-          "names": [
-            "ন্যাশনাল পলিমার",
-            "National Polymer"
-          ]
-        },
-        {
-          "ticker": "NTLTUBES",
-          "sector": "engineering",
-          "names": [
-            "ন্যাশনাল টিউব",
-            "National Tubes"
-          ]
-        },
-        {
-          "ticker": "OAL",
-          "sector": "engineering",
-          "names": [
-            "অলিম্পিক এক্সেসরিজ",
-            "অলিম্পিক অ্যাক্সেসরিজ",
-            "Olympic Accessories"
-          ]
-        },
-        {
-          "ticker": "OIMEX",
-          "sector": "engineering",
-          "names": [
-            "ওআইমেক্ম",
-            "ওয়াইম্যাক্স",
-            "Oimex Electrode"
-          ]
-        },
-        {
-          "ticker": "QUASEMIND",
-          "sector": "engineering",
-          "names": [
-            "কাসেম ইন্ডাস্ট্রিজ",
-            "কাশেম ইন্ডাস্ট্রিজ",
-            "Quasem Industries"
-          ]
-        },
-        {
-          "ticker": "RANFOUNDRY",
-          "sector": "engineering",
-          "names": [
-            "রংপুর ফাউন্ড্রি",
-            "Rangpur Foundry"
-          ]
-        },
-        {
-          "ticker": "RENWICKJA",
-          "sector": "engineering",
-          "names": [
-            "রেনউইক যজ্ঞেশ্বর",
-            "Renwick Jajneswar"
-          ]
-        },
-        {
-          "ticker": "RSRMSTEEL",
-          "sector": "engineering",
-          "names": [
-            "আরএসআরএম স্টিল",
-            "আরএসআরএম স্টীল",
-            "Ratanpur Steel Re-Rolling Mills",
-            "RSRM Steels"
-          ]
-        },
-        {
-          "ticker": "RUNNERAUTO",
-          "sector": "engineering",
-          "names": [
-            "রানার অটোমোবাইল",
-            "Runner Automobiles"
-          ]
-        },
-        {
-          "ticker": "SALAMCRST",
-          "sector": "engineering",
-          "names": [
-            "এস আলম কোল্ড রোল্ড স্টিল",
-            "এস আলম",
-            "S. Alam Cold Rolled Steels"
-          ]
-        },
-        {
-          "ticker": "SHURWID",
-          "sector": "engineering",
-          "names": [
-            "সূহৃদ ইন্ডাস্ট্রিজ",
-            "Shurwid Industries"
-          ]
-        },
-        {
-          "ticker": "SINGERBD",
-          "sector": "engineering",
-          "names": [
-            "সিঙ্গার",
-            "Singer"
-          ]
-        },
-        {
-          "ticker": "SSSTEEL",
-          "sector": "engineering",
-          "names": [
-            "এসএস স্টীল",
-            "এসএস স্টিল",
-            "S. S. Steel"
-          ]
-        },
-        {
-          "ticker": "WMSHIPYARD",
-          "sector": "engineering",
-          "names": [
-            "ওয়েস্টার্ন মেরিন",
-            "Western Marine"
-          ]
-        },
-        {
-          "ticker": "YPL",
-          "sector": "engineering",
-          "names": [
-            "ইয়াকিন পলিমার",
-            "Yeakin Polymer"
-          ]
-        },
-        {
-          "ticker": "AMCLPRAN",
-          "sector": "food_and_allied",
-          "names": [
-            "এএমসিএল প্রাণ",
-            "AMCL PRAN"
-          ]
-        },
-        {
-          "ticker": "APEXFOODS",
-          "sector": "food_and_allied",
-          "names": [
-            "এপেক্স ফুটওয়্যার",
-            "Apex Foods"
-          ]
-        },
-        {
-          "ticker": "BANGAS",
-          "sector": "food_and_allied",
-          "names": [
-            "বঙ্গজ",
-            "Bangas"
-          ]
-        },
-        {
-          "ticker": "BATBC",
-          "sector": "food_and_allied",
-          "names": [
-            "বিএটিবিসি",
-            "ব্রিটিশ আমেরিকান টোবাকো",
-            "ব্রিটিশ আমেরিকান টোব্যাকো",
-            "British American Tobacco",
-            "BATBC"
-          ]
-        },
-        {
-          "ticker": "BEACHHATCH",
-          "sector": "food_and_allied",
-          "names": [
-            "বীচ হ্যাচারি",
-            "Beach Hatchery"
-          ]
-        },
-        {
-          "ticker": "EMERALDOIL",
-          "sector": "food_and_allied",
-          "names": [
-            "এমারেল্ড অয়েল",
-            "Emerald Oil"
-          ]
-        },
-        {
-          "ticker": "FINEFOODS",
-          "sector": "food_and_allied",
-          "names": [
-            "ফাইন ফুড",
-            "Fine Foods"
-          ]
-        },
-        {
-          "ticker": "FUWANGFOOD",
-          "sector": "food_and_allied",
-          "names": [
-            "ফু-ওয়াং ফুড",
-            "Fu Wang Food"
-          ]
-        },
-        {
-          "ticker": "GEMINISEA",
-          "sector": "food_and_allied",
-          "names": [
-            "জেমিনী সী ফুড",
-            "জেমিনি সী ফুড",
-            "Gemini Sea Food"
-          ]
-        },
-        {
-          "ticker": "GHAIL",
-          "sector": "food_and_allied",
-          "names": [
-            "গোল্ডেন হার্ভেস্ট",
-            "Golden Harvest"
-          ]
-        },
-        {
-          "ticker": "MEGCONMILK",
-          "sector": "food_and_allied",
-          "names": [
-            "মেঘনা কনডেন্স মিল্ক",
-            "Meghna Condensed Milk"
-          ]
-        },
-        {
-          "ticker": "MEGHNAPET",
-          "sector": "food_and_allied",
-          "names": [
-            "মেঘনা পেট ইন্ডাস্ট্রি",
-            "Meghna Pet"
-          ]
-        },
-        {
-          "ticker": "NTC",
-          "sector": "food_and_allied",
-          "names": [
-            "ন্যাশনাল টি",
-            "National Tea"
-          ]
-        },
-        {
-          "ticker": "OLYMPIC",
-          "sector": "food_and_allied",
-          "names": [
-            "অলিম্পিক ইন্ডাস্ট্রি",
-            "Olympic Industries"
-          ]
-        },
-        {
-          "ticker": "RDFOOD",
-          "sector": "food_and_allied",
-          "names": [
-            "রংপুর ডেইরী",
-            "আরডি ফুড",
-            "Rangpur Dairy",
-            "RD Food"
-          ]
-        },
-        {
-          "ticker": "SHYAMPSUG",
-          "sector": "food_and_allied",
-          "names": [
-            "শ্যামপুর সুগার মিল",
-            "Shyampur Sugar Mills"
-          ]
-        },
-        {
-          "ticker": "ZEALBANGLA",
-          "sector": "food_and_allied",
-          "names": [
-            "জিলবাংলা",
-            "Zeal Bangla Sugar Mills"
-          ]
-        },
-        {
-          "ticker": "BARKAPOWER",
-          "sector": "fuel_and_power",
-          "names": [
-            "বারাকা পাওয়ার",
-            "Baraka Power"
-          ]
-        },
-        {
-          "ticker": "BDWELDING",
-          "sector": "fuel_and_power",
-          "names": [
-            "বাংলাদেশ ওয়েলডিং",
-            "বিডি ওয়েলডিং",
-            "Bangladesh Welding Electrodes"
-          ]
-        },
-        {
-          "ticker": "CVOPRL",
-          "sector": "fuel_and_power",
-          "names": [
-            "সিভিও পেট্রোকেমিক্যাল",
-            "CVO Petrochemical Refinery"
-          ]
-        },
-        {
-          "ticker": "DESCO",
-          "sector": "fuel_and_power",
-          "names": [
-            "ঢাকা ইলেকট্রিক সাপ্লাই কোম্পানি",
-            "ডেসকো",
-            "Dhaka Electric Supply Company"
-          ]
-        },
-        {
-          "ticker": "DOREENPWR",
-          "sector": "fuel_and_power",
-          "names": [
-            "ডরিন পাওয়ার",
-            "Doreen Power"
-          ]
-        },
-        {
-          "ticker": "EASTRNLUB",
-          "sector": "fuel_and_power",
-          "names": [
-            "ইস্টার্ন লুব্রিকেন্ট",
-            "ইস্টার্ণ লুব্রিকেন্ট",
-            "Eastern Lubricants"
-          ]
-        },
-        {
-          "ticker": "GBBPOWER",
-          "sector": "fuel_and_power",
-          "names": [
-            "জিবিবি পাওয়ার",
-            "GBB Power"
-          ]
-        },
-        {
-          "ticker": "INTRACO",
-          "sector": "fuel_and_power",
-          "names": [
-            "ইন্ট্রাকো রিফুয়েলিং",
-            "Intraco Refueling Station"
-          ]
-        },
-        {
-          "ticker": "JAMUNAOIL",
-          "sector": "fuel_and_power",
-          "names": [
-            "যমুনা অয়েল",
-            "Jamuna Oil"
-          ]
-        },
-        {
-          "ticker": "KPCL",
-          "sector": "fuel_and_power",
-          "names": [
-            "খুলনা পাওয়ার",
-            "কেপিসিএল",
-            "Khulna Power"
-          ]
-        },
-        {
-          "ticker": "LINDEBD",
-          "sector": "fuel_and_power",
-          "names": [
-            "লিন্ডে বাংলাদেশ",
-            "লিন্ডে বিডি",
-            "Linde Bangladesh"
-          ]
-        },
-        {
-          "ticker": "MJLBD",
-          "sector": "fuel_and_power",
-          "names": [
-            "এমজেএল বিডি",
-            "MJL Bangladesh",
-            "MJLBD"
-          ]
-        },
-        {
-          "ticker": "MPETROLEUM",
-          "sector": "fuel_and_power",
-          "names": [
-            "মেঘনা পেট্রোলিয়াম",
-            "Meghna Petroleum"
-          ]
-        },
-        {
-          "ticker": "PADMAOIL",
-          "sector": "fuel_and_power",
-          "names": [
-            "পদ্মা অয়েল",
-            "Padma Oil"
-          ]
-        },
-        {
-          "ticker": "POWERGRID",
-          "sector": "fuel_and_power",
-          "names": [
-            "পাওয়ার গ্রিড",
-            "পাওয়ার গ্রীড",
-            "Power Grid"
-          ]
-        },
-        {
-          "ticker": "SPCL",
-          "sector": "fuel_and_power",
-          "names": [
-            "শাহজিবাজার পাওয়ার",
-            "Shahjibazar Power"
-          ]
-        },
-        {
-          "ticker": "SUMITPOWER",
-          "sector": "fuel_and_power",
-          "names": [
-            "সামিট পাওয়ার",
-            "Summit Power"
-          ]
-        },
-        {
-          "ticker": "TITASGAS",
-          "sector": "fuel_and_power",
-          "names": [
-            "তিতাস গ্যাস",
-            "Titas Gas"
-          ]
-        },
-        {
-          "ticker": "UPGDCL",
-          "sector": "fuel_and_power",
-          "names": [
-            "ইউনাইটেড পাওয়ার",
-            "United Power Generation \u0026 Distribution Company",
-            "UPGDCL"
-          ]
-        },
-        {
-          "ticker": "JUTESPINN ",
-          "sector": "jute",
-          "names": [
-            "জুট স্পিনার",
-            "Jute Spinners"
-          ]
-        },
-        {
-          "ticker": "NORTHERN ",
-          "sector": "jute",
-          "names": [
-            "নর্দান জুট",
-            "Northern Jute"
-          ]
-        },
-        {
-          "ticker": "SONALIANSH ",
-          "sector": "jute",
-          "names": [
-            "সোনালী আঁশ",
-            "Sonali Aansh"
-          ]
-        },
-        {
-          "ticker": "ACFL",
-          "sector": "textile",
-          "names": [
-            "আমান কটন",
-            "Aman Cotton"
-          ]
-        },
-        {
-          "ticker": "AIL",
-          "sector": "textile",
-          "names": [
-            "আলিফ ইন্ডাস্ট্রি",
-            "Alif Industries"
-          ]
-        },
-        {
-          "ticker": "AL-HAJTEX",
-          "sector": "textile",
-          "names": [
-            "আল-হাজ্ব টেক্সটাইল",
-            "AL-Al-Haj Textile"
-          ]
-        },
-        {
-          "ticker": "ALIF",
-          "sector": "textile",
-          "names": [
-            "আলিফ ম্যানুফেকচারিং",
-            "Alif Manufacturing"
-          ]
-        },
-        {
-          "ticker": "ALLTEX",
-          "sector": "textile",
-          "names": [
-            "অলটেক্স ইন্ডাস্ট্রি",
-            "Alltex Industries"
-          ]
-        },
-        {
-          "ticker": "ANLIMAYARN",
-          "sector": "textile",
-          "names": [
-            "আনলিমা ইয়ার্ন",
-            "Anlimayarn"
-          ]
-        },
-        {
-          "ticker": "APEXSPINN",
-          "sector": "textile",
-          "names": [
-            "এ্যাপেক্স স্পিনিং",
-            "এপেক্স স্পিনিং",
-            "Apex Spinning"
-          ]
-        },
-        {
-          "ticker": "ARGONDENIM",
-          "sector": "textile",
-          "names": [
-            "আর্গন ডেনিম",
-            "আরগন ডেনিম",
-            "Argon Denims"
-          ]
-        },
-        {
-          "ticker": "CNATEX",
-          "sector": "textile",
-          "names": [
-            "সি এন্ড এ টেক্সটাইল",
-            "C \u0026 A Textiles"
-          ]
-        },
-        {
-          "ticker": "DACCADYE",
-          "sector": "textile",
-          "names": [
-            "ঢাকা ডাইং",
-            "Dacca Dyeing"
-          ]
-        },
-        {
-          "ticker": "DELTASPINN",
-          "sector": "textile",
-          "names": [
-            "ডেলটা স্পিনার",
-            "ডেল্টা স্পিনার",
-            "Delta Spinners"
-          ]
-        },
-        {
-          "ticker": "DSHGARME",
-          "sector": "textile",
-          "names": [
-            "দেশ গার্মেন্ট",
-            "Desh Garmants"
-          ]
-        },
-        {
-          "ticker": "DSSL",
-          "sector": "textile",
-          "names": [
-            "ড্রাগন সোয়েটার",
-            "Dragon Sweater"
-          ]
-        },
-        {
-          "ticker": "DULAMIACOT",
-          "sector": "textile",
-          "names": [
-            "দুলামিয়া কটন",
-            "Dulamia Cotton"
-          ]
-        },
-        {
-          "ticker": "ENVOYTEX",
-          "sector": "textile",
-          "names": [
-            "এনভয় টেক্সটাইল",
-            "Envoy Textiles"
-          ]
-        },
-        {
-          "ticker": "ESQUIRENIT",
-          "sector": "textile",
-          "names": [
-            "এস্কয়ার নিট",
-            "Esquire Knit"
-          ]
-        },
-        {
-          "ticker": "ETL",
-          "sector": "textile",
-          "names": [
-            "ইভিন্স টেক্সটাইল",
-            "Evince Textiles"
-          ]
-        },
-        {
-          "ticker": "FAMILYTEX",
-          "sector": "textile",
-          "names": [
-            "ফ্যামিলিটেক্স",
-            "Familytex"
-          ]
-        },
-        {
-          "ticker": "FEKDIL",
-          "sector": "textile",
-          "names": [
-            "ফার ইস্ট নিটিং",
-            "Far East Knitting"
-          ]
-        },
-        {
-          "ticker": "GENNEXT",
-          "sector": "textile",
-          "names": [
-            "জেনারেসন নেক্সট",
-            "Generation Next Fashions"
-          ]
-        },
-        {
-          "ticker": "HFL",
-          "sector": "textile",
-          "names": [
-            "হামিদ ফেব্রিক্স",
-            "Hamid Fabrics"
-          ]
-        },
-        {
-          "ticker": "HRTEX",
-          "sector": "textile",
-          "names": [
-            "এইচ আর টেক্সটাইল",
-            "H.R.Textile"
-          ]
-        },
-        {
-          "ticker": "HWAWELLTEX",
-          "sector": "textile",
-          "names": [
-            "হা ওয়েল টেক্সটাইল",
-            "Hwa Well Textiles"
-          ]
-        },
-        {
-          "ticker": "KTL",
-          "sector": "textile",
-          "names": [
-            "কাট্টালি টেক্সটাইল",
-            "Kattali Textile"
-          ]
-        },
-        {
-          "ticker": "MAKSONSPIN",
-          "sector": "textile",
-          "names": [
-            "ম্যাকসন্স স্পিনিং",
-            "ম্যাকসন স্পিনিং",
-            "Maksons Spinning"
-          ]
-        },
-        {
-          "ticker": "MALEKSPIN",
-          "sector": "textile",
-          "names": [
-            "মালেক স্পিনিং",
-            "Malek Spinning"
-          ]
-        },
-        {
-          "ticker": "MATINSPINN",
-          "sector": "textile",
-          "names": [
-            "মতিন স্পিনিং",
-            "Matin Spinning"
-          ]
-        },
-        {
-          "ticker": "METROSPIN",
-          "sector": "textile",
-          "names": [
-            "মেট্রো স্পিনিং",
-            "Metro Spinning"
-          ]
-        },
-        {
-          "ticker": "MHSML",
-          "sector": "textile",
-          "names": [
-            "মোজাফফর হোসেন স্পিনিং",
-            "Mozaffar Hossain Spinning"
-          ]
-        },
-        {
-          "ticker": "MITHUNKNIT",
-          "sector": "textile",
-          "names": [
-            "মিথুন নিটিং",
-            "মিথুন নিট",
-            "Mithun Knitting"
-          ]
-        },
-        {
-          "ticker": "MLDYEING",
-          "sector": "textile",
-          "names": [
-            "এমএল ডাইং",
-            "M.L. Dyeing"
-          ]
-        },
-        {
-          "ticker": "NEWLINE",
-          "sector": "textile",
-          "names": [
-            "নিউ লাইন ক্লোথিং",
-            "New Line Clothings"
-          ]
-        },
-        {
-          "ticker": "NURANI",
-          "sector": "textile",
-          "names": [
-            "নুরানী ডাইং",
-            "Nurani Dyeing"
-          ]
-        },
-        {
-          "ticker": "PDL",
-          "sector": "textile",
-          "names": [
-            "প্যাসিফিক ডেনিম",
-            "Pacific Denims"
-          ]
-        },
-        {
-          "ticker": "PRIMETEX",
-          "sector": "textile",
-          "names": [
-            "প্রাইম টেক্সটাইল",
-            "Prime Textile"
-          ]
-        },
-        {
-          "ticker": "PTL",
-          "sector": "textile",
-          "names": [
-            "প্যারামাউন্ট টেক্সটাইল",
-            "Paramount Textile"
-          ]
-        },
-        {
-          "ticker": "QUEENSOUTH",
-          "sector": "textile",
-          "names": [
-            "কুইন সাউথ টেক্সটাইল",
-            "Queen South Textile"
-          ]
-        },
-        {
-          "ticker": "RAHIMTEXT",
-          "sector": "textile",
-          "names": [
-            "রহিম টেক্সটাইল",
-            "Rahim Textile"
-          ]
-        },
-        {
-          "ticker": "REGENTTEX",
-          "sector": "textile",
-          "names": [
-            "রিজেন্ট টেক্সটাইল",
-            "Regent Textile"
-          ]
-        },
-        {
-          "ticker": "RNSPIN",
-          "sector": "textile",
-          "names": [
-            "আর এন স্পিনিং",
-            "R.N. Spinning"
-          ]
-        },
-        {
-          "ticker": "SAFKOSPINN",
-          "sector": "textile",
-          "names": [
-            "সাফকো স্পিনিং",
-            "Safko Spinnings"
-          ]
-        },
-        {
-          "ticker": "SAIHAMCOT",
-          "sector": "textile",
-          "names": [
-            "সায়হাম কটন",
-            "Saiham Cotton"
-          ]
-        },
-        {
-          "ticker": "SAIHAMTEX",
-          "sector": "textile",
-          "names": [
-            "সায়হাম টেক্সটাইল",
-            "Saiham Textile"
-          ]
-        },
-        {
-          "ticker": "SHASHADNIM",
-          "sector": "textile",
-          "names": [
-            "শাশা ডেনিম",
-            "Shasha Denims"
-          ]
-        },
-        {
-          "ticker": "SHEPHERD",
-          "sector": "textile",
-          "names": [
-            "শেফার্ড ইন্ডাস্ট্রি",
-            "Shepherd Industries"
-          ]
-        },
-        {
-          "ticker": "SIMTEX",
-          "sector": "textile",
-          "names": [
-            "সিমটেক্স ইন্ডাস্ট্রি",
-            "Simtex Industries"
-          ]
-        },
-        {
-          "ticker": "SONARGAON",
-          "sector": "textile",
-          "names": [
-            "সোনারগাঁ টেক্সটাইল",
-            "সোনারগাঁও টেক্সটাইল",
-            "Sonargaon Textiles"
-          ]
-        },
-        {
-          "ticker": "SQUARETEXT",
-          "sector": "textile",
-          "names": [
-            "স্কয়ার টেক্সটাইল",
-            "Square Textile"
-          ]
-        },
-        {
-          "ticker": "STYLECRAFT",
-          "sector": "textile",
-          "names": [
-            "স্টাইলক্রাফট",
-            "Stylecraft"
-          ]
-        },
-        {
-          "ticker": "TALLUSPIN",
-          "sector": "textile",
-          "names": [
-            "তাল্লু স্পিনিং",
-            "Tallu Spinning"
-          ]
-        },
-        {
-          "ticker": "TOSRIFA",
-          "sector": "textile",
-          "names": [
-            "তসরিফা ইন্ডান্ট্রি",
-            "Tosrifa Industries"
-          ]
-        },
-        {
-          "ticker": "TUNGHAI",
-          "sector": "textile",
-          "names": [
-            "তুং হাই",
-            "Tung Hai Knitting"
-          ]
-        },
-        {
-          "ticker": "VFSTDL",
-          "sector": "textile",
-          "names": [
-            "ভিএফএস থ্রেড",
-            "VFS Thread Dyeing"
-          ]
-        },
-        {
-          "ticker": "ZAHEENSPIN",
-          "sector": "textile",
-          "names": [
-            "জাহিন স্পিনং",
-            "Zaheen Spinning"
-          ]
-        },
-        {
-          "ticker": "ZAHINTEX",
-          "sector": "textile",
-          "names": [
-            "জাহিনটেক্স ইন্ডাস্ট্রি",
-            "Zahintex Industries"
-          ]
-        },
-        {
-          "ticker": "ACI",
-          "sector": "pharmaceutical",
-          "names": [
-            "এসিআই লিমিটেড",
-            "ACI"
-          ]
-        },
-        {
-          "ticker": "ACIFORMULA",
-          "sector": "pharmaceutical",
-          "names": [
-            "এসিআই ফর্মুলা",
-            "এসিআই ফর্মুলেশন",
-            "ACI Formulations"
-          ]
-        },
-        {
-          "ticker": "ACMELAB",
-          "sector": "pharmaceutical",
-          "names": [
-            "একমি ল্যাব",
-            "এক্‌মি ল্যাব",
-            "ACME Laboratories"
-          ]
-        },
-        {
-          "ticker": "ACTIVEFINE",
-          "sector": "pharmaceutical",
-          "names": [
-            "এ্যাকটিভ ফাইন",
-            "অ্যাক্টিভ ফাইন",
-            "Active Fine Chemicals"
-          ]
-        },
-        {
-          "ticker": "ADVENT",
-          "sector": "pharmaceutical",
-          "names": [
-            "অ্যাডভেন্ট ফার্মা",
-            "Advent Pharma"
-          ]
-        },
-        {
-          "ticker": "AFCAGRO",
-          "sector": "pharmaceutical",
-          "names": [
-            "এএফসি এগ্রো",
-            "AFC Agro Biotech"
-          ]
-        },
-        {
-          "ticker": "AMBEEPHA",
-          "sector": "pharmaceutical",
-          "names": [
-            "এম্বি ফার্মা",
-            "এমবি ফার্মা",
-            "Ambee Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "BEACONPHAR",
-          "sector": "pharmaceutical",
-          "names": [
-            "বীকন ফার্মা",
-            "বিকন ফার্মা",
-            "Beacon Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "BXPHARMA",
-          "sector": "pharmaceutical",
-          "names": [
-            "বেক্সিমকো ফার্মা",
-            "Beximco Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "BXSYNTH",
-          "sector": "pharmaceutical",
-          "names": [
-            "বেক্সিমকো সিনথেটিক",
-            "Beximco Synthetics"
-          ]
-        },
-        {
-          "ticker": "CENTRALPHL",
-          "sector": "pharmaceutical",
-          "names": [
-            "সেন্ট্রাল ফার্মা",
-            "Central Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "FARCHEM",
-          "sector": "pharmaceutical",
-          "names": [
-            "ফার ক্যামিক্যাল",
-            "Far Chemical Industries"
-          ]
-        },
-        {
-          "ticker": "GHCL",
-          "sector": "pharmaceutical",
-          "names": [
-            "গ্লোবাল হেভি কেমিক্যাল",
-            "Global Heavy Chemicals"
-          ]
-        },
-        {
-          "ticker": "GLAXOSMITH",
-          "sector": "pharmaceutical",
-          "names": [
-            "গ্ল্যাক্স্যোস্মিথক্লাইন বাংলাদেশ",
-            "গ্ল্যাক্স্যোস্মিথক্লাইন",
-            "গ্ল্যাক্সোস্মিথক্লাইন",
-            "GlaxoSmithKline Bangladesh",
-            "GSK Bangladesh"
-          ]
-        },
-        {
-          "ticker": "IBNSINA",
-          "sector": "pharmaceutical",
-          "names": [
-            "ইবনে সিনা",
-            "IBN SINA Pharmaceutical"
-          ]
-        },
-        {
-          "ticker": "IBP",
-          "sector": "pharmaceutical",
-          "names": [
-            "ইন্দো-বাংলা ফার্মা",
-            "ইন্দো-বাংলা",
-            "Indo-Bangla Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "IMAMBUTTON",
-          "sector": "pharmaceutical",
-          "names": [
-            "ইমাম বাটন",
-            "Imam Button Industries"
-          ]
-        },
-        {
-          "ticker": "JMISMDL",
-          "sector": "pharmaceutical",
-          "names": [
-            "জেএমআই সিরিঞ্জ",
-            "JMI Syringes"
-          ]
-        },
-        {
-          "ticker": "KEYACOSMET",
-          "sector": "pharmaceutical",
-          "names": [
-            "কেয়া কসমেটিক্স",
-            "Keya Cosmetics"
-          ]
-        },
-        {
-          "ticker": "KOHINOOR",
-          "sector": "pharmaceutical",
-          "names": [
-            "কোহিনূর ক্যামিকেল",
-            "Kohinoor Chemicals"
-          ]
-        },
-        {
-          "ticker": "LIBRAINFU",
-          "sector": "pharmaceutical",
-          "names": [
-            "লিব্রা ইনফিউশন",
-            "লিবরা ইনফিউশন",
-            "Libra Infusions"
-          ]
-        },
-        {
-          "ticker": "MARICO",
-          "sector": "pharmaceutical",
-          "names": [
-            "ম্যারিকো",
-            "মারিকো",
-            "Marico Bangladesh"
-          ]
-        },
-        {
-          "ticker": "ORIONINFU",
-          "sector": "pharmaceutical",
-          "names": [
-            "ওরিয়ন ইনফিউশন",
-            "অরিয়ন ইনফিউশন",
-            "Orion Infusion"
-          ]
-        },
-        {
-          "ticker": "ORIONPHARM",
-          "sector": "pharmaceutical",
-          "names": [
-            "ওরিয়ন ফার্মা",
-            "অরিয়ন ফার্মা",
-            "Orion Pharma"
-          ]
-        },
-        {
-          "ticker": "PHARMAID",
-          "sector": "pharmaceutical",
-          "names": [
-            "ফার্মা এইড",
-            "Pharma Aids"
-          ]
-        },
-        {
-          "ticker": "RECKITTBEN",
-          "sector": "pharmaceutical",
-          "names": [
-            "রেকিট বেনকিজার",
-            "Reckitt Benckiser"
-          ]
-        },
-        {
-          "ticker": "RENATA",
-          "sector": "pharmaceutical",
-          "names": [
-            "রেনেটা",
-            "Renata"
-          ]
-        },
-        {
-          "ticker": "SALVOCHEM",
-          "sector": "pharmaceutical",
-          "names": [
-            "স্যালভো ক্যামিকেল",
-            "সালভো ক্যামিকেল",
-            "Salvo Chemical"
-          ]
-        },
-        {
-          "ticker": "SILCOPHL",
-          "sector": "pharmaceutical",
-          "names": [
-            "সিলকো ফার্মা",
-            "Silco Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "SILVAPHL",
-          "sector": "pharmaceutical",
-          "names": [
-            "সিলভা ফার্মা",
-            "Silva Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "SQURPHARMA",
-          "sector": "pharmaceutical",
-          "names": [
-            "স্কয়ার ফার্মা",
-            "Square Pharmaceuticals"
-          ]
-        },
-        {
-          "ticker": "WATACHEM",
-          "sector": "pharmaceutical",
-          "names": [
-            "ওয়াটা কেমিক্যাল",
-            "Wata Chemicals"
-          ]
-        },
-        {
-          "ticker": "BPML",
-          "sector": "paper_and_printing",
-          "names": [
-            "বসুন্ধরা পেপার",
-            "Bashundhara Paper"
-          ]
-        },
-        {
-          "ticker": "HAKKANIPUL",
-          "sector": "paper_and_printing",
-          "names": [
-            "হাক্কানী পাল্প",
-            "Hakkani Pulp"
-          ]
-        },
-        {
-          "ticker": "KPPL",
-          "sector": "paper_and_printing",
-          "names": [
-            "খুলনা প্রিন্টিং",
-            "Khulna Printing"
-          ]
-        },
-        {
-          "ticker": "EHL",
-          "sector": "service_and_real_estate",
-          "names": [
-            "ইস্টার্ন হাউজিং",
-            "Eastern Housing"
-          ]
-        },
-        {
-          "ticker": "SAIFPOWER",
-          "sector": "service_and_real_estate",
-          "names": [
-            "সাইফ পাওয়ার",
-            "SAIF Powertec"
-          ]
-        },
-        {
-          "ticker": "SAMORITA",
-          "sector": "service_and_real_estate",
-          "names": [
-            "শমরিতা হসপিটাল",
-            "Samorita Hospital"
-          ]
-        },
-        {
-          "ticker": "SAPORTL",
-          "sector": "service_and_real_estate",
-          "names": [
-            "সামিট এলায়েন্স",
-            "Summit Alliance"
-          ]
-        },
-        {
-          "ticker": "ARAMITCEM",
-          "sector": "cement",
-          "names": [
-            "আরামিট সিমেন্ট",
-            "Aramit Cement"
-          ]
-        },
-        {
-          "ticker": "CONFIDCEM",
-          "sector": "cement",
-          "names": [
-            "কনফিডেন্স সিমেন্ট",
-            "Confidence Cement"
-          ]
-        },
-        {
-          "ticker": "HEIDELBCEM",
-          "sector": "cement",
-          "names": [
-            "হাইডেলবার্গ সিমেন্ট",
-            "হেইডেলবার্গ সিমেন্ট",
-            "Heidelberg Cement"
-          ]
-        },
-        {
-          "ticker": "LHBL",
-          "sector": "cement",
-          "names": [
-            "লাফার্জহোলসিম",
-            "LafargeHolcim"
-          ]
-        },
-        {
-          "ticker": "MEGHNACEM",
-          "sector": "cement",
-          "names": [
-            "মেঘনা সিমেন্ট",
-            "Meghna Cement"
-          ]
-        },
-        {
-          "ticker": "MICEMENT",
-          "sector": "cement",
-          "names": [
-            "এম আই সিমেন্ট",
-            "M.I. Cement"
-          ]
-        },
-        {
-          "ticker": "PREMIERCEM",
-          "sector": "cement",
-          "names": [
-            "প্রিমিয়ার সিমেন্ট",
-            "Premier Cement"
-          ]
-        },
-        {
-          "ticker": "AAMRANET",
-          "sector": "it",
-          "names": [
-            "আমরা নেটওয়ার্ক",
-            "aamra networks"
-          ]
-        },
-        {
-          "ticker": "AAMRATECH",
-          "sector": "it",
-          "names": [
-            "আমরা টেকনোলজি",
-            "aamra technologies"
-          ]
-        },
-        {
-          "ticker": "AGNISYSL",
-          "sector": "it",
-          "names": [
-            "অগ্নি সিস্টেম",
-            "Agni Systems"
-          ]
-        },
-        {
-          "ticker": "BDCOM",
-          "sector": "it",
-          "names": [
-            "বিডিকম",
-            "BDCOM Online"
-          ]
-        },
-        {
-          "ticker": "DAFODILCOM",
-          "sector": "it",
-          "names": [
-            "ডেফোডিল কম্পিউটার",
-            "ড্যাফোডিল কম্পিউটার",
-            "Daffodil Computers"
-          ]
-        },
-        {
-          "ticker": "GENEXIL",
-          "sector": "it",
-          "names": [
-            "জেনেক্স ইনফোসিস",
-            "Genex Infosys"
-          ]
-        },
-        {
-          "ticker": "INTECH",
-          "sector": "it",
-          "names": [
-            "ইনটেক",
-            "Intech"
-          ]
-        },
-        {
-          "ticker": "ISNLTD",
-          "sector": "it",
-          "names": [
-            "ইনফর্মেশন সার্ভিস",
-            "ইনফরমেশন সার্ভিস",
-            "Information Services Network"
-          ]
-        },
-        {
-          "ticker": "ITC",
-          "sector": "it",
-          "names": [
-            "ইনফরমেশন টেকনোলজি কনসালটেন্ট",
-            "ইনফরমেশন টেকনোলজি",
-            "আইটিসি",
-            "IT Consultants"
-          ]
-        },
-        {
-          "ticker": "APEXFOOT",
-          "sector": "tannery",
-          "names": [
-            "এ্যাপেক্স ফুটওয়ার",
-            "এপেক্স ফুটওয়্যার",
-            "এপেক্স ফুটওয়ার",
-            "এ্যাপেক্স ফুটওয়্যার",
-            "Apex Footwear"
-          ]
-        },
-        {
-          "ticker": "APEXTANRY",
-          "sector": "tannery",
-          "names": [
-            "এ্যাপেক্স ট্যানারি",
-            "এপেক্স ট্যানারী",
-            "Apex Tannery"
-          ]
-        },
-        {
-          "ticker": "BATASHOE",
-          "sector": "tannery",
-          "names": [
-            "বাটা",
-            "Bata Shoe"
-          ]
-        },
-        {
-          "ticker": "FORTUNE",
-          "sector": "tannery",
-          "names": [
-            "ফরচুন",
-            "Fortune Shoes"
-          ]
-        },
-        {
-          "ticker": "LEGACYFOOT",
-          "sector": "tannery",
-          "names": [
-            "লিগাসি ফুটওয়ার",
-            "লিগ্যাসি ফুটওয়ার",
-            "লিগাসি ফুটওয়্যার",
-            "লিগ্যাসি ফুটওয়্যার",
-            "Legacy Footwear"
-          ]
-        },
-        {
-          "ticker": "SAMATALETH",
-          "sector": "tannery",
-          "names": [
-            "সমতা লেদার",
-            "Samata Leather"
-          ]
-        },
-        {
-          "ticker": "FUWANGCER ",
-          "sector": "ceramics",
-          "names": [
-            "ফু-ওয়াং সিরামিক",
-            "ফুওয়াং সিরামিক",
-            "Fu-Wang Ceramic"
-          ]
-        },
-        {
-          "ticker": "MONNOCERA",
-          "sector": "ceramics",
-          "names": [
-            "মুন্নু সিরামিক",
-            "Monno Ceramic"
-          ]
-        },
-        {
-          "ticker": "RAKCERAMIC ",
-          "sector": "ceramics",
-          "names": [
-            "আরএকে সিরামিক",
-            "RAK Ceramics"
-          ]
-        },
-        {
-          "ticker": "SPCERAMICS ",
-          "sector": "ceramics",
-          "names": [
-            "শাইন পুকুর সিরামিক",
-            "Shinepukur Ceramics"
-          ]
-        },
-        {
-          "ticker": "STANCERAM",
-          "sector": "ceramics",
-          "names": [
-            "স্টান্ডার্ড সিরামিক",
-            "স্ট্যান্ডার্ড সিরামিক",
-            "Standard Ceramic"
-          ]
-        },
-        {
-          "ticker": "AGRANINS",
-          "sector": "insurance",
-          "names": [
-            "অগ্রণী ইন্স্যুরেন্স",
-            "অগ্রনী ইন্স্যুরেন্স",
-            "অগ্রণী ইন্সুরেন্স",
-            "অগ্রনী ইন্সুরেন্স",
-            "Agrani Insurance"
-          ]
-        },
-        {
-          "ticker": "ASIAINS",
-          "sector": "insurance",
-          "names": [
-            "এশিয়া ইন্সুরেন্স",
-            "এশিয়া ইন্স্যুরেন্স",
-            "Asia Insurance"
-          ]
-        },
-        {
-          "ticker": "ASIAPACINS",
-          "sector": "insurance",
-          "names": [
-            "এশিয়া প্যাসিফিক ইন্স্যুরেন্স",
-            "এশিয়া প্যাসিফিক ইন্সুরেন্স",
-            "Asia Pacific General Insurance"
-          ]
-        },
-        {
-          "ticker": "BGIC",
-          "sector": "insurance",
-          "names": [
-            "বাংলাদেশ জেনারেল ইন্স্যুরেন্স",
-            "বিজিআইসি",
-            "বাংলাদেশ জেনারেল ইন্সুরেন্স",
-            "Bangladesh General Insurance"
-          ]
-        },
-        {
-          "ticker": "BNICL",
-          "sector": "insurance",
-          "names": [
-            "বাংলাদেশ ন্যাশনাল ইন্সুরেন্স",
-            "বাংলাদেশ ন্যাশনাল ইন্স্যুরেন্স",
-            "Bangladesh National Insurance"
-          ]
-        },
-        {
-          "ticker": "CENTRALINS",
-          "sector": "insurance",
-          "names": [
-            "সেন্ট্রাল ইন্সুরেন্স",
-            "সেন্ট্রাল ইন্স্যুরেন্স",
-            "Central Insurance"
-          ]
-        },
-        {
-          "ticker": "CITYGENINS",
-          "sector": "insurance",
-          "names": [
-            "সিটি জেনারেল ইন্স্যুরেন্স",
-            "City General Insurance"
-          ]
-        },
-        {
-          "ticker": "CONTININS",
-          "sector": "insurance",
-          "names": [
-            "কন্টিনেন্টাল ইন্স্যুরেন্স",
-            "কন্টিনেন্টাল ইন্সুরেন্স",
-            "Continental Insurance"
-          ]
-        },
-        {
-          "ticker": "DELTALIFE",
-          "sector": "insurance",
-          "names": [
-            "ডেল্টা লাইফ",
-            "Delta Life Insurance"
-          ]
-        },
-        {
-          "ticker": "DHAKAINS",
-          "sector": "insurance",
-          "names": [
-            "ঢাকা ইন্সুরেন্স",
-            "ঢাকা ইন্স্যুরেন্স",
-            "Dhaka Insurance"
-          ]
-        },
-        {
-          "ticker": "EASTERNINS",
-          "sector": "insurance",
-          "names": [
-            "ইস্টার্ন ইন্সুরেন্স",
-            "ইস্টার্ন ইন্স্যুরেন্স",
-            "ইস্টার্ণ ইন্স্যুরেন্স",
-            "ইস্টার্ণ ইন্সুরেন্স",
-            "ইষ্টার্ণ ইন্স্যুরেন্স",
-            "Eastern Insurance"
-          ]
-        },
-        {
-          "ticker": "EASTLAND",
-          "sector": "insurance",
-          "names": [
-            "ইস্টল্যান্ড ইন্স্যুরেন্স",
-            "Eastland Insurance"
-          ]
-        },
-        {
-          "ticker": "FAREASTLIF",
-          "sector": "insurance",
-          "names": [
-            "ফারইস্ট ইসলামী লাইফ ইন্স্যুরেন্স",
-            "ফারইস্ট লাইফ",
-            "ফারইস্ট ইসলামী লাইফ ইন্সুরেন্স",
-            "Fareast Islami Life Insurance"
-          ]
-        },
-        {
-          "ticker": "FEDERALINS",
-          "sector": "insurance",
-          "names": [
-            "ফেডারেল ইন্সুরেন্স",
-            "ফেডারেল ইন্স্যুরেন্স",
-            "Federal Insurance"
-          ]
-        },
-        {
-          "ticker": "GLOBALINS",
-          "sector": "insurance",
-          "names": [
-            "গ্লোবাল ইন্সুরেন্স",
-            "গ্লোবাল ইন্স্যুরেন্স",
-            "Global Insurance"
-          ]
-        },
-        {
-          "ticker": "GREENDELT",
-          "sector": "insurance",
-          "names": [
-            "গ্রীন ডেল্টা ইন্সুরেন্স",
-            "গ্রীন ডেল্টা ইন্স্যুরেন্স",
-            "Green Delta Insurance"
-          ]
-        },
-        {
-          "ticker": "ISLAMIINS",
-          "sector": "insurance",
-          "names": [
-            "ইসলামী ইন্স্যুরেন্স",
-            "Islami Insurance Bangladesh"
-          ]
-        },
-        {
-          "ticker": "JANATAINS",
-          "sector": "insurance",
-          "names": [
-            "জনতা ইন্স্যুরেন্স",
-            "জনতা ইন্সুরেন্স",
-            "Janata Insurance"
-          ]
-        },
-        {
-          "ticker": "KARNAPHULI",
-          "sector": "insurance",
-          "names": [
-            "কর্নফুলি ইন্সুরেন্স",
-            "কর্নফুলি ইন্স্যুরেন্স",
-            "কর্ণফুলী ইন্স্যুরেন্স",
-            "Karnaphuli Insurance"
-          ]
-        },
-        {
-          "ticker": "MEGHNALIFE",
-          "sector": "insurance",
-          "names": [
-            "মেঘনা লাইফ ইন্স্যুরেন্স",
-            "মেঘনা লাইফ ইন্সুরেন্স",
-            "Meghna Life Insurance"
-          ]
-        },
-        {
-          "ticker": "MERCINS",
-          "sector": "insurance",
-          "names": [
-            "মার্কেন্টাইল ইন্স্যুরেন্স",
-            "মার্কেন্টাইল ইন্সুরেন্স",
-            "Mercantile Insurance"
-          ]
-        },
-        {
-          "ticker": "NATLIFEINS",
-          "sector": "insurance",
-          "names": [
-            "ন্যাশনাল লাইফ ইন্স্যুরেন্স",
-            "ন্যাশনাল লাইফ ইন্সুরেন্স",
-            "National Life Insurance"
-          ]
-        },
-        {
-          "ticker": "NITOLINS",
-          "sector": "insurance",
-          "names": [
-            "নিটল ইন্স্যুরেন্স",
-            "নিটল ইন্সুরেন্স",
-            "Nitol Insurance"
-          ]
-        },
-        {
-          "ticker": "NORTHRNINS",
-          "sector": "insurance",
-          "names": [
-            "নর্দার্ন ইন্স্যুরেন্স",
-            "নর্দার্ণ ইন্স্যুরেন্স",
-            "নর্দার্ন ইন্সুরেন্স",
-            "নর্দার্ণ ইন্স্যুরেন্স",
-            "Northern Islami Insurance"
-          ]
-        },
-        {
-          "ticker": "PADMALIFE",
-          "sector": "insurance",
-          "names": [
-            "পদ্মা লাইফ ইন্স্যুরেন্স",
-            "পদ্মা লাইফ ইন্সুরেন্স",
-            "Padma Islami Life Insurance"
-          ]
-        },
-        {
-          "ticker": "PARAMOUNT",
-          "sector": "insurance",
-          "names": [
-            "প্যারামাউন্ট ইন্সুরেন্স",
-            "প্যারামাউন্ট ইন্স্যুরেন্স",
-            "Paramount Insurance"
-          ]
-        },
-        {
-          "ticker": "PEOPLESINS",
-          "sector": "insurance",
-          "names": [
-            "পিপলস ইন্সুরেন্স",
-            "পিপলস ইন্স্যুরেন্স",
-            "Peoples Insurance"
-          ]
-        },
-        {
-          "ticker": "PHENIXINS",
-          "sector": "insurance",
-          "names": [
-            "ফিনিক্স ইন্সুরেন্স",
-            "ফিনিক্স ইন্স্যুরেন্স",
-            "Phoenix Insurance"
-          ]
-        },
-        {
-          "ticker": "PIONEERINS",
-          "sector": "insurance",
-          "names": [
-            "পাইওনিয়ার ইন্সুরেন্স",
-            "পাইওনিয়ার ইন্স্যুরেন্স",
-            "Pioneer Insurance"
-          ]
-        },
-        {
-          "ticker": "POPULARLIF",
-          "sector": "insurance",
-          "names": [
-            "পপুলার লাইফ ইন্স্যুরেন্স",
-            "পপুলার লাইফ ইন্সুরেন্স",
-            "Popular Life Insurance"
-          ]
-        },
-        {
-          "ticker": "PRAGATIINS",
-          "sector": "insurance",
-          "names": [
-            "প্রগতি ইন্স্যুরেন্স",
-            "প্রগতী ইন্সুরেন্স",
-            "Pragati Insurance"
-          ]
-        },
-        {
-          "ticker": "PRAGATILIF",
-          "sector": "insurance",
-          "names": [
-            "প্রগতি লাইফ ইন্স্যুরেন্স",
-            "প্রগতী লাইফ ইন্সুরেন্স",
-            "Pragati Life Insurance"
-          ]
-        },
-        {
-          "ticker": "PRIMEINSUR",
-          "sector": "insurance",
-          "names": [
-            "প্রাইম ইন্সুরেন্স",
-            "প্রাইম ইন্স্যুরেন্স",
-            "Prime Insurance"
-          ]
-        },
-        {
-          "ticker": "PRIMELIFE",
-          "sector": "insurance",
-          "names": [
-            "প্রাইম ইসলামী লাইফ ইন্স্যুরেন্স",
-            "প্রাইম ইসলামী লাইফ ইন্সুরেন্স",
-            "Prime Islami Life Insurance"
-          ]
-        },
-        {
-          "ticker": "PROGRESLIF",
-          "sector": "insurance",
-          "names": [
-            "প্রগ্রেসিভ লাইফ ইন্স্যুরেন্স",
-            "প্রগ্রেসিভ লাইফ ইন্সুরেন্স",
-            "Progressive Life Insurance"
-          ]
-        },
-        {
-          "ticker": "PROVATIINS",
-          "sector": "insurance",
-          "names": [
-            "প্রভাতী ইন্স্যুরেন্স",
-            "প্রভাতী ইন্সুরেন্স",
-            "Provati Insurance"
-          ]
-        },
-        {
-          "ticker": "PURABIGEN",
-          "sector": "insurance",
-          "names": [
-            "পূরবী জেনারেল ইন্স্যুরেন্স",
-            "পূরবী জেনারেল ইন্সুরেন্স",
-            "Purabi Gen. Insurance"
-          ]
-        },
-        {
-          "ticker": "RELIANCINS",
-          "sector": "insurance",
-          "names": [
-            "রিলায়েন্স ইন্সুরেন্স",
-            "রিলায়েন্স ইন্স্যুরেন্স",
-            "Reliance Insurance"
-          ]
-        },
-        {
-          "ticker": "REPUBLIC",
-          "sector": "insurance",
-          "names": [
-            "রিপাবলিক ইন্স্যুরেন্স",
-            "রিপাবলিক ইন্সুরেন্স",
-            "Republic Insurance"
-          ]
-        },
-        {
-          "ticker": "RUPALIINS",
-          "sector": "insurance",
-          "names": [
-            "রূপালী ইন্স্যুরেন্স",
-            "রূপালী ইন্সুরেন্স",
-            "Rupali Insurance"
-          ]
-        },
-        {
-          "ticker": "RUPALILIFE",
-          "sector": "insurance",
-          "names": [
-            "রূপালি লাইফ ইন্সুরেন্স",
-            "রূপালি লাইফ ইন্স্যুরেন্স",
-            "Rupali Life Insurance"
-          ]
-        },
-        {
-          "ticker": "SANDHANINS",
-          "sector": "insurance",
-          "names": [
-            "সন্ধানী ইন্সুরেন্স",
-            "সন্ধানী ইন্স্যুরেন্স",
-            "Sandhani Life Insurance"
-          ]
-        },
-        {
-          "ticker": "SONARBAINS",
-          "sector": "insurance",
-          "names": [
-            "সোনার বাংলা ইন্সুরেন্স",
-            "সোনার বাংলা ইন্স্যুরেন্স",
-            "Sonar Bangla Insurance"
-          ]
-        },
-        {
-          "ticker": "STANDARINS",
-          "sector": "insurance",
-          "names": [
-            "স্টান্ডার্ড ইন্সুরেন্স",
-            "স্টান্ডার্ড ইন্স্যুরেন্স",
-            "Standard Insurance"
-          ]
-        },
-        {
-          "ticker": "SUNLIFEINS",
-          "sector": "insurance",
-          "names": [
-            "সানলাইফ ইন্সুরেন্স",
-            "সানলাইফ ইন্স্যুরেন্স",
-            "Sunlife Insurance"
-          ]
-        },
-        {
-          "ticker": "TAKAFULINS",
-          "sector": "insurance",
-          "names": [
-            "তাকাফুল ইসলামী ইন্স্যুরেন্স",
-            "তাকাফুল ইন্স্যুরেন্স",
-            "তাকাফুল ইসলামী ইন্সুরেন্স",
-            "তাকাফুল ইন্সুরেন্স",
-            "Takaful Islami Insurance"
-          ]
-        },
-        {
-          "ticker": "UNITEDINS",
-          "sector": "insurance",
-          "names": [
-            "ইউনাইটেড ইন্স্যুরেন্স",
-            "ইউনাইটেড ইন্সুরেন্স",
-            "United Insurance"
-          ]
-        },
-        {
-          "ticker": "IBBLPBOND",
-          "sector": "corporate_bond",
-          "names": [
-            "আইবিবিএল",
-            "IBBL Mudaraba Perpetual Bond"
-          ]
-        },
-        {
-          "ticker": "BSCCL",
-          "sector": "telecommunications",
-          "names": [
-            "সাবমেরিন ক্যাবল",
-            "Bangladesh Submarine Cable"
-          ]
-        },
-        {
-          "ticker": "GP ",
-          "sector": "telecommunications",
-          "names": [
-            "গ্রামীনফোন",
-            "জিপি",
-            "গ্রামীন",
-            "Grameenphone",
-            "GP"
-          ]
-        },
-        {
-          "ticker": "BAYLEASING",
-          "sector": "financial_institute",
-          "names": [
-            "বে-লিজিং",
-            "Bay Leasing"
-          ]
-        },
-        {
-          "ticker": "BDFINANCE",
-          "sector": "financial_institute",
-          "names": [
-            "বাংলাদেশ ফাইন্যান্স",
-            "বিডি ফাইন্যান্স",
-            "বিডি ফাইনান্স",
-            "বাংলাদেশ ফাইনান্স",
-            "Bangladesh Finance"
-          ]
-        },
-        {
-          "ticker": "BIFC",
-          "sector": "financial_institute",
-          "names": [
-            "বাংলাদেশ ইন্ডাস্ট্রিয়াল ফাইন্যান্স",
-            "বিআইএফসি",
-            "Bangladesh Industrial Finance"
-          ]
-        },
-        {
-          "ticker": "DBH",
-          "sector": "financial_institute",
-          "names": [
-            "ডেল্টা ব্র্যাক হাউজিং",
-            "ডিবিএইচ",
-            "Delta Brac Housing Finance"
-          ]
-        },
-        {
-          "ticker": "FAREASTFIN",
-          "sector": "financial_institute",
-          "names": [
-            "ফারইস্ট ফাইনান্স",
-            "ফারইস্ট ফাইন্যান্স",
-            "Fareast Finance"
-          ]
-        },
-        {
-          "ticker": "FASFIN",
-          "sector": "financial_institute",
-          "names": [
-            "এফএএস ফাইন্যান্স",
-            "FAS Finance"
-          ]
-        },
-        {
-          "ticker": "FIRSTFIN",
-          "sector": "financial_institute",
-          "names": [
-            "ফার্স্ট ফাইন্যান্স",
-            "ফার্স্ট ফাইনান্স",
-            "First Finance"
-          ]
-        },
-        {
-          "ticker": "GSPFINANCE",
-          "sector": "financial_institute",
-          "names": [
-            "জিএসপি ফাইন্যান্স",
-            "জিএসপি ফাইনান্স",
-            "GSP Finance"
-          ]
-        },
-        {
-          "ticker": "ICB",
-          "sector": "financial_institute",
-          "names": [
-            "ইনভেস্টমেন্ট কর্পোরেশন অব বাংলাদেশ",
-            "আইসিবি",
-            "Investment Corporation Of Bangladesh"
-          ]
-        },
-        {
-          "ticker": "IDLC",
-          "sector": "financial_institute",
-          "names": [
-            "আইডিএলসি",
-            "IDLC Finance"
-          ]
-        },
-        {
-          "ticker": "ILFSL",
-          "sector": "financial_institute",
-          "names": [
-            "ইন্টারন্যাশনাল ফাইনান্স",
-            "ইন্টারন্যাশনাল ফাইন্যান্স",
-            "International Leasing \u0026 Financial"
-          ]
-        },
-        {
-          "ticker": "IPDC",
-          "sector": "financial_institute",
-          "names": [
-            "আইপিডিসি",
-            "IPDC Finance"
-          ]
-        },
-        {
-          "ticker": "ISLAMICFIN",
-          "sector": "financial_institute",
-          "names": [
-            "ইসলামিক ফাইন্যান্স",
-            "ইসলামিক ফাইনান্স",
-            "Islamic Finance"
-          ]
-        },
-        {
-          "ticker": "LANKABAFIN",
-          "sector": "financial_institute",
-          "names": [
-            "লংকাবাংলা",
-            "LankaBangla Finance"
-          ]
-        },
-        {
-          "ticker": "MIDASFIN",
-          "sector": "financial_institute",
-          "names": [
-            "মাইডাস",
-            "MIDAS Financing"
-          ]
-        },
-        {
-          "ticker": "NHFIL",
-          "sector": "financial_institute",
-          "names": [
-            "ন্যাশনাল হাউজিং",
-            "National Housing"
-          ]
-        },
-        {
-          "ticker": "PHOENIXFIN",
-          "sector": "financial_institute",
-          "names": [
-            "ফিনিক্স ফাইন্যান্স",
-            "ফিনিক্স ফাইনান্স",
-            "Phoenix Finance"
-          ]
-        },
-        {
-          "ticker": "PLFSL",
-          "sector": "financial_institute",
-          "names": [
-            "পিপলস লিজিং",
-            "Peoples Leasing"
-          ]
-        },
-        {
-          "ticker": "PREMIERLEA",
-          "sector": "financial_institute",
-          "names": [
-            "প্রিমিয়ার লিজিং",
-            "Premier Leasing"
-          ]
-        },
-        {
-          "ticker": "PRIMEFIN",
-          "sector": "financial_institute",
-          "names": [
-            "প্রাইম ফাইন্যান্স",
-            "প্রাইম ফাইনান্স",
-            "Prime Finance"
-          ]
-        },
-        {
-          "ticker": "UNIONCAP",
-          "sector": "financial_institute",
-          "names": [
-            "ইউনিয়ন ক্যাপ",
-            "Union Capital"
-          ]
-        },
-        {
-          "ticker": "UNITEDFIN",
-          "sector": "financial_institute",
-          "names": [
-            "ইউনাইটেড ফাইন্যান্স",
-            "ইউনাইটেড ফাইনান্স",
-            "United Finance"
-          ]
-        },
-        {
-          "ticker": "UTTARAFIN",
-          "sector": "financial_institute",
-          "names": [
-            "উত্তরা ফাইন্যান্স",
-            "উত্তরা ফাইনান্স",
-            "Uttara Finance"
-          ]
-        },
-        {
-          "ticker": "BDSERVICE",
-          "sector": "travel_and_leisure",
-          "names": [
-            "বিডি সার্ভিস",
-            "বাংলাদেশ সার্ভিস",
-            "Bangladesh Services"
-          ]
-        },
-        {
-          "ticker": "PENINSULA ",
-          "sector": "travel_and_leisure",
-          "names": [
-            "পেনিনসুলা",
-            "প্যানিনসুলা",
-            "Peninsula"
-          ]
-        },
-        {
-          "ticker": "SEAPEARL ",
-          "sector": "travel_and_leisure",
-          "names": [
-            "সি পার্ল",
-            "সী পার্ল",
-            "Sea Pearl Beach Resort"
-          ]
-        },
-        {
-          "ticker": "UNIQUEHRL",
-          "sector": "travel_and_leisure",
-          "names": [
-            "ইউনিক হোটেল",
-            "Unique Hotel \u0026 Resorts"
-          ]
-        },
-        {
-          "ticker": "UNITEDAIR ",
-          "sector": "travel_and_leisure",
-          "names": [
-            "ইউনাইটেড এয়ারওয়েজ",
-            "ইউনাইটেড এয়ার",
-            "United Airways"
-          ]
-        },
-        {
-          "ticker": "AMANFEED",
-          "sector": "miscellaneous",
-          "names": [
-            "আমান ফীড",
-            "আমান ফিড",
-            "Aman Feed"
-          ]
-        },
-        {
-          "ticker": "ARAMIT",
-          "sector": "miscellaneous",
-          "names": [
-            "আরামিট",
-            "Aramit"
-          ]
-        },
-        {
-          "ticker": "BERGERPBL",
-          "sector": "miscellaneous",
-          "names": [
-            "বার্জার",
-            "Berger Paints Bangladesh"
-          ]
-        },
-        {
-          "ticker": "BEXIMCO",
-          "sector": "miscellaneous",
-          "names": [
-            "বাংলাদেশ এক্সপোর্ট ইম্পোর্ট",
-            "বেক্সিমকো",
-            "Bangladesh Export Import Company",
-            "Beximco"
-          ]
-        },
-        {
-          "ticker": "BSC",
-          "sector": "miscellaneous",
-          "names": [
-            "বাংলাদেশ শিপিং",
-            "বিএসসি",
-            "Bangladesh Shipping Corporation",
-            "BSC"
-          ]
-        },
-        {
-          "ticker": "GQBALLPEN",
-          "sector": "miscellaneous",
-          "names": [
-            "জি কিউ বলপেন",
-            "GQ Ball Pen"
-          ]
-        },
-        {
-          "ticker": "KBPPWBIL",
-          "sector": "miscellaneous",
-          "names": [
-            "খান ব্রাদার্স",
-            "Khan Brothers"
-          ]
-        },
-        {
-          "ticker": "MIRACLEIND",
-          "sector": "miscellaneous",
-          "names": [
-            "মিরাকল ইন্ডাষ্ট্রি",
-            "মিরাকেল ইন্ডাষ্ট্রি",
-            "Miracle Industries"
-          ]
-        },
-        {
-          "ticker": "NFML",
-          "sector": "miscellaneous",
-          "names": [
-            "ন্যাশনাল ফীড",
-            "ন্যাশনাল ফিড",
-            "National Feed"
-          ]
-        },
-        {
-          "ticker": "SAVAREFR",
-          "sector": "miscellaneous",
-          "names": [
-            "সাভার রিফ্র্যাক্টরিজ",
-            "Savar Refractories"
-          ]
-        },
-        {
-          "ticker": "SINOBANGLA",
-          "sector": "miscellaneous",
-          "names": [
-            "সিনোবাংলা",
-            "Sinobangla"
-          ]
-        },
-        {
-          "ticker": "SKTRIMS",
-          "sector": "miscellaneous",
-          "names": [
-            "এসকে ট্রিম",
-            "SK Trims"
-          ]
-        },
-        {
-          "ticker": "USMANIAGL",
-          "sector": "miscellaneous",
-          "names": [
-            "উসমানিয়া গ্লাস",
-            "Usmania Glass"
-          ]
-        }
-      ]
-    }
-  }
+  "tickers": [
+    "1JANATAMF",
+    "1STPRIMFMF",
+    "AAMRANET",
+    "AAMRATECH",
+    "ABB1STMF",
+    "ABBANK",
+    "ACFL",
+    "ACI",
+    "ACIFORMULA",
+    "ACMELAB",
+    "ACMEPL",
+    "ACTIVEFINE",
+    "ADNTEL",
+    "ADVENT",
+    "AFCAGRO",
+    "AFTABAUTO",
+    "AGNISYSL",
+    "AGRANINS",
+    "AIBL1STIMF",
+    "AIL",
+    "AL-HAJTEX",
+    "ALARABANK",
+    "ALIF",
+    "ALLTEX",
+    "AMANFEED",
+    "AMBEEPHA",
+    "AMCL(PRAN)",
+    "ANLIMAYARN",
+    "ANWARGALV",
+    "AOL",
+    "APEXFOODS",
+    "APEXFOOT",
+    "APEXSPINN",
+    "APEXTANRY",
+    "APOLOISPAT",
+    "ARAMIT",
+    "ARAMITCEM",
+    "ARGONDENIM",
+    "ASIAINS",
+    "ASIAPACINS",
+    "ASIATICLAB",
+    "ATCSLGF",
+    "ATLASBANG",
+    "AZIZPIPES",
+    "BANGAS",
+    "BANKASIA",
+    "BARKAPOWER",
+    "BATASHOE",
+    "BATBC",
+    "BAYLEASING",
+    "BBS",
+    "BBSCABLES",
+    "BDAUTOCA",
+    "BDCOM",
+    "BDFINANCE",
+    "BDLAMPS",
+    "BDSERVICE",
+    "BDTHAI",
+    "BDTHAIFOOD",
+    "BDWELDING",
+    "BEACHHATCH",
+    "BEACONPHAR",
+    "BENGALWTL",
+    "BERGERPBL",
+    "BESTHLDNG",
+    "BEXIMCO",
+    "BGIC",
+    "BIFC",
+    "BNICL",
+    "BPML",
+    "BPPL",
+    "BRACBANK",
+    "BSC",
+    "BSCPLC",
+    "BSRMLTD",
+    "BSRMSTEEL",
+    "BXPHARMA",
+    "CAPITECGBF",
+    "CAPMBDBLMF",
+    "CAPMIBBLMF",
+    "CENTRALINS",
+    "CENTRALPHL",
+    "CITYBANK",
+    "CITYGENINS",
+    "CLICL",
+    "CNATEX",
+    "CONFIDCEM",
+    "CONTININS",
+    "COPPERTECH",
+    "CROWNCEMNT",
+    "CRYSTALINS",
+    "CVOPRL",
+    "DACCADYE",
+    "DAFODILCOM",
+    "DBH",
+    "DBH1STMF",
+    "DELTALIFE",
+    "DELTASPINN",
+    "DESCO",
+    "DESHBANDHU",
+    "DGIC",
+    "DHAKABANK",
+    "DHAKAINS",
+    "DOMINAGE",
+    "DOREENPWR",
+    "DSHGARME",
+    "DSSL",
+    "DULAMIACOT",
+    "DUTCHBANGL",
+    "EASTERNINS",
+    "EASTLAND",
+    "EASTRNLUB",
+    "EBL",
+    "EBL1STMF",
+    "EBLNRBMF",
+    "ECABLES",
+    "EGEN",
+    "EHL",
+    "EIL",
+    "EMERALDOIL",
+    "ENVOYTEX",
+    "EPGL",
+    "ESQUIRENIT",
+    "ETL",
+    "EXIM1STMF",
+    "EXIMBANK",
+    "FAMILYTEX",
+    "FARCHEM",
+    "FAREASTFIN",
+    "FAREASTLIF",
+    "FASFIN",
+    "FBFIF",
+    "FEDERALINS",
+    "FEKDIL",
+    "FINEFOODS",
+    "FIRSTFIN",
+    "FIRSTSBANK",
+    "FORTUNE",
+    "FUWANGCER",
+    "FUWANGFOOD",
+    "GBBPOWER",
+    "GEMINISEA",
+    "GENEXIL",
+    "GENNEXT",
+    "GHAIL",
+    "GHCL",
+    "GIB",
+    "GLDNJMF",
+    "GLOBALINS",
+    "GOLDENSON",
+    "GP",
+    "GPHISPAT",
+    "GQBALLPEN",
+    "GRAMEENS2",
+    "GREENDELMF",
+    "GREENDELT",
+    "GSPFINANCE",
+    "HAKKANIPUL",
+    "HAMI",
+    "HEIDELBCEM",
+    "HFL",
+    "HRTEX",
+    "HWAWELLTEX",
+    "IBNSINA",
+    "IBP",
+    "ICB",
+    "ICB3RDNRB",
+    "ICBAGRANI1",
+    "ICBAMCL2ND",
+    "ICBEPMF1S1",
+    "ICBIBANK",
+    "ICBSONALI1",
+    "ICICL",
+    "IDLC",
+    "IFADAUTOS",
+    "IFIC",
+    "IFIC1STMF",
+    "IFILISLMF1",
+    "ILFSL",
+    "INDEXAGRO",
+    "INTECH",
+    "INTRACO",
+    "IPDC",
+    "ISLAMIBANK",
+    "ISLAMICFIN",
+    "ISLAMIINS",
+    "ISNLTD",
+    "ITC",
+    "JAMUNABANK",
+    "JAMUNAOIL",
+    "JANATAINS",
+    "JHRML",
+    "JMISMDL",
+    "JUTESPINN",
+    "KARNAPHULI",
+    "KAY&QUE",
+    "KBPPWBIL",
+    "KDSALTD",
+    "KEYACOSMET",
+    "KOHINOOR",
+    "KPCL",
+    "KPPL",
+    "KTL",
+    "LANKABAFIN",
+    "LEGACYFOOT",
+    "LHB",
+    "LIBRAINFU",
+    "LINDEBD",
+    "LOVELLO",
+    "LRBDL",
+    "LRGLOBMF1",
+    "MAGURAPLEX",
+    "MAKSONSPIN",
+    "MALEKSPIN",
+    "MARICO",
+    "MATINSPINN",
+    "MBL1STMF",
+    "MEGCONMILK",
+    "MEGHNACEM",
+    "MEGHNAINS",
+    "MEGHNALIFE",
+    "MEGHNAPET",
+    "MERCANBANK",
+    "MERCINS",
+    "METROSPIN",
+    "MHSML",
+    "MIDASFIN",
+    "MIDLANDBNK",
+    "MIRACLEIND",
+    "MIRAKHTER",
+    "MITHUNKNIT",
+    "MJLBD",
+    "MLDYEING",
+    "MONNOAGML",
+    "MONNOCERA",
+    "MONNOFABR",
+    "MONOSPOOL",
+    "MPETROLEUM",
+    "MTB",
+    "NAHEEACP",
+    "NATLIFEINS",
+    "NAVANACNG",
+    "NAVANAPHAR",
+    "NBL",
+    "NCCBANK",
+    "NCCBLMF1",
+    "NEWLINE",
+    "NFML",
+    "NHFIL",
+    "NITOLINS",
+    "NORTHERN",
+    "NORTHRNINS",
+    "NPOLYMER",
+    "NRBBANK",
+    "NRBCBANK",
+    "NTC",
+    "NTLTUBES",
+    "NURANI",
+    "OAL",
+    "OIMEX",
+    "OLYMPIC",
+    "ONEBANKPLC",
+    "ORIONINFU",
+    "ORIONPHARM",
+    "PADMALIFE",
+    "PADMAOIL",
+    "PARAMOUNT",
+    "PDL",
+    "PENINSULA",
+    "PEOPLESINS",
+    "PF1STMF",
+    "PHARMAID",
+    "PHENIXINS",
+    "PHOENIXFIN",
+    "PHPMF1",
+    "PIONEERINS",
+    "PLFSL",
+    "POPULAR1MF",
+    "POPULARLIF",
+    "POWERGRID",
+    "PRAGATIINS",
+    "PRAGATILIF",
+    "PREMIERBAN",
+    "PREMIERCEM",
+    "PREMIERLEA",
+    "PRIME1ICBA",
+    "PRIMEBANK",
+    "PRIMEFIN",
+    "PRIMEINSUR",
+    "PRIMELIFE",
+    "PRIMETEX",
+    "PROGRESLIF",
+    "PROVATIINS",
+    "PTL",
+    "PUBALIBANK",
+    "PURABIGEN",
+    "QUASEMIND",
+    "QUEENSOUTH",
+    "RAHIMAFOOD",
+    "RAHIMTEXT",
+    "RAKCERAMIC",
+    "RANFOUNDRY",
+    "RDFOOD",
+    "RECKITTBEN",
+    "REGENTTEX",
+    "RELIANCE1",
+    "RELIANCINS",
+    "RENATA",
+    "RENWICKJA",
+    "REPUBLIC",
+    "RINGSHINE",
+    "ROBI",
+    "RSRMSTEEL",
+    "RUNNERAUTO",
+    "RUPALIBANK",
+    "RUPALIINS",
+    "RUPALILIFE",
+    "SAFKOSPINN",
+    "SAIFPOWER",
+    "SAIHAMCOT",
+    "SAIHAMTEX",
+    "SALAMCRST",
+    "SALVOCHEM",
+    "SAMATALETH",
+    "SAMORITA",
+    "SANDHANINS",
+    "SAPORTL",
+    "SAVAREFR",
+    "SBACBANK",
+    "SEAPEARL",
+    "SEMLFBSLGF",
+    "SEMLIBBLSF",
+    "SEMLLECMF",
+    "SHAHJABANK",
+    "SHARPIND",
+    "SHASHADNIM",
+    "SHEPHERD",
+    "SHURWID",
+    "SHYAMPSUG",
+    "SIBL",
+    "SICL",
+    "SILCOPHL",
+    "SILVAPHL",
+    "SIMTEX",
+    "SINGERBD",
+    "SINOBANGLA",
+    "SIPLC",
+    "SKTRIMS",
+    "SONALIANSH",
+    "SONALILIFE",
+    "SONALIPAPR",
+    "SONARBAINS",
+    "SONARGAON",
+    "SOUTHEASTB",
+    "SPCERAMICS",
+    "SPCL",
+    "SQUARETEXT",
+    "SQURPHARMA",
+    "SSSTEEL",
+    "STANCERAM",
+    "STANDARINS",
+    "STANDBANKL",
+    "STYLECRAFT",
+    "SUMITPOWER",
+    "SUNLIFEINS",
+    "TAKAFULINS",
+    "TALLUSPIN",
+    "TAMIJTEX",
+    "TECHNODRUG",
+    "TILIL",
+    "TITASGAS",
+    "TOSRIFA",
+    "TRUSTB1MF",
+    "TRUSTBANK",
+    "TUNGHAI",
+    "UCB",
+    "UNILEVERCL",
+    "UNIONBANK",
+    "UNIONCAP",
+    "UNIONINS",
+    "UNIQUEHRL",
+    "UNITEDFIN",
+    "UNITEDINS",
+    "UPGDCL",
+    "USMANIAGL",
+    "UTTARABANK",
+    "UTTARAFIN",
+    "VAMLBDMF1",
+    "VAMLRBBF",
+    "VFSTDL",
+    "WALTONHIL",
+    "WATACHEM",
+    "WMSHIPYARD",
+    "YPL",
+    "ZAHEENSPIN",
+    "ZAHINTEX",
+    "ZEALBANGLA"
+  ],
+  "last_updated": "2025-09-16",
+  "total_count": 397,
+  "description": "List of all trading symbols available on DSE (Dhaka Stock Exchange)"
+}
