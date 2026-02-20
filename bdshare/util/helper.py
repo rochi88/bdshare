@@ -152,11 +152,34 @@ def _fetch_table(
     except Exception:
         soup = BeautifulSoup(r.content, "html.parser")
 
-    attrs = {"class": table_class, "_id": table_id} if table_class else {}
-    table = soup.find("table", attrs=attrs)
+    # attrs = {"class": table_class, "_id": table_id} if table_class else {}
+    # table = soup.find("table", attrs=attrs)
+
+    table = None
+
+    if table_class or table_id:
+        attrs: Dict[str, str] = {}
+        if table_class:
+            attrs["class"] = table_class
+
+        if table_id:
+            # Primary: standard HTML id attribute
+            table = soup.find("table", attrs={**attrs, "id": table_id})
+            # Fallback: legacy _id alias used by some BS4 internals
+            if table is None:
+                table = soup.find("table", attrs={**attrs, "_id": table_id})
+        else:
+            table = soup.find("table", attrs=attrs)
+    else:
+        table = soup.find("table")
 
     if table is None:
-        detail = f" with class {table_class!r}" if table_class else ""
+        parts = []
+        if table_class:
+            parts.append(f"class={table_class!r}")
+        if table_id:
+            parts.append(f"id={table_id!r}")
+        detail = " with " + ", ".join(parts) if parts else ""
         raise BDShareError(f"Table{detail} not found at {url}")
 
     return table

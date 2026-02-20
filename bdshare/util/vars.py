@@ -18,3 +18,7 @@ DSE_MARKET_DEPTH_URL = "ajax/load-instrument.php"
 DSE_MARKET_DEPTH_REFERER_URL = "mkt_depth_3.php"
 
 DSEX_INDEX_VALUE = "dseX_share.php"
+
+DSE_SECTOR_PERF_URL = "sector_performance.php"
+DSE_TOP_GAINERS_URL = "top_gainers.php"
+

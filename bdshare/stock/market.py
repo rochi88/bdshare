@@ -226,8 +226,8 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2)
                         matrix[m + 1]: _safe_num(newcols[1].text, int),
                     })
 
-    if not result:
-        raise BDShareError(f"No market depth data parsed for {symbol}.")
+    # if not result:
+    #     raise BDShareError(f"No market depth data parsed for {symbol}.")
     return pd.DataFrame(result)
 
 
