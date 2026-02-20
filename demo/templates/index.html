@@ -1,42 +1,357 @@
 <!doctype html>
-<html>
-
+<html lang="en">
 <head>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-        <style>body{ margin:0 100; background:whitesmoke; }</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bangladesh Stock Market Analysis</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            background: #f8f9fa; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+        .sidebar {
+            background: white;
+            border-right: 1px solid #dee2e6;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 56px;
+            width: 300px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .main-content {
+            margin-left: 300px;
+            padding: 20px;
+            margin-top: 56px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                margin-top: 56px;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .positive { color: #28a745; font-weight: bold; }
+        .negative { color: #dc3545; font-weight: bold; }
+        .graph-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        .sidebar-section:last-child {
+            margin-bottom: 0;
+        }
+    </style>
 </head>
 
 <body>
-	<h1>Stock Graphs</h1>
-	
-    {% for id in ids %}
-        <h3>{{id}}</h3>
-        <div id="{{id}}"></div>
-    {% endfor %}
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>BD Stock Analytics
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
 
-</body>
+    <!-- Sidebar Controls -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h5 class="mb-3"><i class="fas fa-sliders-h me-2"></i>Chart Controls</h5>
+            
+            <div class="mb-3">
+                <label class="form-label">Select Stock</label>
+                <select class="form-select" id="tickerSelect">
+                    {% for ticker in tickers %}
+                        <option value="{{ ticker }}" 
+                                {% if ticker == default_ticker %}selected{% endif %}>
+                            {{ ticker }} - {{ popular_stocks.get(ticker, 'N/A') }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="startDate" value="{{ start_date }}">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" id="endDate" value="{{ end_date }}">
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Chart Type</label>
+                <select class="form-select" id="chartType">
+                    <option value="candlestick">Candlestick Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="ohlc">OHLC Chart</option>
+                    <option value="multiple">Multiple Charts</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-primary w-100" id="updateChart">
+                <i class="fas fa-sync-alt me-2"></i>Update Chart
+            </button>
+        </div>
 
+        <!-- Quick Stats -->
+        <div class="sidebar-section">
+            <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Quick Stats</h5>
+            <div id="statsContainer" style="display: none;">
+                <div class="stats-card">
+                    <div class="text-muted small">Current Price</div>
+                    <div class="h6 mb-0" id="currentPrice">-</div>
+                </div>
+                <div class="stats-card">
+                    <div class="text-muted small">Price Change</div>
+                    <div class="h6 mb-0" id="priceChange">-</div>
+                </div>
+                <div class="stats-card">
+                    <div class="text-muted small">% Change</div>
+                    <div class="h6 mb-0" id="percentChange">-</div>
+                </div>
+                <div class="stats-card">
+                    <div class="text-muted small">Period High</div>
+                    <div class="h6 mb-0" id="periodHigh">-</div>
+                </div>
+                <div class="stats-card">
+                    <div class="text-muted small">Period Low</div>
+                    <div class="h6 mb-0" id="periodLow">-</div>
+                </div>
+                <div class="stats-card">
+                    <div class="text-muted small">Total Volume</div>
+                    <div class="h6 mb-0" id="totalVolume">-</div>
+                </div>
+            </div>
+            <div id="noStats" class="text-muted text-center">
+                Select a stock to view statistics
+            </div>
+        </div>
+    </div>
 
-<footer>
-    <!-- D3.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <!-- Plotly.js -->
-	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Graphs Container -->
+        <div class="graph-container">
+            <div id="graphsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                    <p>Loading stock data...</p>
+                </div>
+            </div>
+        </div>
 
-    <script type="text/javascript">
+        <!-- Additional Info -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>About
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">
+                            This dashboard provides real-time stock market data from the Bangladesh Stock Exchange. 
+                            Select a stock from the sidebar to view its price movements and trading statistics.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        var graphs = {{graphJSON | safe}};
-        var ids = {{ids | safe}};
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container-fluid text-center">
+            <p class="mb-0">Bangladesh Stock Market Analytics &copy; 2024</p>
+            <small>Data provided by BDShare</small>
+        </div>
+    </footer>
 
-        for(var i in graphs) {
-            Plotly.plot(ids[i], // the ID of the div, created above
-                        graphs[i].data,
-                        graphs[i].layout || {});
-        }
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
+    <script>
+        $(document).ready(function() {
+            // Load initial chart
+            loadChartData();
+            
+            // Update chart when button is clicked
+            $('#updateChart').click(function() {
+                loadChartData();
+            });
+            
+            // Also update when Enter key is pressed in date fields
+            $('#startDate, #endDate').keypress(function(e) {
+                if (e.which === 13) {
+                    loadChartData();
+                }
+            });
+
+            function loadChartData() {
+                const ticker = $('#tickerSelect').val();
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
+                const chartType = $('#chartType').val();
+                
+                // Show loading
+                $('#graphsContainer').html(`
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Loading data for ${ticker}...</p>
+                    </div>
+                `);
+                $('#statsContainer').hide();
+                $('#noStats').show();
+                
+                // Make API request
+                $.getJSON('/get_stock_data', {
+                    ticker: ticker,
+                    start_date: startDate,
+                    end_date: endDate,
+                    chart_type: chartType
+                }, function(data) {
+                    if (data.error) {
+                        $('#graphsContainer').html(`
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${data.error}
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    // Display statistics
+                    if (data.stats) {
+                        updateStatistics(data.stats);
+                        $('#statsContainer').show();
+                        $('#noStats').hide();
+                    }
+                    
+                    // Display graphs
+                    displayGraphs(data.graphs, data.ids);
+                }).fail(function() {
+                    $('#graphsContainer').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Failed to load stock data. Please try again.
+                        </div>
+                    `);
+                });
+            }
+            
+            function updateStatistics(stats) {
+    // Handle null/undefined values safely
+    const currentPrice = stats.current_price !== null && stats.current_price !== undefined ? stats.current_price : 'N/A';
+    const priceChange = stats.price_change !== null && stats.price_change !== undefined ? stats.price_change : 0;
+    const percentChange = stats.percent_change !== null && stats.percent_change !== undefined ? stats.percent_change : 0;
+    const periodHigh = stats.high !== null && stats.high !== undefined ? stats.high : 'N/A';
+    const periodLow = stats.low !== null && stats.low !== undefined ? stats.low : 'N/A';
+    const totalVolume = stats.volume !== null && stats.volume !== undefined ? stats.volume : 'N/A';
+    
+    $('#currentPrice').text(currentPrice !== 'N/A' ? '৳' + currentPrice.toFixed(2) : '-');
+    
+    $('#priceChange').html(
+        priceChange >= 0 ? 
+        `<span class="positive">+৳${priceChange.toFixed(2)}</span>` :
+        `<span class="negative">-৳${Math.abs(priceChange).toFixed(2)}</span>`
+    );
+    
+    $('#percentChange').html(
+        percentChange >= 0 ?
+        `<span class="positive">+${percentChange.toFixed(2)}%</span>` :
+        `<span class="negative">${percentChange.toFixed(2)}%</span>`
+    );
+    
+    $('#periodHigh').text(periodHigh !== 'N/A' ? '৳' + periodHigh.toFixed(2) : '-');
+    $('#periodLow').text(periodLow !== 'N/A' ? '৳' + periodLow.toFixed(2) : '-');
+    $('#totalVolume').text(totalVolume !== 'N/A' ? totalVolume.toLocaleString() : '-');
+}
+            
+            function displayGraphs(graphJSON, ids) {
+                const graphs = JSON.parse(graphJSON);
+                let html = '';
+                
+                for (let i in graphs) {
+                    html += `<div id="${ids[i]}" class="mb-4"></div>`;
+                }
+                
+                $('#graphsContainer').html(html);
+                
+                for (let i in graphs) {
+                    Plotly.newPlot(ids[i], graphs[i].data, graphs[i].layout, {responsive: true});
+                }
+            }
+        });
     </script>
-</footer>
-
+</body>
 </html>

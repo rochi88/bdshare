@@ -1,30 +1,45 @@
-# -*- coding:utf-8 -*-
-
 """
-Created on 2024/03/03
-@author: Raisul Islam
-@group : bdshare.xyz
-@contact: raisul.me@gmail.com
+bdshare.util.session
+~~~~~~~~~~~~~~~~~~~~
+Session and API token management.
+
+The session stored here is separate from the shared requests.Session in
+helper.py (which is used for scraping). This one is intended for any
+future authenticated API layer.
 """
 
-import pandas as pd
-import os
-from . import cons as ct
+from typing import Optional
+
+_token: Optional[str] = None
+_session: Optional[object] = None
 
 
-def set_session(session):
-    df = pd.DataFrame([session], columns=["session"])
-    user_home = os.path.expanduser("~")
-    fp = os.path.join(user_home, ct.SESSION_F_P)
-    df.to_csv(fp, index=False)
+def get_token() -> Optional[str]:
+    """Return the currently stored API token, or None if not set."""
+    return _token
 
 
-def get_session():
-    user_home = os.path.expanduser("~")
-    fp = os.path.join(user_home, ct.SESSION_F_P)
-    if os.path.exists(fp):
-        df = pd.read_csv(fp)
-        return str(df.iloc[0]["session"])
-    else:
-        print(ct.SESSION_ERR_MSG)
-        return None
+def set_token(token: str) -> None:
+    """
+    Store an API token for use with authenticated endpoints.
+
+    :param token: API key string.
+    """
+    global _token
+    _token = token
+
+
+def get_session() -> Optional[object]:
+    """Return the current session object, or None if not set."""
+    return _session
+
+
+def set_session(session: Optional[object]) -> None:
+    """
+    Store a session object. Pass ``None`` to clear the session
+    (called automatically on ``BDShare.__exit__``).
+
+    :param session: Any session object, or None to clear.
+    """
+    global _session
+    _session = session

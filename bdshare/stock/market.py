@@ -1,329 +1,318 @@
-import time
-import requests
-from bs4 import BeautifulSoup
+import logging
 import pandas as pd
+from typing import Optional
 from bdshare.util import vars as vs
+from bdshare.util.helper import _fetch_table, _safe_num, safe_get, BDShareError
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Table class constants
+# ---------------------------------------------------------------------------
+_CLS_FIXED    = "table table-bordered background-white shares-table fixedHeader"
+_CLS_SHARES   = "table table-bordered background-white shares-table"
+_CLS_CENTER   = "table table-bordered background-white text-center"
+_CLS_PLAIN    = "table table-bordered background-white"
+_CLS_STRIPPED = "table table-stripped"
 
 
-def get_market_inf(retry_count=3, pause=0.001):
-    """
-    get company information.
-    :return: dataframe
-    """
-    for _ in range(retry_count):
-        time.sleep(pause)
-        try:
-            r = requests.get(vs.DSE_URL + vs.DSE_MARKET_INF_URL)
-            if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL + vs.DSE_MARKET_INF_URL)
-        except Exception as e:
-            print(e)
+# ---------------------------------------------------------------------------
+# Public API  (canonical names as of v1.1.5)
+# ---------------------------------------------------------------------------
+
+def get_market_info(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Get current market summary (indices, volumes, market cap)."""
+    table = _fetch_table(
+        vs.DSE_URL + vs.DSE_MARKET_INFO_URL,
+        vs.DSE_ALT_URL + vs.DSE_MARKET_INFO_URL,
+        retries=retry_count,
+        pause=pause,
+        table_class=_CLS_CENTER,
+    )
+    rows = []
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if len(cols) < 9:
             continue
-        else:
-            soup = BeautifulSoup(r.text, "html.parser")
-            quotes = []  # a list to store quotes
-
-            table = soup.find(
-                "table",
-                attrs={
-                    "class": "table table-bordered background-white text-center",
-                    "_id": "data-table",
-                },
-            )
-
-            if table is None:
-                # Try alternative selectors
-                table = soup.find(
-                    "table",
-                    attrs={
-                        "class": "table table-bordered background-white text-center"
-                    },
-                )
-                if table is None:
-                    table = soup.find("table")
-
-            if table is None:
-                print("No table found on market info page")
-                return pd.DataFrame()
-
-            rows = table.find_all("tr")
-            for row in rows[1:]:  # Skip header row
-                cols = row.find_all("td")
-                if len(cols) >= 9:  # Ensure we have enough columns
-                    try:
-                        quotes.append(
-                            {
-                                "Date": cols[0].text.strip().replace(",", ""),
-                                "Total Trade": cols[1].text.strip().replace(",", ""),
-                                "Total Volume": cols[2].text.strip().replace(",", ""),
-                                "Total Value (mn)": cols[3]
-                                .text.strip()
-                                .replace(",", ""),
-                                "Total Market Cap. (mn)": cols[4]
-                                .text.strip()
-                                .replace(",", ""),
-                                "DSEX Index": cols[5].text.strip().replace(",", ""),
-                                "DSES Index": cols[6].text.strip().replace(",", ""),
-                                "DS30 Index": cols[7].text.strip().replace(",", ""),
-                                "DGEN Index": cols[8].text.strip().replace(",", ""),
-                            }
-                        )
-                    except (IndexError, AttributeError) as e:
-                        print(f"Error parsing row: {e}")
-                        continue
-
-            if quotes:
-                df = pd.DataFrame(quotes)
-                return df
-
-    return pd.DataFrame()
-
-
-def get_company_inf(symbol=None, retry_count=3, pause=0.001):
-    """
-    get stock market information.
-    :param symbol: str, Instrument symbol e.g.: 'ACI' or 'aci'
-    :return: dataframe
-    """
-    data = {"name": symbol}
-
-    for _ in range(retry_count):
-        time.sleep(pause)
         try:
-            r = requests.get(vs.DSE_URL + vs.DSE_COMPANY_INF_URL, params=data)
-            if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL + vs.DSE_COMPANY_INF_URL, params=data)
-        except Exception as e:
-            print(e)
-        else:
-            tables = pd.read_html(r.content)
-            return tables[400:]
+            rows.append({
+                "Date":                   cols[0].text.strip(),
+                "Total Trade":            _safe_num(cols[1].text, int),
+                "Total Volume":           _safe_num(cols[2].text, int),
+                "Total Value (mn)":       _safe_num(cols[3].text, float),
+                "Total Market Cap. (mn)": _safe_num(cols[4].text, float),
+                "DSEX Index":             _safe_num(cols[5].text, float),
+                "DSES Index":             _safe_num(cols[6].text, float),
+                "DS30 Index":             _safe_num(cols[7].text, float),
+                "DGEN Index":             _safe_num(cols[8].text, float),
+            })
+        except (IndexError, AttributeError) as exc:
+            logger.warning("Skipping malformed market info row: %s", exc)
+
+    if not rows:
+        raise BDShareError("No market info data found.")
+    return pd.DataFrame(rows)
 
 
-def get_latest_pe(retry_count=3, pause=0.001):
+def get_company_info(symbol: str, retry_count: int = 3, pause: float = 0.2) -> list:
     """
-    get last stock P/E.
-    :return: dataframe
+    Get company information tables for a given symbol.
+
+    :return: list of DataFrames (relevant tables start at index 400 in the page).
     """
-    for _ in range(retry_count):
-        time.sleep(pause)
-        try:
-            r = requests.get(vs.DSE_URL + vs.DSE_LPE_URL)
-            if r.status_code != 200:
-                r = requests.get(vs.DSE_ALT_URL + vs.DSE_LPE_URL)
-        except Exception as e:
-            print(e)
+    r = safe_get(
+        vs.DSE_URL + vs.DSE_COMPANY_INFO_URL,
+        params={"name": symbol},
+        alt_url=vs.DSE_ALT_URL + vs.DSE_COMPANY_INFO_URL,
+        retries=retry_count,
+        pause=pause,
+    )
+    try:
+        tables = pd.read_html(r.content)
+        return tables[400:]
+    except Exception as exc:
+        raise BDShareError(f"Failed to parse company info for {symbol}: {exc}") from exc
+
+
+def get_latest_pe(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Get latest P/E ratios for all listed companies."""
+    table = _fetch_table(
+        vs.DSE_URL + vs.DSE_LPE_URL,
+        vs.DSE_ALT_URL + vs.DSE_LPE_URL,
+        retries=retry_count,
+        pause=pause,
+        table_class=_CLS_FIXED,
+    )
+    rows = []
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if len(cols) < 10:
             continue
-        else:
-            if r.status_code == 502:
-                print(
-                    "DSE server returned 502 Bad Gateway - server issue, not code issue"
-                )
-                return pd.DataFrame()
+        try:
+            rows.append(tuple(c.text.strip().replace(",", "") for c in cols[1:10]))
+        except (IndexError, AttributeError) as exc:
+            logger.warning("Skipping malformed P/E row: %s", exc)
 
-            soup = BeautifulSoup(r.content, "html5lib")
-
-            quotes = []  # a list to store quotes
-            table = soup.find(
-                "table",
-                attrs={
-                    "class": "table table-bordered background-white shares-table fixedHeader"
-                },
-            )
-
-            if table is None:
-                # Try alternative selectors
-                table = soup.find(
-                    "table",
-                    attrs={
-                        "class": "table table-bordered background-white shares-table"
-                    },
-                )
-                if table is None:
-                    table = soup.find("table")
-
-            if table is None:
-                print("No table found on P/E page")
-                return pd.DataFrame()
-
-            rows = table.find_all("tr")
-            for row in rows[1:]:  # Skip header row
-                cols = row.find_all("td")
-                if len(cols) >= 10:  # Ensure we have enough columns
-                    try:
-                        quotes.append(
-                            (
-                                cols[1].text.strip().replace(",", ""),
-                                cols[2].text.strip().replace(",", ""),
-                                cols[3].text.strip().replace(",", ""),
-                                cols[4].text.strip().replace(",", ""),
-                                cols[5].text.strip().replace(",", ""),
-                                cols[6].text.strip().replace(",", ""),
-                                cols[7].text.strip().replace(",", ""),
-                                cols[8].text.strip().replace(",", ""),
-                                cols[9].text.strip().replace(",", ""),
-                            )
-                        )
-                    except (IndexError, AttributeError) as e:
-                        print(f"Error parsing P/E row: {e}")
-                        continue
-
-            if quotes:
-                df = pd.DataFrame(quotes)
-                return df
-
-    return pd.DataFrame()
+    if not rows:
+        raise BDShareError("No P/E data found.")
+    return pd.DataFrame(rows)
 
 
-def get_market_inf_more_data(
-    start=None, end=None, index=None, retry_count=3, pause=0.001
-):
-    """
-    get historical stock price.
-    :param start: str, Start date e.g.: '2020-03-01'
-    :param end: str, End date e.g.: '2020-03-02'
-    :param retry_count : int, e.g.: 3
-    :param pause : int, e.g.: 0
-    :return: dataframe
-    """
-    # data to be sent to post request
-    data = {
+def get_market_info_more_data(
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    index: Optional[str] = None,
+    retry_count: int = 3,
+    pause: float = 0.2,
+) -> pd.DataFrame:
+    """Get extended historical market summary data via POST."""
+    from bdshare.util.helper import _session
+    import time
+
+    payload = {
         "startDate": start,
         "endDate": end,
         "searchRecentMarket": "Search Recent Market",
     }
 
-    for _ in range(retry_count):
-        time.sleep(pause)
+    for attempt in range(retry_count):
+        time.sleep(pause * (2 ** attempt))
         try:
-            r = requests.post(url=vs.DSE_URL + vs.DSE_MARKET_INF_MORE_URL, data=data)
-            if r.status_code != 200:
-                r = requests.post(
-                    url=vs.DSE_ALT_URL + vs.DSE_MARKET_INF_MORE_URL, data=data
-                )
-        except Exception as e:
-            print(e)
-            continue
-        else:
-            # soup = BeautifulSoup(r.text, 'html.parser')
-            soup = BeautifulSoup(r.content, "html5lib")
-
-            quotes = []  # a list to store quotes
-
-            table = soup.find(
-                "table",
-                attrs={"class": "table table-bordered background-white text-center"},
+            r = _session.post(
+                vs.DSE_URL + vs.DSE_MARKET_INFO_MORE_URL, data=payload, timeout=10
             )
-
-            if table is None:
-                # Try alternative selectors
-                table = soup.find(
-                    "table", attrs={"class": "table table-bordered background-white"}
+            if r.status_code != 200:
+                r = _session.post(
+                    vs.DSE_ALT_URL + vs.DSE_MARKET_INFO_MORE_URL, data=payload, timeout=10
                 )
-                if table is None:
-                    table = soup.find("table")
+            r.raise_for_status()
+            break
+        except Exception as exc:
+            if attempt == retry_count - 1:
+                raise BDShareError(
+                    f"Failed to fetch extended market data: {exc}"
+                ) from exc
 
-            if table is None:
-                print("No table found on market info more data page")
-                return pd.DataFrame()
+    from bs4 import BeautifulSoup
+    try:
+        soup = BeautifulSoup(r.content, "lxml")
+    except Exception:
+        soup = BeautifulSoup(r.content, "html.parser")
 
-            rows = table.find_all("tr")
-            for row in rows[1:]:  # Skip header row
-                cols = row.find_all("td")
-                if len(cols) >= 9:  # Ensure we have enough columns
-                    try:
-                        quotes.append(
-                            {
-                                "Date": cols[0].text.strip().replace(",", ""),
-                                "Total Trade": int(
-                                    cols[1].text.strip().replace(",", "")
-                                ),
-                                "Total Volume": int(
-                                    cols[2].text.strip().replace(",", "")
-                                ),
-                                "Total Value in Taka(mn)": float(
-                                    cols[3].text.strip().replace(",", "")
-                                ),
-                                "Total Market Cap. in Taka(mn)": float(
-                                    cols[4].text.strip().replace(",", "")
-                                ),
-                                "DSEX Index": float(
-                                    cols[5].text.strip().replace(",", "")
-                                ),
-                                "DSES Index": float(
-                                    cols[6].text.strip().replace(",", "")
-                                ),
-                                "DS30 Index": float(
-                                    cols[7].text.strip().replace(",", "")
-                                ),
-                                "DGEN Index": float(
-                                    cols[8].text.strip().replace("-", "0")
-                                ),
-                            }
-                        )
-                    except (IndexError, ValueError, AttributeError) as e:
-                        print(f"Error parsing market data row: {e}")
-                        continue
+    table = (
+        soup.find("table", attrs={"class": _CLS_CENTER})
+        or soup.find("table", attrs={"class": _CLS_PLAIN})
+        or soup.find("table")
+    )
+    if table is None:
+        raise BDShareError("Extended market data table not found.")
 
-            if quotes:
-                df = pd.DataFrame(quotes)
-                if "Date" in df.columns:
-                    if index == "date":
-                        df = df.set_index("Date")
-                        df = df.sort_index(ascending=True)
-                    df = df.sort_index(ascending=True)
-                return df
-            else:
-                print("No data found")
-                return pd.DataFrame()
-
-    return pd.DataFrame()
-
-
-def get_market_depth_data(index, retry_count=3, pause=0.001):
-    """
-    get market depth data.
-    :param index: str, e.g.: 'ACI'
-    :param retry_count : int, e.g.: 3
-    :param pause : int, e.g.: 0
-    :return: dataframe
-    """
-    # data to be sent to post request
-    data = {"inst": index}
-
-    for _ in range(retry_count):
-        time.sleep(pause)
-        session = requests.Session()
-        session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL)
-        headers = {"X-Requested-With": "XMLHttpRequest"}
-        session.headers.update(headers)
+    rows = []
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if len(cols) < 9:
+            continue
         try:
-            r = session.post(url=vs.DSE_URL + vs.DSE_MARKET_DEPTH_URL, data=data)
-        except Exception as e:
-            print(e)
-        else:
-            soup = BeautifulSoup(r.content, "html5lib")
+            rows.append({
+                "Date":                          cols[0].text.strip(),
+                "Total Trade":                   _safe_num(cols[1].text, int),
+                "Total Volume":                  _safe_num(cols[2].text, int),
+                "Total Value in Taka(mn)":       _safe_num(cols[3].text, float),
+                "Total Market Cap. in Taka(mn)": _safe_num(cols[4].text, float),
+                "DSEX Index":                    _safe_num(cols[5].text, float),
+                "DSES Index":                    _safe_num(cols[6].text, float),
+                "DS30 Index":                    _safe_num(cols[7].text, float),
+                "DGEN Index":                    _safe_num(cols[8].text.replace("-", "0"), float),
+            })
+        except (IndexError, AttributeError) as exc:
+            logger.warning("Skipping malformed extended market row: %s", exc)
 
-            result = []
+    if not rows:
+        raise BDShareError("No extended market data found.")
 
-            matrix = ["buy_price", "buy_volume", "sell_price", "sell_volume"]
+    df = pd.DataFrame(rows)
+    if index == "date" and "Date" in df.columns:
+        df = df.set_index("Date")
+    return df.sort_index(ascending=True)
 
-            table = soup.find("table", attrs={"class": "table table-stripped"})
 
-            for row in table.find_all("tr")[:1]:
-                cols = row.find_all("td", valign="top")
-                index = 0
+def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Get market depth (order book) for a specific symbol."""
+    from bdshare.util.helper import _session
+    import time
 
-                for mainrow in cols:
-                    for row in mainrow.find_all("tr")[2:]:
-                        newcols = row.find_all("td")
-                        result.append(
-                            {
-                                matrix[index]: float(newcols[0].text.strip()),
-                                matrix[index + 1]: int(newcols[1].text.strip()),
-                            }
-                        )
-                    index = index + 2
+    for attempt in range(retry_count):
+        time.sleep(pause * (2 ** attempt))
+        try:
+            # Establish referer cookie first (required by DSE)
+            _session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL, timeout=10)
+            _session.headers.update({"X-Requested-With": "XMLHttpRequest"})
+            r = _session.post(
+                vs.DSE_URL + vs.DSE_MARKET_DEPTH_URL,
+                data={"inst": symbol},
+                timeout=10,
+            )
+            r.raise_for_status()
+            break
+        except Exception as exc:
+            if attempt == retry_count - 1:
+                raise BDShareError(
+                    f"Failed to fetch market depth for {symbol}: {exc}"
+                ) from exc
 
-            df = pd.DataFrame(result)
-            return df
+    from bs4 import BeautifulSoup
+    try:
+        soup = BeautifulSoup(r.content, "lxml")
+    except Exception:
+        soup = BeautifulSoup(r.content, "html.parser")
+
+    table = soup.find("table", attrs={"class": _CLS_STRIPPED})
+    if table is None:
+        raise BDShareError(f"Market depth table not found for {symbol}.")
+
+    result = []
+    matrix = ["buy_price", "buy_volume", "sell_price", "sell_volume"]
+
+    for row in table.find_all("tr")[:1]:
+        cols = row.find_all("td", valign="top")
+        for idx, mainrow in enumerate(cols):
+            for inner_row in mainrow.find_all("tr")[2:]:
+                newcols = inner_row.find_all("td")
+                if len(newcols) >= 2:
+                    m = idx * 2
+                    result.append({
+                        matrix[m]:     _safe_num(newcols[0].text, float),
+                        matrix[m + 1]: _safe_num(newcols[1].text, int),
+                    })
+
+    if not result:
+        raise BDShareError(f"No market depth data parsed for {symbol}.")
+    return pd.DataFrame(result)
+
+
+def get_sector_performance(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Get sector-wise performance data."""
+    table = _fetch_table(
+        vs.DSE_URL + vs.DSE_SECTOR_PERF_URL,
+        vs.DSE_ALT_URL + vs.DSE_SECTOR_PERF_URL,
+        retries=retry_count,
+        pause=pause,
+    )
+    rows = []
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if len(cols) < 2:
+            continue
+        rows.append({
+            c["class"][0] if c.get("class") else f"col_{i}": c.text.strip()
+            for i, c in enumerate(cols)
+        })
+
+    if not rows:
+        raise BDShareError("No sector performance data found.")
+    return pd.DataFrame(rows)
+
+
+def get_top_gainers_losers(limit: int = 10, retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Get top gainers and losers."""
+    table = _fetch_table(
+        vs.DSE_URL + vs.DSE_TOP_GAINERS_URL,
+        vs.DSE_ALT_URL + vs.DSE_TOP_GAINERS_URL,
+        retries=retry_count,
+        pause=pause,
+        table_class=_CLS_FIXED,
+    )
+    rows = []
+    for row in table.find_all("tr")[1:limit + 1]:
+        cols = row.find_all("td")
+        if len(cols) < 4:
+            continue
+        rows.append({
+            "symbol": cols[1].text.strip(),
+            "ltp":    _safe_num(cols[2].text, float),
+            "change": _safe_num(cols[3].text, float),
+        })
+
+    if not rows:
+        raise BDShareError("No top gainers/losers data found.")
+    return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------
+# Deprecated aliases — old short names, will be removed in 2.0.0.
+# ---------------------------------------------------------------------------
+
+def get_market_inf(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+    """Deprecated: use get_market_info() instead."""
+    import warnings
+    warnings.warn(
+        "get_market_inf() is deprecated. Use get_market_info() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_market_info(retry_count=retry_count, pause=pause)
+
+
+def get_market_inf_more_data(
+    start=None, end=None, index=None, retry_count=3, pause=0.2,
+) -> pd.DataFrame:
+    """Deprecated: use get_market_info_more_data() instead."""
+    import warnings
+    warnings.warn(
+        "get_market_inf_more_data() is deprecated. Use get_market_info_more_data() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_market_info_more_data(start=start, end=end, index=index,
+                                     retry_count=retry_count, pause=pause)
+
+
+def get_company_inf(symbol: str, retry_count: int = 3, pause: float = 0.2) -> list:
+    """Deprecated: use get_company_info() instead."""
+    import warnings
+    warnings.warn(
+        "get_company_inf() is deprecated. Use get_company_info() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_company_info(symbol, retry_count=retry_count, pause=pause)

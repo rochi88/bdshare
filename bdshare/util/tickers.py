@@ -1,39 +1,53 @@
-# -*- coding:utf-8 -*-
-
 """
-Created on 2024/03/04
-@author: Raisul Islam
-@group : bdshare.xyz
-@contact: raisul.me@gmail.com
+bdshare.util.tickers
+~~~~~~~~~~~~~~~~~~~~
+Tickers utility — fetch and cache the list of tradeable symbols.
 """
-import json
-import os
+
+from __future__ import annotations
+from typing import List, Optional
 
 
-class Tickers(object):
+class Tickers:
+    """
+    Manage the list of currently tradeable DSE symbols.
+
+    Usage::
+
+        from bdshare.util import Tickers
+
+        t = Tickers()
+        symbols = t.symbols       # list of symbol strings, fetched on demand
+        t.refresh()               # force a fresh fetch
+    """
+
     def __init__(self):
-        # Get the directory where this file is located
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        tickers_file = os.path.join(current_dir, "tickers.json")
+        self._symbols: Optional[List[str]] = None
 
-        if os.path.exists(tickers_file):
-            self.f = open(tickers_file)
-            self.data = json.load(self.f)
-        else:
-            # Fallback: try to find tickers.json in current working directory
-            if os.path.exists("tickers.json"):
-                self.f = open("tickers.json")
-                self.data = json.load(self.f)
-            else:
-                raise FileNotFoundError(
-                    "tickers.json file not found. Please ensure it exists in the util directory."
-                )
+    @property
+    def symbols(self) -> List[str]:
+        """Return the cached symbol list, fetching it if necessary."""
+        if self._symbols is None:
+            self.refresh()
+        return self._symbols
 
-    def close(self):
-        self.f.close()
+    def refresh(self) -> List[str]:
+        """Fetch the current symbol list from DSE and cache it."""
+        # Import here to avoid circular imports at module load time
+        from bdshare.stock.trading import get_current_trading_code
+        df = get_current_trading_code()
+        self._symbols = df["symbol"].tolist()
+        return self._symbols
 
-    def ticker_data(self, ticker=None):
-        if ticker:
-            self.data["data"]["companies" == ticker]
-        else:
-            self.data["data"]["companies"]
+    def __len__(self) -> int:
+        return len(self.symbols)
+
+    def __iter__(self):
+        return iter(self.symbols)
+
+    def __contains__(self, symbol: str) -> bool:
+        return symbol.upper() in (s.upper() for s in self.symbols)
+
+    def __repr__(self) -> str:  # pragma: no cover
+        count = len(self._symbols) if self._symbols is not None else "not loaded"
+        return f"Tickers({count} symbols)"
