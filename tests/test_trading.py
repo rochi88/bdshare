@@ -299,6 +299,8 @@ class TestTradingDataFunctions(unittest.TestCase):
         # Get DSEX data
         dsex_df = get_dsex_data()
         self.assertIsInstance(dsex_df, pd.DataFrame)
+
+        df = None
         
         # Get historical data for a symbol from current data
         if not current_df.empty and 'trading_code' in current_df.columns:

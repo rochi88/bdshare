@@ -239,7 +239,7 @@ class TestBDShareClient:
     """Tests for the BDShare class and its methods."""
 
     def test_instantiation(self):
-        bd = BDShare()
+        bd = bdshare.BDShare()
         assert bd is not None
 
     def test_context_manager(self):
