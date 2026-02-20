@@ -17,7 +17,7 @@ _CLS_STRIPPED = "table table-stripped"
 
 
 # ---------------------------------------------------------------------------
-# Public API  (canonical names as of v1.1.5)
+# Public API  (canonical names as of v1.1.6)
 # ---------------------------------------------------------------------------
 
 def get_market_info(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
