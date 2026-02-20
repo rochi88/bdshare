@@ -7,7 +7,7 @@ Comprehensive tests for BDShare market data functions
 import unittest
 import datetime as dt
 import pandas as pd
-from bdshare import get_latest_pe, get_market_inf, get_market_depth_data, get_market_inf_more_data, get_company_inf
+from bdshare import get_latest_pe, get_market_info, get_market_depth_data, get_market_info_more_data, get_company_info
 
 
 class TestMarketDataFunctions(unittest.TestCase):
@@ -33,9 +33,9 @@ class TestMarketDataFunctions(unittest.TestCase):
         print(df.head().to_string())
         print(f"Total records: {len(df)}")
 
-    def test_get_market_inf(self):
-        """Test get_market_inf function returns valid market information"""
-        df = get_market_inf()
+    def test_get_market_info(self):
+        """Test get_market_info function returns valid market information"""
+        df = get_market_info()
         
         # Basic DataFrame assertions
         self.assertIsInstance(df, pd.DataFrame)
@@ -78,12 +78,12 @@ class TestMarketDataFunctions(unittest.TestCase):
                 self.assertIsInstance(df, pd.DataFrame)
                 print(f"Market depth for {symbol}: {len(df)} records")
 
-    def test_get_market_inf_more_data(self):
-        """Test get_market_inf_more_data function with date range"""
+    def test_get_market_info_more_data(self):
+        """Test get_market_info_more_data function with date range"""
         start = dt.datetime.now().date() - dt.timedelta(days=30)  # Reduced to 30 days for faster testing
         end = dt.datetime.now().date()
         
-        df = get_market_inf_more_data(start, end, index='date')
+        df = get_market_info_more_data(start, end, index='date')
         
         # Basic DataFrame assertions
         self.assertIsInstance(df, pd.DataFrame)
@@ -102,8 +102,8 @@ class TestMarketDataFunctions(unittest.TestCase):
         print(df.to_string())
         print(f"Data shape: {df.shape}")
 
-    def test_get_market_inf_more_data_different_periods(self):
-        """Test get_market_inf_more_data with different time periods"""
+    def test_get_market_info_more_data_different_periods(self):
+        """Test get_market_info_more_data with different time periods"""
         test_periods = [
             (7, "1 week"),
             (30, "1 month"),
@@ -115,14 +115,14 @@ class TestMarketDataFunctions(unittest.TestCase):
                 start = dt.datetime.now().date() - dt.timedelta(days=days)
                 end = dt.datetime.now().date()
                 
-                df = get_market_inf_more_data(start, end)
+                df = get_market_info_more_data(start, end)
                 self.assertIsInstance(df, pd.DataFrame)
                 print(f"{period_name} data: {len(df)} records")
 
-    def test_get_company_inf(self):
-        """Test get_company_inf function for specific company"""
+    def test_get_company_info(self):
+        """Test get_company_info function for specific company"""
         symbol = 'GP'
-        df = get_company_inf(symbol)
+        df = get_company_info(symbol)
         
         # Basic DataFrame assertions
         self.assertIsInstance(df, pd.DataFrame)
@@ -140,13 +140,13 @@ class TestMarketDataFunctions(unittest.TestCase):
         print(f"Company Information for {symbol}:")
         print(df.to_string())
 
-    def test_get_company_inf_multiple_companies(self):
-        """Test get_company_inf function with multiple companies"""
+    def test_get_company_info_multiple_companies(self):
+        """Test get_company_info function with multiple companies"""
         test_companies = ['GP', 'ACI', 'SQURPHARMA', 'BEXIMCO']
         
         for symbol in test_companies:
             with self.subTest(company=symbol):
-                df = get_company_inf(symbol)
+                df = get_company_info(symbol)
                 self.assertIsInstance(df, pd.DataFrame)
                 if not df.empty:
                     print(f"Company info for {symbol}: {len(df)} records")
@@ -156,7 +156,7 @@ class TestMarketDataFunctions(unittest.TestCase):
     def test_data_consistency(self):
         """Test consistency between different market data functions"""
         # Get market info
-        market_info = get_market_inf()
+        market_info = get_market_info()
         self.assertIsInstance(market_info, pd.DataFrame)
         
         # Get PE data
@@ -177,7 +177,7 @@ class TestMarketDataFunctions(unittest.TestCase):
         
         # Test with invalid date range
         future_date = dt.datetime.now().date() + dt.timedelta(days=365)
-        df = get_market_inf_more_data(future_date, future_date)
+        df = get_market_info_more_data(future_date, future_date)
         self.assertIsInstance(df, pd.DataFrame)
         # Should return empty DataFrame or handle gracefully
 

@@ -28,6 +28,7 @@ def get_market_info(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
         retries=retry_count,
         pause=pause,
         table_class=_CLS_CENTER,
+        table_id="data-table",
     )
     rows = []
     for row in table.find_all("tr")[1:]:
@@ -202,7 +203,7 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2)
 
     from bs4 import BeautifulSoup
     try:
-        soup = BeautifulSoup(r.content, "lxml")
+        soup = BeautifulSoup(r.content, "html5lib")
     except Exception:
         soup = BeautifulSoup(r.content, "html.parser")
 

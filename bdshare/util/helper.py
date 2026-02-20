@@ -120,6 +120,7 @@ def _fetch_table(
     pause: float = 0.2,
     timeout: int = 10,
     table_class: Optional[str] = None,
+    table_id: Optional[str] = None,
 ) -> Any:  # returns a bs4 Tag
     """
     Fetch a page and return the matching ``<table>`` element as a
@@ -151,7 +152,7 @@ def _fetch_table(
     except Exception:
         soup = BeautifulSoup(r.content, "html.parser")
 
-    attrs = {"class": table_class} if table_class else {}
+    attrs = {"class": table_class, "_id": table_id} if table_class else {}
     table = soup.find("table", attrs=attrs)
 
     if table is None:
