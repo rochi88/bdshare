@@ -109,8 +109,8 @@ def get_all_news(
             if label in {"News Title:", "News:", "Post Date:"}:
                 rows.append({label.rstrip(":"): value})
 
-    if not rows:
-        raise BDShareError("No news items parsed from table.")
+    # if not rows:
+    #     raise BDShareError("No news items parsed from table.")
     return pd.DataFrame(rows)
 
 
