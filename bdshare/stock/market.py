@@ -102,13 +102,32 @@ def get_latest_pe(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
 def get_market_info_more_data(
     start: Optional[str] = None,
     end: Optional[str] = None,
+    code: Optional[str] = None,
     index: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
 ) -> pd.DataFrame:
-    """Get extended historical market summary data via POST."""
+    """Get extended historical market summary data via POST.
+    
+    Args:
+        code: Optional index code to filter columns. One of:
+              'DSEX', 'DSES', 'DS30', 'DGEN'. Returns all columns if None.
+    """
     from bdshare.util.helper import _session
     import time
+
+    _VALID_CODES = {"DSEX", "DSES", "DS30", "DGEN"}
+    _CODE_COLUMN_MAP = {
+        "DSEX": "DSEX Index",
+        "DSES": "DSES Index",
+        "DS30": "DS30 Index",
+        "DGEN": "DGEN Index",
+    }
+
+    if code is not None and code.upper() not in _VALID_CODES:
+        raise ValueError(
+            f"Invalid code '{code}'. Must be one of: {', '.join(sorted(_VALID_CODES))}"
+        )
 
     payload = {
         "startDate": start,
@@ -172,8 +191,16 @@ def get_market_info_more_data(
         raise BDShareError("No extended market data found.")
 
     df = pd.DataFrame(rows)
+
+    # Filter to the requested index column, keeping Date and metadata columns
+    if code is not None:
+        target_col = _CODE_COLUMN_MAP[code.upper()]
+        keep_cols = ["Date", target_col]
+        df = df[[c for c in keep_cols if c in df.columns]]
+
     if index == "date" and "Date" in df.columns:
         df = df.set_index("Date")
+
     return df.sort_index(ascending=True)
 
 
