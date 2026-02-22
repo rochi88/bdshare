@@ -16,6 +16,7 @@ DSE_MARKET_INFO_URL = "recent_market_information.php"
 DSE_MARKET_INFO_MORE_URL = "recent_market_information_more.php"
 DSE_MARKET_DEPTH_URL = "ajax/load-instrument.php"
 DSE_MARKET_DEPTH_REFERER_URL = "mkt_depth_3.php"
+DSE_MARKET_SUMMARY_URL = "market_summary.php"
 
 DSEX_INDEX_VALUE = "dseX_share.php"
 
