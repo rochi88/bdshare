@@ -51,7 +51,7 @@ def _filter_symbol(df: pd.DataFrame, symbol: Optional[str]) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
-# Public API  (canonical names as of v1.2.0)
+# Public API  (canonical names as of v1.1.5)
 # ---------------------------------------------------------------------------
 
 def get_current_trade_data(
