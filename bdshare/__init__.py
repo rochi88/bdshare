@@ -51,6 +51,7 @@ from bdshare.util import (
     clear_cache,
     configure_proxy,
 )
+from bdshare.util.cache import _TTLCache
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -149,7 +150,7 @@ class BDShare:
 
     def __init__(self, api_key: Optional[str] = None, cache_enabled: bool = True):
         self._session      = get_session()
-        self._store        = Store() if cache_enabled else None
+        self._store        = _TTLCache() if cache_enabled else None
         self.cache_enabled = cache_enabled
         if api_key:
             set_token(api_key)
