@@ -16,11 +16,12 @@ def _post_news(url: str, alt_url: str, params: dict, retry_count: int, pause: fl
     """POST to a news endpoint and return a parsed BeautifulSoup object."""
     import time
     for attempt in range(retry_count):
-        time.sleep(pause * (2 ** attempt))
+        if attempt:
+            time.sleep(pause * (2 ** (attempt - 1)))
         try:
-            r = _session.post(url, params=params, timeout=10)
+            r = _session.post(url, data=params, timeout=10)
             if r.status_code != 200:
-                r = _session.post(alt_url, params=params, timeout=10)
+                r = _session.post(alt_url, data=params, timeout=10)
             r.raise_for_status()
             try:
                 return BeautifulSoup(r.content, "lxml")

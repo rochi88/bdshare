@@ -83,7 +83,8 @@ def safe_get(
     last_exc: Optional[Exception] = None
 
     for attempt in range(retries):
-        time.sleep(pause * (2 ** attempt))  # exponential back-off
+        if attempt:
+            time.sleep(pause * (2 ** (attempt - 1)))  # exponential back-off on retries only
 
         for target in urls:
             try:

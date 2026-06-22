@@ -264,7 +264,8 @@ def get_last_trade_price_data(retry_count: int = 3, pause: float = 0.2) -> pd.Da
     """
     import time
     for attempt in range(retry_count):
-        time.sleep(pause * (2 ** attempt))
+        if attempt:
+            time.sleep(pause * (2 ** (attempt - 1)))
         try:
             df = pd.read_fwf(
                 "https://dsebd.org/datafile/quotes.txt",

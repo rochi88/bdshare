@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 # Table class constants
 # ---------------------------------------------------------------------------
 _CLS_FIXED    = "table table-bordered background-white shares-table fixedHeader"
+
+# DSE displayCompany.php renders ~400 invisible layout/navigation tables before
+# the actual company data tables begin; all earlier tables are structural noise.
+_COMPANY_INFO_TABLE_OFFSET = 400
 _CLS_SHARES   = "table table-bordered background-white shares-table"
 _CLS_CENTER   = "table table-bordered background-white text-center"
 _CLS_PLAIN    = "table table-bordered background-white"
@@ -70,7 +74,7 @@ def get_company_info(symbol: str, retry_count: int = 3, pause: float = 0.2) -> l
     )
     try:
         tables = pd.read_html(r.content)
-        return tables[400:]
+        return tables[_COMPANY_INFO_TABLE_OFFSET:]
     except Exception as exc:
         raise BDShareError(f"Failed to parse company info for {symbol}: {exc}") from exc
 
@@ -136,7 +140,8 @@ def get_market_info_more_data(
     }
 
     for attempt in range(retry_count):
-        time.sleep(pause * (2 ** attempt))
+        if attempt:
+            time.sleep(pause * (2 ** (attempt - 1)))
         try:
             r = _session.post(
                 vs.DSE_URL + vs.DSE_MARKET_INFO_MORE_URL, data=payload, timeout=10
@@ -210,7 +215,8 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2)
     import time
 
     for attempt in range(retry_count):
-        time.sleep(pause * (2 ** attempt))
+        if attempt:
+            time.sleep(pause * (2 ** (attempt - 1)))
         try:
             # Establish referer cookie first (required by DSE)
             _session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL, timeout=10)
