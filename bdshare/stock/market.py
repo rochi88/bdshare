@@ -2,7 +2,11 @@ import logging
 import pandas as pd
 from typing import Optional
 from bdshare.util import vars as vs
-from bdshare.util.helper import _fetch_table, _safe_num, safe_get, BDShareError
+from bdshare.util.helper import (
+    _fetch_table, _safe_num, _parse_html,
+    safe_get, safe_post,
+    BDShareError, _session, deprecated,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -10,14 +14,14 @@ logger = logging.getLogger(__name__)
 # Table class constants
 # ---------------------------------------------------------------------------
 _CLS_FIXED    = "table table-bordered background-white shares-table fixedHeader"
-
-# DSE displayCompany.php renders ~400 invisible layout/navigation tables before
-# the actual company data tables begin; all earlier tables are structural noise.
-_COMPANY_INFO_TABLE_OFFSET = 400
 _CLS_SHARES   = "table table-bordered background-white shares-table"
 _CLS_CENTER   = "table table-bordered background-white text-center"
 _CLS_PLAIN    = "table table-bordered background-white"
 _CLS_STRIPPED = "table table-stripped"
+
+# DSE displayCompany.php renders ~400 invisible layout/navigation tables before
+# the actual company data tables begin; all earlier tables are structural noise.
+_COMPANY_INFO_TABLE_OFFSET = 400
 
 
 # ---------------------------------------------------------------------------
@@ -112,14 +116,11 @@ def get_market_info_more_data(
     pause: float = 0.2,
 ) -> pd.DataFrame:
     """Get extended historical market summary data via POST.
-    
+
     Args:
         code: Optional index code to filter columns. One of:
               'DSEX', 'DSES', 'DS30', 'DGEN'. Returns all columns if None.
     """
-    from bdshare.util.helper import _session
-    import time
-
     _VALID_CODES = {"DSEX", "DSES", "DS30", "DGEN"}
     _CODE_COLUMN_MAP = {
         "DSEX": "DSEX Index",
@@ -133,37 +134,19 @@ def get_market_info_more_data(
             f"Invalid code '{code}'. Must be one of: {', '.join(sorted(_VALID_CODES))}"
         )
 
-    payload = {
-        "startDate": start,
-        "endDate": end,
-        "searchRecentMarket": "Search Recent Market",
-    }
+    r = safe_post(
+        vs.DSE_URL + vs.DSE_MARKET_INFO_MORE_URL,
+        data={
+            "startDate": start,
+            "endDate": end,
+            "searchRecentMarket": "Search Recent Market",
+        },
+        alt_url=vs.DSE_ALT_URL + vs.DSE_MARKET_INFO_MORE_URL,
+        retries=retry_count,
+        pause=pause,
+    )
 
-    for attempt in range(retry_count):
-        if attempt:
-            time.sleep(pause * (2 ** (attempt - 1)))
-        try:
-            r = _session.post(
-                vs.DSE_URL + vs.DSE_MARKET_INFO_MORE_URL, data=payload, timeout=10
-            )
-            if r.status_code != 200:
-                r = _session.post(
-                    vs.DSE_ALT_URL + vs.DSE_MARKET_INFO_MORE_URL, data=payload, timeout=10
-                )
-            r.raise_for_status()
-            break
-        except Exception as exc:
-            if attempt == retry_count - 1:
-                raise BDShareError(
-                    f"Failed to fetch extended market data: {exc}"
-                ) from exc
-
-    from bs4 import BeautifulSoup
-    try:
-        soup = BeautifulSoup(r.content, "lxml")
-    except Exception:
-        soup = BeautifulSoup(r.content, "html.parser")
-
+    soup = _parse_html(r.content)
     table = (
         soup.find("table", attrs={"class": _CLS_CENTER})
         or soup.find("table", attrs={"class": _CLS_PLAIN})
@@ -197,11 +180,9 @@ def get_market_info_more_data(
 
     df = pd.DataFrame(rows)
 
-    # Filter to the requested index column, keeping Date and metadata columns
     if code is not None:
         target_col = _CODE_COLUMN_MAP[code.upper()]
-        keep_cols = ["Date", target_col]
-        df = df[[c for c in keep_cols if c in df.columns]]
+        df = df[["Date", target_col]]
 
     if index == "date" and "Date" in df.columns:
         df = df.set_index("Date")
@@ -211,35 +192,18 @@ def get_market_info_more_data(
 
 def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
     """Get market depth (order book) for a specific symbol."""
-    from bdshare.util.helper import _session
-    import time
+    # Establish referer cookie and AJAX header before the POST (done once, not per retry).
+    _session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL, timeout=10)
+    _session.headers.update({"X-Requested-With": "XMLHttpRequest"})
 
-    for attempt in range(retry_count):
-        if attempt:
-            time.sleep(pause * (2 ** (attempt - 1)))
-        try:
-            # Establish referer cookie first (required by DSE)
-            _session.head(vs.DSE_URL + vs.DSE_MARKET_DEPTH_REFERER_URL, timeout=10)
-            _session.headers.update({"X-Requested-With": "XMLHttpRequest"})
-            r = _session.post(
-                vs.DSE_URL + vs.DSE_MARKET_DEPTH_URL,
-                data={"inst": symbol},
-                timeout=10,
-            )
-            r.raise_for_status()
-            break
-        except Exception as exc:
-            if attempt == retry_count - 1:
-                raise BDShareError(
-                    f"Failed to fetch market depth for {symbol}: {exc}"
-                ) from exc
+    r = safe_post(
+        vs.DSE_URL + vs.DSE_MARKET_DEPTH_URL,
+        data={"inst": symbol},
+        retries=retry_count,
+        pause=pause,
+    )
 
-    from bs4 import BeautifulSoup
-    try:
-        soup = BeautifulSoup(r.content, "html5lib")
-    except Exception:
-        soup = BeautifulSoup(r.content, "html.parser")
-
+    soup = _parse_html(r.content)
     table = soup.find("table", attrs={"class": _CLS_STRIPPED})
     if table is None:
         raise BDShareError(f"Market depth table not found for {symbol}.")
@@ -259,8 +223,6 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2)
                         matrix[m + 1]: _safe_num(newcols[1].text, int),
                     })
 
-    # if not result:
-    #     raise BDShareError(f"No market depth data parsed for {symbol}.")
     return pd.DataFrame(result)
 
 
@@ -316,37 +278,19 @@ def get_top_gainers_losers(limit: int = 10, retry_count: int = 3, pause: float =
 # Deprecated aliases — old short names, will be removed in 2.0.0.
 # ---------------------------------------------------------------------------
 
+@deprecated("Use get_market_info() instead.")
 def get_market_inf(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
-    """Deprecated: use get_market_info() instead."""
-    import warnings
-    warnings.warn(
-        "get_market_inf() is deprecated. Use get_market_info() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     return get_market_info(retry_count=retry_count, pause=pause)
 
 
+@deprecated("Use get_market_info_more_data() instead.")
 def get_market_inf_more_data(
     start=None, end=None, index=None, retry_count=3, pause=0.2,
 ) -> pd.DataFrame:
-    """Deprecated: use get_market_info_more_data() instead."""
-    import warnings
-    warnings.warn(
-        "get_market_inf_more_data() is deprecated. Use get_market_info_more_data() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     return get_market_info_more_data(start=start, end=end, index=index,
                                      retry_count=retry_count, pause=pause)
 
 
+@deprecated("Use get_company_info() instead.")
 def get_company_inf(symbol: str, retry_count: int = 3, pause: float = 0.2) -> list:
-    """Deprecated: use get_company_info() instead."""
-    import warnings
-    warnings.warn(
-        "get_company_inf() is deprecated. Use get_company_info() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     return get_company_info(symbol, retry_count=retry_count, pause=pause)

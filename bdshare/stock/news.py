@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Optional
 from bs4 import BeautifulSoup
 from bdshare.util import vars as vs
-from bdshare.util.helper import _fetch_table, safe_get, BDShareError, _session
+from bdshare.util.helper import _fetch_table, _parse_html, safe_post, BDShareError
 
 logger = logging.getLogger(__name__)
 
@@ -14,22 +14,8 @@ logger = logging.getLogger(__name__)
 
 def _post_news(url: str, alt_url: str, params: dict, retry_count: int, pause: float) -> BeautifulSoup:
     """POST to a news endpoint and return a parsed BeautifulSoup object."""
-    import time
-    for attempt in range(retry_count):
-        if attempt:
-            time.sleep(pause * (2 ** (attempt - 1)))
-        try:
-            r = _session.post(url, data=params, timeout=10)
-            if r.status_code != 200:
-                r = _session.post(alt_url, data=params, timeout=10)
-            r.raise_for_status()
-            try:
-                return BeautifulSoup(r.content, "lxml")
-            except Exception:
-                return BeautifulSoup(r.content, "html.parser")
-        except Exception as exc:
-            if attempt == retry_count - 1:
-                raise BDShareError(f"Failed to POST news from {url}: {exc}") from exc
+    r = safe_post(url, data=params, alt_url=alt_url, retries=retry_count, pause=pause)
+    return _parse_html(r.content)
 
 
 # ---------------------------------------------------------------------------
@@ -54,9 +40,9 @@ def get_agm_news(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
             "company":    cols[0].text.strip(),
             "yearEnd":    cols[1].text.strip(),
             "dividend":   cols[2].text.strip(),
-            "agmDate":    cols[3].text.strip(),   # fixed typo: agmData → agmDate
+            "agmDate":    cols[3].text.strip(),
             "recordDate": cols[4].text.strip(),
-            "venue":      cols[5].text.strip(),   # fixed typo: vanue → venue
+            "venue":      cols[5].text.strip(),
             "time":       cols[6].text.strip(),
         })
 
@@ -110,9 +96,22 @@ def get_all_news(
             if label in {"News Title:", "News:", "Post Date:"}:
                 rows.append({label.rstrip(":"): value})
 
-    # if not rows:
-    #     raise BDShareError("No news items parsed from table.")
     return pd.DataFrame(rows)
+
+
+def _parse_news_rows(table) -> list:
+    """Parse standard 3-column (code, news, date) rows from a DSE news table."""
+    rows = []
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
+        if len(cols) < 3:
+            continue
+        rows.append({
+            "code": cols[0].text.strip(),
+            "news": cols[1].text.strip(),
+            "date": cols[2].text.strip(),
+        })
+    return rows
 
 
 def get_corporate_announcements(
@@ -121,30 +120,17 @@ def get_corporate_announcements(
     pause: float = 0.2,
 ) -> pd.DataFrame:
     """Get corporate announcements (criteria=2)."""
-    params = {"inst": code, "criteria": 2, "archive": "news"}
     soup = _post_news(
         vs.DSE_URL + vs.DSE_NEWS_URL,
         vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
-        params,
+        {"inst": code, "criteria": 2, "archive": "news"},
         retry_count,
         pause,
     )
-
     table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
     if table is None:
         raise BDShareError("Corporate announcements table not found.")
-
-    rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
-        if len(cols) < 3:
-            continue
-        rows.append({
-            "code":    cols[0].text.strip(),
-            "news":    cols[1].text.strip(),
-            "date":    cols[2].text.strip(),
-        })
-
+    rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No corporate announcements found.")
     return pd.DataFrame(rows)
@@ -156,30 +142,17 @@ def get_price_sensitive_news(
     pause: float = 0.2,
 ) -> pd.DataFrame:
     """Get price-sensitive news (criteria=1)."""
-    params = {"inst": code, "criteria": 1, "archive": "news"}
     soup = _post_news(
         vs.DSE_URL + vs.DSE_NEWS_URL,
         vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
-        params,
+        {"inst": code, "criteria": 1, "archive": "news"},
         retry_count,
         pause,
     )
-
     table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
     if table is None:
         raise BDShareError("Price sensitive news table not found.")
-
-    rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
-        if len(cols) < 3:
-            continue
-        rows.append({
-            "code":    cols[0].text.strip(),
-            "news":    cols[1].text.strip(),
-            "date":    cols[2].text.strip(),
-        })
-
+    rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No price-sensitive news found.")
     return pd.DataFrame(rows)

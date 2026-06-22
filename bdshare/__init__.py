@@ -2,7 +2,6 @@ from ._version import __version__
 from typing import List, Optional, Dict, Union, Any
 from functools import wraps
 from datetime import datetime
-import warnings
 import time
 
 # ---------------------------------------------------------------------------
@@ -52,6 +51,7 @@ from bdshare.util import (
     configure_proxy,
 )
 from bdshare.util.cache import _TTLCache
+from bdshare.util.helper import deprecated
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -66,21 +66,6 @@ HistoricalData = Dict[str, Union[str, float, int, datetime]]
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def deprecated(message: str):
-    """Decorator to mark functions as deprecated."""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            warnings.warn(
-                f"{func.__name__} is deprecated: {message}",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
-
 
 def _validate_symbol(symbol: str) -> None:
     if not symbol or not isinstance(symbol, str):
