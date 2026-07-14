@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.2] - 2026-07-09
+
+### Added
+- Optional `as_polars=True` parameter across all data-fetching functions to return `polars.DataFrame` instead of `pandas.DataFrame` (requires `pip install bdshare[polars]`)
+- `get_market_status()` — current market status (Open, Closed, Holiday, etc.)
+
+### Fixed
+- Bundled the missing Sectigo DV R36 intermediate certificate so requests to dsebd.org verify correctly instead of relying on an incomplete chain
+- Corrected `DSE_ALT_URL` fallback domain to `dse.com.bd`
+
 ## [1.2.1] - 2026-02-22
 
 ### Added

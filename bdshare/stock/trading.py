@@ -1,8 +1,9 @@
+import io
 import logging
 import pandas as pd
 from typing import Optional
 from bdshare.util import vars as vs
-from bdshare.util.helper import _fetch_table, _safe_num, BDShareError, deprecated
+from bdshare.util.helper import _fetch_table, _safe_num, BDShareError, deprecated, _to_frame, safe_get
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,7 @@ def get_current_trade_data(
     symbol: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get live trade data (last stock prices) for all symbols or a specific one.
@@ -106,6 +108,7 @@ def get_current_trade_data(
     :param symbol: Instrument symbol e.g. 'ACI' (case-insensitive). None returns all.
     :param retry_count: Number of fetch attempts.
     :param pause: Base pause in seconds (exponential back-off applied).
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame - symbol, ltp, high, low, close, ycp, change, trade, value, volume.
     """
     table = _fetch_table(
@@ -118,18 +121,20 @@ def get_current_trade_data(
     rows = _parse_trade_rows(table)
     if not rows:
         raise BDShareError("No current trade data found.")
-    return _filter_symbol(pd.DataFrame(rows), symbol)
+    return _to_frame(_filter_symbol(pd.DataFrame(rows), symbol), as_polars)
 
 
 def get_dsex_data(
     symbol: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get DSEX index share price data.
 
     :param symbol: Optional symbol filter.
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame with the same schema as get_current_trade_data.
     """
     table = _fetch_table(
@@ -142,13 +147,14 @@ def get_dsex_data(
     rows = _parse_trade_rows(table)
     if not rows:
         raise BDShareError("No DSEX data found.")
-    return _filter_symbol(pd.DataFrame(rows), symbol)
+    return _to_frame(_filter_symbol(pd.DataFrame(rows), symbol), as_polars)
 
 
-def get_current_trading_code(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+def get_current_trading_code(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
     """
     Get the list of all currently traded stock symbols.
 
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: Single-column DataFrame with column 'symbol'.
     """
     table = _fetch_table(
@@ -165,7 +171,7 @@ def get_current_trading_code(retry_count: int = 3, pause: float = 0.2) -> pd.Dat
     ]
     if not rows:
         raise BDShareError("No trading codes found.")
-    return pd.DataFrame(rows)
+    return _to_frame(pd.DataFrame(rows), as_polars)
 
 
 def get_historical_data(
@@ -174,6 +180,7 @@ def get_historical_data(
     code: str = "All Instrument",
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get full historical OHLCV + metadata, indexed by date (descending).
@@ -181,6 +188,7 @@ def get_historical_data(
     :param start: Start date 'YYYY-MM-DD'.
     :param end:   End date 'YYYY-MM-DD'.
     :param code:  Instrument symbol or 'All Instrument'.
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame indexed by date - symbol, ltp, high, low, open, close,
              ycp, trade, value, volume.
     """
@@ -188,7 +196,7 @@ def get_historical_data(
     rows = _parse_historical_rows(table)
     if not rows:
         raise BDShareError("No historical data found.")
-    return pd.DataFrame(rows).set_index("date").sort_index(ascending=False)
+    return _to_frame(pd.DataFrame(rows).set_index("date").sort_index(ascending=False), as_polars)
 
 
 def get_basic_historical_data(
@@ -198,11 +206,13 @@ def get_basic_historical_data(
     index: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get simplified historical OHLCV, sorted ascending (TA-library ready).
 
     :param index: Pass 'date' to set date as the DataFrame index.
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame - date (or index), open, high, low, close, volume.
     """
     table = _fetch_archive_table(start, end, code, retry_count, pause)
@@ -212,7 +222,7 @@ def get_basic_historical_data(
     df = pd.DataFrame(rows)[["date", "open", "high", "low", "close", "volume"]]
     if index == "date":
         df = df.set_index("date")
-    return df.sort_index(ascending=True)
+    return _to_frame(df.sort_index(ascending=True), as_polars)
 
 
 def get_close_price_data(
@@ -221,10 +231,12 @@ def get_close_price_data(
     code: str = "All Instrument",
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get closing prices and prior close (ycp), indexed by date (descending).
 
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame - symbol, close, ycp.
     """
     table = _fetch_table(
@@ -248,30 +260,25 @@ def get_close_price_data(
         })
     if not rows:
         raise BDShareError("No close price data found.")
-    return pd.DataFrame(rows).set_index("date").sort_index(ascending=False)
+    return _to_frame(pd.DataFrame(rows).set_index("date").sort_index(ascending=False), as_polars)
 
 
-def get_last_trade_price_data(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
+def get_last_trade_price_data(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
     """
     Get last trade price data from the DSE fixed-width text file.
 
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame parsed from dsebd.org/datafile/quotes.txt.
     """
-    import time
-    for attempt in range(retry_count):
-        if attempt:
-            time.sleep(pause * (2 ** (attempt - 1)))
-        try:
-            df = pd.read_fwf(
-                "https://dsebd.org/datafile/quotes.txt",
-                sep="\t",
-                skiprows=4,
-            )
-            if not df.empty:
-                return df
-        except Exception as exc:
-            logger.error("Attempt %d failed for quotes.txt: %s", attempt + 1, exc)
-    raise BDShareError(f"Failed to fetch quotes.txt after {retry_count} retries.")
+    r = safe_get(
+        vs.DSE_URL + "datafile/quotes.txt",
+        retries=retry_count,
+        pause=pause,
+    )
+    df = pd.read_fwf(io.BytesIO(r.content), sep="\t", skiprows=4)
+    if df.empty:
+        raise BDShareError("quotes.txt returned an empty dataset.")
+    return _to_frame(df, as_polars)
 
 
 # ---------------------------------------------------------------------------
@@ -281,16 +288,16 @@ def get_last_trade_price_data(retry_count: int = 3, pause: float = 0.2) -> pd.Da
 @deprecated("Use get_historical_data() instead.")
 def get_hist_data(
     start=None, end=None, code="All Instrument",
-    retry_count=3, pause=0.2,
+    retry_count=3, pause=0.2, as_polars: bool = False,
 ):
     return get_historical_data(start=start, end=end, code=code,
-                               retry_count=retry_count, pause=pause)
+                               retry_count=retry_count, pause=pause, as_polars=as_polars)
 
 
 @deprecated("Use get_basic_historical_data() instead.")
 def get_basic_hist_data(
     start=None, end=None, code="All Instrument",
-    index=None, retry_count=3, pause=0.2,
+    index=None, retry_count=3, pause=0.2, as_polars: bool = False,
 ):
     return get_basic_historical_data(start=start, end=end, code=code, index=index,
-                                     retry_count=retry_count, pause=pause)
+                                     retry_count=retry_count, pause=pause, as_polars=as_polars)

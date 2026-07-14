@@ -9,6 +9,7 @@ Import surface expected by other modules:
         _fetch_table, _safe_num, _parse_html,
         safe_get, safe_post,
         BDShareError, _session, deprecated,
+        _to_frame,
     )
 """
 
@@ -18,7 +19,11 @@ import warnings
 from functools import wraps
 from typing import Any, Dict, Optional
 
+import certifi
 import requests
+import tempfile
+import atexit
+from pathlib import Path
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -52,12 +57,37 @@ def deprecated(message: str):
 
 
 # ---------------------------------------------------------------------------
+# CA bundle — dsebd.org sends an incomplete chain (missing the Sectigo DV R36
+# intermediate).  We ship that intermediate and combine it with certifi at
+# startup so verification passes without disabling SSL.
+# Intermediate validity: 2021-03-22 → 2036-03-21  (safe to bundle long-term)
+# ---------------------------------------------------------------------------
+
+def _build_ca_bundle() -> str:
+    """Return path to a combined PEM bundle: certifi + bundled intermediate."""
+    intermediate = Path(__file__).parent / "sectigo_dv_r36.pem"
+    with open(certifi.where(), "rb") as f:
+        certifi_pem = f.read()
+    with open(intermediate, "rb") as f:
+        intermediate_pem = f.read()
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pem")
+    tmp.write(certifi_pem + b"\n" + intermediate_pem)
+    tmp.close()
+    atexit.register(lambda: Path(tmp.name).unlink(missing_ok=True))
+    return tmp.name
+
+
+_CA_BUNDLE = _build_ca_bundle()
+
+
+# ---------------------------------------------------------------------------
 # Shared HTTP session
 # ---------------------------------------------------------------------------
 
 # One session for the entire process lifetime — reuses TCP connections and
 # centralises headers/cookies so sub-modules don't each manage them.
 _session = requests.Session()
+_session.verify = _CA_BUNDLE
 _session.headers.update({
     "User-Agent":      "bdshare/2.0 (https://github.com/bdshare/bdshare)",
     "Accept-Encoding": "gzip, deflate",
@@ -248,6 +278,34 @@ def _fetch_table(
         raise BDShareError(f"Table{detail} not found at {url}")
 
     return table
+
+
+# ---------------------------------------------------------------------------
+# DataFrame conversion helper
+# ---------------------------------------------------------------------------
+
+def _to_frame(df, as_polars: bool):
+    """Convert a pandas DataFrame to a polars DataFrame when as_polars=True.
+
+    The pandas index (if named) is reset to a regular column before conversion
+    so it is not silently dropped.
+
+    Uses dict-based construction to avoid a pyarrow dependency.
+
+    Raises ImportError if polars is not installed.
+    """
+    if not as_polars:
+        return df
+    try:
+        import polars as pl
+    except ImportError:
+        raise ImportError(
+            "polars is not installed. Install it with: pip install polars"
+            " or pip install bdshare[polars]"
+        )
+    if getattr(df.index, "name", None):
+        df = df.reset_index()
+    return pl.DataFrame({str(col): df[col].tolist() for col in df.columns})
 
 
 # ---------------------------------------------------------------------------

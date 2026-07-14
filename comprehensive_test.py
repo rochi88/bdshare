@@ -10,6 +10,14 @@ import pandas as pd
 import bdshare
 from datetime import datetime, timedelta
 
+try:
+    import polars as pl
+    POLARS_AVAILABLE = True
+except ImportError:
+    POLARS_AVAILABLE = False
+
+polars_required = pytest.mark.skipif(not POLARS_AVAILABLE, reason="polars not installed")
+
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -365,7 +373,7 @@ class TestUtilities:
         """Store.save() must write a readable CSV file."""
         df       = bdshare.get_current_trade_data()
         filename = str(tmp_path / "test_output.csv")
-        bdshare.Store(df).save(filename)
+        bdshare.Store(df, name="test_output", path=tmp_path).save("csv")
 
         assert os.path.exists(filename)
         loaded = pd.read_csv(filename)
@@ -378,6 +386,181 @@ class TestUtilities:
     def test_package_version(self):
         assert isinstance(bdshare.__version__, str)
         assert len(bdshare.__version__) > 0
+
+
+# ---------------------------------------------------------------------------
+# Polars Output
+# ---------------------------------------------------------------------------
+
+@polars_required
+class TestPolarsOutput:
+    """Verify as_polars=True returns polars DataFrames across all modules."""
+
+    # -- Helpers --
+
+    @staticmethod
+    def _pl(result, name: str):
+        assert isinstance(result, pl.DataFrame), f"{name}: expected pl.DataFrame, got {type(result)}"
+        assert not result.is_empty(),            f"{name}: polars DataFrame should not be empty"
+
+    @staticmethod
+    def _same_cols(pd_df: pd.DataFrame, pl_df, name: str):
+        """Compare column names as strings — polars requires string column
+        names while pandas allows other hashables (e.g. get_latest_pe
+        returns integer-labelled columns in its pandas form)."""
+        pd_cols = {str(c) for c in (pd_df.reset_index().columns if pd_df.index.name else pd_df.columns)}
+        pl_cols = {str(c) for c in pl_df.columns}
+        assert pd_cols == pl_cols, f"{name}: column mismatch pandas={pd_cols} polars={pl_cols}"
+
+    # -- Default still pandas --
+
+    def test_default_is_pandas_not_polars(self):
+        result = bdshare.get_market_info()
+        assert isinstance(result, pd.DataFrame)
+        assert not isinstance(result, pl.DataFrame)
+
+    # -- Market --
+
+    def test_get_market_info_polars(self):
+        result = bdshare.get_market_info(as_polars=True)
+        self._pl(result, "get_market_info")
+        self._same_cols(bdshare.get_market_info(), result, "get_market_info")
+
+    def test_get_latest_pe_polars(self):
+        result = bdshare.get_latest_pe(as_polars=True)
+        self._pl(result, "get_latest_pe")
+        self._same_cols(bdshare.get_latest_pe(), result, "get_latest_pe")
+
+    def test_get_market_info_more_data_polars(self, dates):
+        result = bdshare.get_market_info_more_data(dates["start"], dates["end"], as_polars=True)
+        self._pl(result, "get_market_info_more_data")
+
+    def test_get_market_info_more_data_date_index_becomes_column(self, dates):
+        """When index='date', polars output must have 'Date' as a plain column."""
+        result = bdshare.get_market_info_more_data(
+            dates["start"], dates["end"], index="date", as_polars=True
+        )
+        assert isinstance(result, pl.DataFrame)
+        assert "Date" in result.columns
+
+    def test_get_market_depth_data_polars(self, symbol):
+        result = bdshare.get_market_depth_data(symbol, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+
+    def test_get_sector_performance_polars(self):
+        result = bdshare.get_sector_performance(as_polars=True)
+        self._pl(result, "get_sector_performance")
+
+    def test_get_top_gainers_losers_polars(self):
+        result = bdshare.get_top_gainers_losers(as_polars=True)
+        self._pl(result, "get_top_gainers_losers")
+        assert {"symbol", "ltp", "change"} <= set(result.columns)
+
+    def test_get_top_gainers_losers_limit_polars(self):
+        result = bdshare.get_top_gainers_losers(limit=5, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        assert result.shape[0] <= 5
+
+    def test_get_company_info_polars_returns_list_of_pl(self, symbol):
+        result = bdshare.get_company_info(symbol, as_polars=True)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        assert all(isinstance(t, pl.DataFrame) for t in result)
+
+    # -- Trading --
+
+    def test_get_current_trade_data_polars(self):
+        result = bdshare.get_current_trade_data(as_polars=True)
+        self._pl(result, "get_current_trade_data")
+        self._same_cols(bdshare.get_current_trade_data(), result, "get_current_trade_data")
+
+    def test_get_current_trade_data_symbol_polars(self, symbol):
+        result = bdshare.get_current_trade_data(symbol, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        assert result.shape[0] == 1
+        assert result["symbol"][0] == symbol
+
+    def test_get_dsex_data_polars(self):
+        result = bdshare.get_dsex_data(as_polars=True)
+        self._pl(result, "get_dsex_data")
+
+    def test_get_current_trading_code_polars(self):
+        result = bdshare.get_current_trading_code(as_polars=True)
+        self._pl(result, "get_current_trading_code")
+        assert "symbol" in result.columns
+
+    def test_get_historical_data_polars(self, dates, symbol):
+        result = bdshare.get_historical_data(dates["start"], dates["end"], symbol, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        # date was the pandas index — must be a plain column in polars
+        assert "date" in result.columns
+
+    def test_get_historical_data_date_index_reset(self, dates, symbol):
+        pd_df = bdshare.get_historical_data(dates["start"], dates["end"], symbol)
+        pl_df = bdshare.get_historical_data(dates["start"], dates["end"], symbol, as_polars=True)
+        assert pd_df.index.name == "date"
+        assert "date" in pl_df.columns
+
+    def test_get_basic_historical_data_polars(self, dates, symbol):
+        result = bdshare.get_basic_historical_data(dates["start"], dates["end"], symbol, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        assert {"date", "open", "high", "low", "close", "volume"} <= set(result.columns)
+
+    def test_get_basic_historical_data_date_index_polars(self, dates, symbol):
+        result = bdshare.get_basic_historical_data(
+            dates["start"], dates["end"], symbol, index="date", as_polars=True
+        )
+        assert isinstance(result, pl.DataFrame)
+        assert "date" in result.columns
+
+    def test_get_close_price_data_polars(self, dates, symbol):
+        result = bdshare.get_close_price_data(dates["start"], dates["end"], symbol, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        assert {"date", "close", "ycp"} <= set(result.columns)
+
+    # -- News --
+
+    def test_get_agm_news_polars(self):
+        result = bdshare.get_agm_news(as_polars=True)
+        self._pl(result, "get_agm_news")
+        self._same_cols(bdshare.get_agm_news(), result, "get_agm_news")
+
+    def test_get_corporate_announcements_polars(self):
+        result = bdshare.get_corporate_announcements(as_polars=True)
+        self._pl(result, "get_corporate_announcements")
+
+    def test_get_price_sensitive_news_polars(self):
+        result = bdshare.get_price_sensitive_news(as_polars=True)
+        self._pl(result, "get_price_sensitive_news")
+
+    @pytest.mark.parametrize("news_type", ["all", "agm", "corporate", "psn"])
+    def test_get_news_dispatcher_polars(self, news_type):
+        result = bdshare.get_news(news_type=news_type, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+
+    # -- Deprecated aliases pass as_polars through --
+
+    def test_deprecated_get_market_inf_polars(self):
+        with pytest.warns(DeprecationWarning):
+            result = bdshare.get_market_inf(as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+
+    def test_deprecated_get_hist_data_polars(self, dates):
+        with pytest.warns(DeprecationWarning):
+            result = bdshare.get_hist_data(dates["start"], dates["end"], as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+
+    # -- ImportError when polars absent --
+
+    def test_import_error_message(self):
+        import sys
+        from unittest.mock import patch
+        from bdshare.util.helper import _to_frame
+
+        df = pd.DataFrame({"x": [1]})
+        with patch.dict(sys.modules, {"polars": None}):
+            with pytest.raises(ImportError, match="polars"):
+                _to_frame(df, as_polars=True)
 
 
 # ---------------------------------------------------------------------------
@@ -398,7 +581,9 @@ def main():
         try:
             result = func(*args, **kwargs)
             if isinstance(result, pd.DataFrame):
-                return f"✅ {label}: {len(result)} rows"
+                return f"✅ {label}: {len(result)} rows (pandas)"
+            if POLARS_AVAILABLE and isinstance(result, pl.DataFrame):
+                return f"✅ {label}: {result.shape[0]} rows (polars)"
             if isinstance(result, list):
                 return f"✅ {label}: {len(result)} tables"
             return f"✅ {label}: {type(result).__name__}"
@@ -450,6 +635,25 @@ def main():
         ],
     }
 
+    if POLARS_AVAILABLE:
+        sections["🔷 POLARS OUTPUT (as_polars=True)"] = [
+            ("get_market_info(as_polars=True)",              lambda: bdshare.get_market_info(as_polars=True)),
+            ("get_latest_pe(as_polars=True)",                lambda: bdshare.get_latest_pe(as_polars=True)),
+            ("get_market_info_more_data(…, as_polars=True)", lambda: bdshare.get_market_info_more_data(start_date, end_date, as_polars=True)),
+            ("get_sector_performance(as_polars=True)",       lambda: bdshare.get_sector_performance(as_polars=True)),
+            ("get_top_gainers_losers(as_polars=True)",       lambda: bdshare.get_top_gainers_losers(as_polars=True)),
+            ("get_current_trade_data(as_polars=True)",       lambda: bdshare.get_current_trade_data(as_polars=True)),
+            ("get_dsex_data(as_polars=True)",                lambda: bdshare.get_dsex_data(as_polars=True)),
+            ("get_current_trading_code(as_polars=True)",     lambda: bdshare.get_current_trading_code(as_polars=True)),
+            ("get_historical_data(…, as_polars=True)",       lambda: bdshare.get_historical_data(start_date, end_date, sym, as_polars=True)),
+            ("get_basic_historical_data(…, as_polars=True)", lambda: bdshare.get_basic_historical_data(start_date, end_date, sym, as_polars=True)),
+            ("get_close_price_data(…, as_polars=True)",      lambda: bdshare.get_close_price_data(start_date, end_date, sym, as_polars=True)),
+            ("get_agm_news(as_polars=True)",                 lambda: bdshare.get_agm_news(as_polars=True)),
+            ("get_corporate_announcements(as_polars=True)",  lambda: bdshare.get_corporate_announcements(as_polars=True)),
+            ("get_price_sensitive_news(as_polars=True)",     lambda: bdshare.get_price_sensitive_news(as_polars=True)),
+            ("get_news('all', as_polars=True)",              lambda: bdshare.get_news(as_polars=True)),
+        ]
+
     all_results = []
     for section, cases in sections.items():
         print(f"\n{section}")
@@ -467,7 +671,7 @@ def main():
     print("-" * 40)
     try:
         df = bdshare.get_current_trade_data()
-        bdshare.Store(df).save("test_output.csv")
+        bdshare.Store(df, name="test_output").save("csv")
         exists = os.path.exists("test_output.csv")
         os.remove("test_output.csv")
         all_results.append(f"{'✅' if exists else '❌'} Store(df).save()")
@@ -486,6 +690,8 @@ def main():
         print(f"\n🎉 ALL FUNCTIONS WORKING — BDShare {bdshare.__version__} fully functional!")
     else:
         print(f"\n⚠️  {total - passed} function(s) need attention.")
+    if not POLARS_AVAILABLE:
+        print("💡 polars not installed — skipped polars section. Install with: pip install bdshare[polars]")
     print("🏁 Done.")
 
 

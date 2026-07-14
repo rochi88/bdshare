@@ -23,6 +23,7 @@ from bdshare.stock.trading import (
 from bdshare.stock.market import (
     get_company_info,
     get_market_info,
+    get_market_status,
     get_latest_pe,
     get_market_info_more_data,
     get_market_depth_data,
@@ -357,6 +358,7 @@ __all__ = [
     # Market — canonical public names
     "get_company_info",
     "get_market_info",
+    "get_market_status",
     "get_latest_pe",
     "get_market_info_more_data",
     "get_market_depth_data",

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 DSE_URL = "https://dsebd.org/"
-DSE_ALT_URL = "https://dsebd.com.bd/"
+DSE_ALT_URL = "https://dse.com.bd/"
 
 DSE_LSP_URL = "latest_share_price_scroll_l.php"
 DSE_DEA_URL = "day_end_archive.php"

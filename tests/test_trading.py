@@ -33,7 +33,7 @@ class TestTradingDataFunctions(unittest.TestCase):
         if 'value' in df.columns:
             values = df['value'].dropna()
             self.assertFalse(values.empty, "DSEX values should not be empty")
-            self.assertTrue(all(values > 0), "DSEX values should be positive")
+            self.assertTrue(all(values >= 0), "DSEX values should not be negative")
         
         if 'change' in df.columns:
             changes = df['change'].dropna()

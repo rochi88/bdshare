@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python -m pytest tests/test_news.py -v)",
+      "Bash(python -m pytest tests/test_market.py -k \"test_get_company_info\" -v)",
+      "Bash(python -m pytest tests/test_market.py -v)",
+      "Bash(python -c \"import bdshare; print\\(bdshare.__file__\\)\")",
+      "Bash(pip list *)",
+      "Bash(python -m pytest tests/test_trading.py -k \"test_get_dsex_data\" -v)"
+    ]
+  }
+}

@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Optional
 from bs4 import BeautifulSoup
 from bdshare.util import vars as vs
-from bdshare.util.helper import _fetch_table, _parse_html, safe_post, BDShareError
+from bdshare.util.helper import _fetch_table, _parse_html, safe_post, safe_get, BDShareError, _to_frame
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +17,20 @@ def _post_news(url: str, alt_url: str, params: dict, retry_count: int, pause: fl
     r = safe_post(url, data=params, alt_url=alt_url, retries=retry_count, pause=pause)
     return _parse_html(r.content)
 
+def _get_news(url: str, alt_url: str, params: dict, retry_count: int, pause: float) -> BeautifulSoup:
+    """GET to a news endpoint and return a parsed BeautifulSoup object."""
+    r = safe_get(url, params=params, alt_url=alt_url, retries=retry_count, pause=pause)
+    return _parse_html(r.content)
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-def get_agm_news(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
-    """Get AGM / dividend declarations."""
+def get_agm_news(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get AGM / dividend declarations.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    """
     table = _fetch_table(
         vs.DSE_URL + vs.DSE_AGM_URL,
         vs.DSE_ALT_URL + vs.DSE_AGM_URL,
@@ -48,7 +55,7 @@ def get_agm_news(retry_count: int = 3, pause: float = 0.2) -> pd.DataFrame:
 
     if not rows:
         raise BDShareError("No AGM news found.")
-    return pd.DataFrame(rows)
+    return _to_frame(pd.DataFrame(rows), as_polars)
 
 
 def get_all_news(
@@ -57,24 +64,32 @@ def get_all_news(
     code: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Get all DSE news items.
 
     Backward-compatible: get_all_news(code) still works — if only the first
     positional arg is supplied with no end/code, it is treated as ``code``.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
     # Backward-compatibility shim
     if start is not None and end is None and code is None:
         code, start = start, None
 
-    params: dict = {"inst": code, "criteria": 3, "archive": "news"}
+    params: dict = {"archive": "news"}
+    if code:
+        params["inst"] = code
+        params["criteria"] = 3  # news for a specific company
+    else:
+        params["criteria"] = 4  # news for all companies
     if start:
         params["startDate"] = start
     if end:
         params["endDate"] = end
 
-    soup = _post_news(
+    soup = _get_news(
         vs.DSE_URL + vs.DSE_NEWS_URL,
         vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
         params,
@@ -87,16 +102,28 @@ def get_all_news(
         raise BDShareError("News table not found.")
 
     rows = []
+    current: dict = {}
     for row in table.find_all("tr"):
         heads = row.find_all("th")
         cols  = row.find_all("td")
-        if heads and cols:
-            label = heads[0].text.strip()
-            value = cols[0].text.strip()
-            if label in {"News Title:", "News:", "Post Date:"}:
-                rows.append({label.rstrip(":"): value})
+        if not (heads and cols):
+            continue
+        label = heads[0].text.strip()
+        value = cols[0].text.strip()
+        if label == "Trading Code:":
+            if current:
+                rows.append(current)
+            current = {"symbol": value}
+        elif label == "News Title:":
+            current["title"] = value
+        elif label == "News:":
+            current["news"] = value
+        elif label == "Post Date:":
+            current["date"] = value
+    if current:
+        rows.append(current)
 
-    return pd.DataFrame(rows)
+    return _to_frame(pd.DataFrame(rows), as_polars)
 
 
 def _parse_news_rows(table) -> list:
@@ -118,9 +145,13 @@ def get_corporate_announcements(
     code: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
-    """Get corporate announcements (criteria=2)."""
-    soup = _post_news(
+    """Get corporate announcements (criteria=2).
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    """
+    soup = _get_news(
         vs.DSE_URL + vs.DSE_NEWS_URL,
         vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
         {"inst": code, "criteria": 2, "archive": "news"},
@@ -133,16 +164,20 @@ def get_corporate_announcements(
     rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No corporate announcements found.")
-    return pd.DataFrame(rows)
+    return _to_frame(pd.DataFrame(rows), as_polars)
 
 
 def get_price_sensitive_news(
     code: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
-    """Get price-sensitive news (criteria=1)."""
-    soup = _post_news(
+    """Get price-sensitive news (criteria=1).
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    """
+    soup = _get_news(
         vs.DSE_URL + vs.DSE_NEWS_URL,
         vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
         {"inst": code, "criteria": 1, "archive": "news"},
@@ -155,7 +190,7 @@ def get_price_sensitive_news(
     rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No price-sensitive news found.")
-    return pd.DataFrame(rows)
+    return _to_frame(pd.DataFrame(rows), as_polars)
 
 
 # Unified dispatcher (matches __init__.py import)
@@ -164,18 +199,20 @@ def get_news(
     code: Optional[str] = None,
     retry_count: int = 3,
     pause: float = 0.2,
+    as_polars: bool = False,
 ) -> pd.DataFrame:
     """
     Unified news dispatcher.
 
     :param news_type: One of 'all', 'agm', 'corporate', 'psn'
     :param code: Optional trading code filter
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
     _dispatch = {
-        "all":       lambda: get_all_news(code=code, retry_count=retry_count, pause=pause),
-        "agm":       lambda: get_agm_news(retry_count=retry_count, pause=pause),
-        "corporate": lambda: get_corporate_announcements(code=code, retry_count=retry_count, pause=pause),
-        "psn":       lambda: get_price_sensitive_news(code=code, retry_count=retry_count, pause=pause),
+        "all":       lambda: get_all_news(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "agm":       lambda: get_agm_news(retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "corporate": lambda: get_corporate_announcements(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "psn":       lambda: get_price_sensitive_news(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
     }
     if news_type not in _dispatch:
         raise ValueError(f"Invalid news_type '{news_type}'. Choose from: {list(_dispatch)}")
