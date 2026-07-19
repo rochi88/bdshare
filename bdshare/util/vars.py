@@ -21,5 +21,5 @@ DSE_MARKET_SUMMARY_URL = "market_summary.php"
 DSEX_INDEX_VALUE = "dseX_share.php"
 
 DSE_SECTOR_PERF_URL = "sector_performance.php"
-DSE_TOP_GAINERS_URL = "top_gainers.php"
+DSE_TOP_GAINERS_URL = "top_ten_gainer.php"
 
