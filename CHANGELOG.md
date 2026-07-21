@@ -6,15 +6,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [1.2.2] - 2026-07-09
+## [1.2.2] - 2026-07-22
 
 ### Added
 - Optional `as_polars=True` parameter across all data-fetching functions to return `polars.DataFrame` instead of `pandas.DataFrame` (requires `pip install bdshare[polars]`)
 - `get_market_status()` — current market status (Open, Closed, Holiday, etc.)
+- `get_top_twenty_shares()` — top twenty shares by traded volume
+- MCP ([Model Context Protocol](https://modelcontextprotocol.io/)) server (`bdshare/mcp_server.py`) exposing 15 tools so AI agents (Claude Desktop, Claude Code, etc.) can call live DSE data directly; install with `pip install bdshare[mcp]`, run with `bdshare-mcp`
+
+### Changed
+- Renamed `get_top_gainers_losers()` → `get_top_ten_gainers_losers()`; returned columns changed from `symbol, ltp, change` to `symbol, close, high, low, ycp, change`
+
+### Removed
+- `get_sector_performance()` (module function and `BDShare.get_sector_performance()`) — no aliased replacement; use `get_top_twenty_shares()` instead
 
 ### Fixed
 - Bundled the missing Sectigo DV R36 intermediate certificate so requests to dsebd.org verify correctly instead of relying on an incomplete chain
 - Corrected `DSE_ALT_URL` fallback domain to `dse.com.bd`
+- `get_corporate_announcements()` and `get_price_sensitive_news()` always raised `BDShareError` — the row parser assumed each news item was one `<tr>` with 4 `<td>`s, but DSE renders each field (`Trading Code:`, `News Title:`, `News:`, `Post Date:`) as its own `<th>`/`<td>` row pair
+- `as_polars=True` could crash with `unexpected value while building Series of type String; found value of type Float64: NaN` on tables mixing strings and missing values (e.g. `get_company_info()`); NaN now converts to a proper polars null instead
+- Corrected `usage.rst`/README documentation that had `get_historical_data()`/`get_basic_historical_data()` mislabeled as the deprecated aliases — `get_hist_data()`/`get_basic_hist_data()` are the deprecated ones
 
 ## [1.2.1] - 2026-02-22
 
