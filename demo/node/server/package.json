@@ -1,0 +1,16 @@
+{
+  "name": "bdshare-node-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Node.js demo for bdshare: Express + FastAPI backend + MCP client + live WebSocket ticks.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}

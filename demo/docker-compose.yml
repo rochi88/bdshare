@@ -1,7 +1,47 @@
-version: '3'
-
 services:
   app:
-    build: .
+    build: 
+      context: ..
+      dockerfile: demo/flask/Dockerfile
     ports:
       - "9999:9999"
+
+  streamlit:
+    build:
+      context: ..
+      dockerfile: demo/streamlit/Dockerfile
+    ports:
+      - "8501:8501"
+
+  # --- Node.js demo: Express UI + Python FastAPI backend + MCP + live ticks ---
+
+  node-api:
+    build:
+      context: ..
+      dockerfile: demo/node/api/Dockerfile
+    ports:
+      - "8000:8000"
+
+  mcp:
+    build:
+      context: ..
+      dockerfile: demo/node/mcp/Dockerfile
+
+  stream:
+    build:
+      context: ..
+      dockerfile: demo/node/stream/Dockerfile
+
+  node:
+    build:
+      context: node/server
+    environment:
+      - API_BASE_URL=http://node-api:8000
+      - MCP_URL=http://mcp:8000/mcp
+      - STREAM_WS_URL=ws://stream:8765
+    ports:
+      - "3000:3000"
+    depends_on:
+      - node-api
+      - mcp
+      - stream

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Suite for BDShare v1.2.2 using pytest
+Comprehensive Test Suite for BDShare v1.2.3 using pytest
 """
 
 import os
@@ -353,6 +353,22 @@ class TestBDShareClient:
         """configure() with no args must not raise."""
         bd = bdshare.BDShare()
         bd.configure()
+
+
+# ---------------------------------------------------------------------------
+# Error Handling
+# ---------------------------------------------------------------------------
+
+class TestErrorHandling:
+    """bdshare.BDShareError must be the same class that internal functions raise."""
+
+    def test_bdshare_error_is_the_helper_class(self):
+        from bdshare.util.helper import BDShareError as HelperBDShareError
+        assert bdshare.BDShareError is HelperBDShareError
+
+    def test_invalid_symbol_raises_public_bdshare_error(self):
+        with pytest.raises(bdshare.BDShareError):
+            bdshare.get_market_depth_data("INVALID_SYMBOL_XYZ_123")
 
 
 # ---------------------------------------------------------------------------

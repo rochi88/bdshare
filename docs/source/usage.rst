@@ -636,6 +636,101 @@ Common causes of ``BDShareError``:
 
 ----
 
+Advanced Features
+==================
+
+Technical Indicators
+---------------------
+
+Wraps the `ta <https://github.com/bukosabino/ta>`_ library to add indicator
+columns directly onto bdshare's OHLCV DataFrames. Requires the optional
+``ta`` extra: ``pip install bdshare[ta]``.
+
+.. code-block:: python
+
+    from bdshare import get_basic_historical_data
+    from bdshare.indicators import add_indicators, add_rsi
+
+    df = get_basic_historical_data('2024-01-01', '2024-06-30', 'GP')
+
+    # Add everything: sma_20, ema_20, rsi_14, macd/macd_signal/macd_diff, bb_high/bb_mid/bb_low
+    df = add_indicators(df)
+
+    # Or just one, with custom parameters
+    df = add_rsi(df, window=21)
+
+Also available: ``add_sma()``, ``add_ema()``, ``add_macd()``,
+``add_bollinger_bands()``. Each returns a new DataFrame — the input is never
+mutated.
+
+Portfolio Tracking
+--------------------
+
+``Portfolio`` tracks cost basis and values holdings against live prices — no
+extra dependency required (pure pandas), and ``valuation()`` makes exactly
+**one** live call for all instruments regardless of how many positions you
+hold.
+
+.. code-block:: python
+
+    from bdshare.portfolio import Portfolio
+
+    pf = Portfolio()
+    pf.add_position('GP', quantity=100, avg_cost=450.50)
+    pf.add_position('ACI', quantity=50, avg_cost=225.75)
+
+    print(pf.holdings().to_string())    # cost basis only, no network call
+    print(pf.valuation().to_string())   # + ltp, market_value, pnl, pnl_pct per position
+    print(pf.summary())                 # {'positions': 2, 'total_cost': ..., 'total_pnl': ...}
+
+Adding to an existing position blends the cost basis like a real buy; a
+negative ``quantity`` reduces it, and netting to zero drops the position.
+Unknown/delisted symbols get ``None`` valuation fields instead of raising, so
+one bad symbol doesn't block valuing the rest.
+
+Real-Time Streaming (WebSocket)
+---------------------------------
+
+DSE has no public push/streaming API — this polls ``get_current_trade_data()``
+on an interval and broadcasts **changed** rows over WebSocket, so another
+program can subscribe instead of polling bdshare itself. Requires the
+optional ``stream`` extra: ``pip install bdshare[stream]``.
+
+Run the bundled server:
+
+.. code-block:: bash
+
+    bdshare-stream --symbols GP,ACI --interval 5
+
+Any other program connects as a plain WebSocket client:
+
+.. code-block:: python
+
+    import asyncio, json, websockets
+
+    async def main():
+        async with websockets.connect('ws://localhost:8765') as ws:
+            async for message in ws:
+                print(json.loads(message))   # {"type": "ticks", "data": [...]}
+
+    asyncio.run(main())
+
+Or skip the server and use the polling generator directly inside your own
+asyncio program:
+
+.. code-block:: python
+
+    from bdshare.stream import stream_ticks
+
+    async def main():
+        async for changed in stream_ticks(symbols=['GP', 'ACI'], interval=5.0):
+            print(changed)
+
+    asyncio.run(main())
+
+
+----
+
 Chittagong Stock Exchange (CSE)
 ================================
 

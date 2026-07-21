@@ -14,6 +14,7 @@
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Demo App](#demo-app)
 - [Core Concepts](#core-concepts)
 - [Usage Guide](#usage-guide)
   - [Live Trading Data](#live-trading-data)
@@ -25,6 +26,10 @@
 - [Error Handling](#error-handling)
 - [API Reference](#api-reference)
 - [Examples](#examples)
+- [Advanced Features](#advanced-features)
+  - [Technical Indicators](#technical-indicators)
+  - [Portfolio Tracking](#portfolio-tracking)
+  - [Real-Time Streaming (WebSocket)](#real-time-streaming-websocket)
 - [Using bdshare with AI Agents (MCP Server)](#using-bdshare-with-ai-agents-mcp-server)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
@@ -73,6 +78,29 @@ with BDShare() as bd:
     print(bd.get_market_summary())
     print(bd.get_current_trades('ACI'))
 ```
+
+---
+
+## Demo App
+
+Three full-feature demos live in [`demo/`](demo/) — live prices, historical charts with
+technical indicators, market movers, news, a portfolio tracker, live tick polling, and
+an interactive AI-agent (MCP) tool explorer:
+
+```bash
+cd demo
+docker compose up --build streamlit   # pure Python — open http://localhost:8501
+docker compose up --build node node-api mcp stream  # cross-language via REST/MCP/WebSocket — open http://localhost:3000
+docker compose up --build app         # Flask/Plotly candlestick-only demo — open http://localhost:9999
+```
+
+The Node.js demo is the interesting one if you're integrating bdshare from **outside
+Python**: it's an Express UI that never imports bdshare — it talks to a FastAPI backend
+over REST, to `bdshare-mcp` over HTTP using the official MCP SDK, and to
+`bdshare-stream` over WebSocket, showing three different ways another program can
+consume this library.
+
+See [`demo/README.md`](demo/README.md) for local (non-Docker) setup for each.
 
 ---
 
@@ -424,6 +452,100 @@ print(big_movers[['symbol', 'close', 'change']])
 
 ---
 
+## Advanced Features
+
+### Technical Indicators
+
+Wraps the [`ta`](https://github.com/bukosabino/ta) library to add indicator columns
+directly onto bdshare's OHLCV DataFrames.
+
+```bash
+pip install "bdshare[ta]"
+```
+
+```python
+from bdshare import get_basic_historical_data
+from bdshare.indicators import add_indicators, add_rsi
+
+df = get_basic_historical_data('2024-01-01', '2024-06-30', 'GP')
+
+# Add everything (sma_20, ema_20, rsi_14, macd/macd_signal/macd_diff, bb_high/bb_mid/bb_low)
+df = add_indicators(df)
+
+# Or just one, with custom parameters
+df = add_rsi(df, window=21)
+```
+
+Also available: `add_sma()`, `add_ema()`, `add_macd()`, `add_bollinger_bands()`.
+Each returns a new DataFrame (the input is never mutated).
+
+### Portfolio Tracking
+
+`Portfolio` tracks cost basis and values holdings against live prices — no extra
+dependency required (pure pandas), and `valuation()` makes exactly **one** live call
+for all instruments regardless of how many positions you hold.
+
+```python
+from bdshare.portfolio import Portfolio
+
+pf = Portfolio()
+pf.add_position('GP', quantity=100, avg_cost=450.50)
+pf.add_position('ACI', quantity=50, avg_cost=225.75)
+
+print(pf.holdings().to_string())    # cost basis only, no network call
+print(pf.valuation().to_string())   # + ltp, market_value, pnl, pnl_pct per position
+print(pf.summary())                 # {'positions': 2, 'total_cost': ..., 'total_pnl': ...}
+```
+
+Adding to an existing position blends the cost basis like a real buy; a negative
+`quantity` reduces it, and netting to zero drops the position. Unknown/delisted
+symbols get `None` valuation fields instead of raising, so one bad symbol doesn't
+block valuing the rest.
+
+### Real-Time Streaming (WebSocket)
+
+DSE has no public push/streaming API — this polls `get_current_trade_data()` on an
+interval and broadcasts **changed** rows over WebSocket, so another program can
+subscribe instead of polling bdshare itself.
+
+```bash
+pip install "bdshare[stream]"
+```
+
+Run the bundled server:
+
+```bash
+bdshare-stream --symbols GP,ACI --interval 5
+```
+
+Any other program connects as a plain WebSocket client:
+
+```python
+import asyncio, json, websockets
+
+async def main():
+    async with websockets.connect('ws://localhost:8765') as ws:
+        async for message in ws:
+            print(json.loads(message))   # {"type": "ticks", "data": [...]}
+
+asyncio.run(main())
+```
+
+Or skip the server and use the polling generator directly inside your own asyncio
+program:
+
+```python
+from bdshare.stream import stream_ticks
+
+async def main():
+    async for changed in stream_ticks(symbols=['GP', 'ACI'], interval=5.0):
+        print(changed)
+
+asyncio.run(main())
+```
+
+---
+
 ## Using bdshare with AI Agents (MCP Server)
 
 bdshare ships an [MCP](https://modelcontextprotocol.io/) server so AI agents running in
@@ -469,6 +591,23 @@ claude mcp add bdshare -- bdshare-mcp
 Any other MCP client is configured the same way — point it at the `bdshare-mcp` command
 (or `python -m bdshare.mcp_server`), stdio transport.
 
+### Running it over the network instead of stdio
+
+Stdio only works when the client can spawn the server as a local child process (Claude
+Desktop/Code). For a program in **another container, another machine, or another
+language entirely** — nothing that speaks Python — run it over HTTP instead:
+
+```bash
+bdshare-mcp --transport streamable-http --host 0.0.0.0 --port 8000
+```
+
+Any MCP client library can connect to `http://host:8000/mcp`; see
+[`demo/node/`](demo/node/) for a full example using the official
+`@modelcontextprotocol/sdk` from Node.js. Binding beyond `127.0.0.1`/`localhost`
+automatically disables DNS-rebinding protection, since every legitimate client then
+arrives with a non-localhost `Host` header — only do this on a trusted network (an
+internal Docker network, not the public internet).
+
 ### What the agent gets
 
 15 tools covering the same data this README documents — `market_status`,
@@ -511,11 +650,10 @@ Please open an issue before submitting a pull request for significant changes. S
 
 ## Roadmap
 
-- [ ] Chittagong Stock Exchange (CSE) support
-- [ ] WebSocket streaming for real-time ticks
-- [ ] Built-in technical indicators (`ta` integration)
-- [ ] Portfolio management helpers
-- [ ] Docker demo examples
+- [x] WebSocket streaming for real-time ticks (polling-based — see [Real-Time Streaming](#real-time-streaming-websocket))
+- [x] Built-in technical indicators (`ta` integration)
+- [x] Portfolio management helpers
+- [x] Docker demo examples
 - [x] Shared session with exponential back-off
 - [x] `lxml`-based fast parsing
 - [x] `BDShareError` for clean error handling

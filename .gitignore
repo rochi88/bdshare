@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -133,3 +133,4 @@ dmypy.json
 
 # others
 *.csv
+node_modules/

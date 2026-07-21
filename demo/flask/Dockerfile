@@ -1,4 +1,7 @@
-FROM python:3.11-slim-buster
+# Build from the repo root:
+#   docker build -f demo/flask/Dockerfile -t bdshare-flask-demo .
+# (docker-compose.yml in this directory sets the context automatically.)
+FROM python:3.11-slim
 
 # time-zone
 RUN set -x \
@@ -9,12 +12,13 @@ RUN set -x \
     && echo "Asia/Dhaka" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
 
-COPY . ./bdshare
+COPY . /app
 
-WORKDIR /bdshare
+RUN pip install --no-cache-dir -r demo/flask/requirements.txt --upgrade
 
-RUN pip install --no-cache-dir -r requirements.txt --upgrade
+WORKDIR /app/demo/flask
 
 EXPOSE 9999
 

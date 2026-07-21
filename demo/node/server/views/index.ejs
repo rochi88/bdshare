@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>bdshare — Node.js demo</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>📈 bdshare <span class="muted">— Node.js demo</span></h1>
+    <div id="market-status" class="status-pill">…</div>
+  </header>
+
+  <nav id="tabs">
+    <button class="tab-btn active" data-tab="live">Live Trading</button>
+    <button class="tab-btn" data-tab="historical">Historical &amp; Indicators</button>
+    <button class="tab-btn" data-tab="movers">Market Movers</button>
+    <button class="tab-btn" data-tab="news">News</button>
+    <button class="tab-btn" data-tab="portfolio">Portfolio</button>
+    <button class="tab-btn" data-tab="ticks">Live Ticks</button>
+    <button class="tab-btn" data-tab="mcp">AI Agents (MCP)</button>
+  </nav>
+
+  <main>
+    <section id="tab-live" class="tab-panel active">
+      <h2>Live Trading Data</h2>
+      <p class="muted">Express → FastAPI (<code>demo/node/api</code>) → <code>get_current_trade_data()</code>, <code>get_dsex_data()</code></p>
+      <div class="controls">
+        <label>Symbol filter: <select id="live-symbol"><option value="">All</option></select></label>
+        <button id="live-refresh">Refresh</button>
+      </div>
+      <div id="live-table" class="table-wrap"></div>
+      <h3>DSEX Index Entries</h3>
+      <div id="dsex-table" class="table-wrap"></div>
+    </section>
+
+    <section id="tab-historical" class="tab-panel">
+      <h2>Historical Data + Technical Indicators</h2>
+      <p class="muted"><code>get_basic_historical_data()</code> + <code>bdshare.indicators</code>, rendered with <a href="https://tradingview.github.io/lightweight-charts/" target="_blank" rel="noopener">lightweight-charts</a></p>
+      <div class="controls">
+        <label>Symbol: <select id="hist-symbol"></select></label>
+        <label>Start: <input type="date" id="hist-start" /></label>
+        <label>End: <input type="date" id="hist-end" /></label>
+        <label><input type="checkbox" id="hist-sma" checked /> SMA 20</label>
+        <label><input type="checkbox" id="hist-rsi" checked /> RSI 14</label>
+        <button id="hist-load">Load</button>
+      </div>
+      <div id="hist-chart" class="chart"></div>
+      <div id="rsi-chart" class="chart chart-small"></div>
+    </section>
+
+    <section id="tab-movers" class="tab-panel">
+      <h2>Market Overview &amp; Movers</h2>
+      <div id="market-info" class="table-wrap"></div>
+      <div class="two-col">
+        <div>
+          <h3>Top Gainers / Losers <small>get_top_ten_gainers_losers()</small></h3>
+          <div id="top-ten" class="table-wrap"></div>
+        </div>
+        <div>
+          <h3>Top Shares by Volume <small>get_top_twenty_shares()</small></h3>
+          <div id="top-twenty" class="table-wrap"></div>
+        </div>
+      </div>
+      <h3>P/E Ratios <small>get_latest_pe()</small></h3>
+      <div id="pe-table" class="table-wrap"></div>
+      <h3>Market Depth &amp; Company Profile</h3>
+      <div class="controls">
+        <label>Symbol: <select id="depth-symbol"></select></label>
+      </div>
+      <div class="two-col">
+        <div id="depth-table" class="table-wrap"></div>
+        <div id="company-table" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="tab-news" class="tab-panel">
+      <h2>News &amp; Announcements</h2>
+      <p class="muted">Unified dispatcher — <code>get_news(news_type, code)</code></p>
+      <div class="controls">
+        <label>Type:
+          <select id="news-type">
+            <option value="all">all</option>
+            <option value="agm">agm</option>
+            <option value="corporate">corporate</option>
+            <option value="psn">psn</option>
+          </select>
+        </label>
+        <label>Symbol filter: <select id="news-symbol"><option value="">All</option></select></label>
+        <button id="news-load">Load</button>
+      </div>
+      <div id="news-table" class="table-wrap"></div>
+    </section>
+
+    <section id="tab-portfolio" class="tab-panel">
+      <h2>Portfolio Tracker</h2>
+      <p class="muted">Client holds positions; <code>POST /api/portfolio/valuation</code> → <code>bdshare.portfolio.Portfolio</code> — one live call for all positions.</p>
+      <div class="controls">
+        <label>Symbol: <select id="pf-symbol"></select></label>
+        <label>Quantity: <input type="number" id="pf-qty" value="100" min="1" /></label>
+        <label>Avg cost: <input type="number" id="pf-cost" value="100" min="0" step="0.01" /></label>
+        <button id="pf-add">Add position</button>
+      </div>
+      <div id="pf-table" class="table-wrap"></div>
+      <div id="pf-summary" class="summary-row"></div>
+      <div id="pf-chart" class="chart chart-small"></div>
+    </section>
+
+    <section id="tab-ticks" class="tab-panel">
+      <h2>Live Ticks</h2>
+      <p class="muted">
+        Browser ↔ Express (<code>/ws/ticks</code>) ↔ <code>bdshare-stream</code> WebSocket server.
+        DSE has no push API, so <code>bdshare.stream</code> polls and diffs under the hood —
+        this panel is that same broadcast, relayed live.
+      </p>
+      <div id="ticks-status" class="status-pill">connecting…</div>
+      <div id="ticks-table" class="table-wrap"></div>
+    </section>
+
+    <section id="tab-mcp" class="tab-panel">
+      <h2>AI Agents via MCP</h2>
+      <p class="muted">
+        Node here plays the role of "another program" — it speaks MCP directly to
+        <code>bdshare-mcp --transport streamable-http</code> using the official
+        <code>@modelcontextprotocol/sdk</code>, the same way an AI agent would.
+      </p>
+      <div class="controls">
+        <label>Tool: <select id="mcp-tool"></select></label>
+        <label>Symbol arg (if needed): <select id="mcp-symbol"></select></label>
+        <button id="mcp-call">Call tool</button>
+      </div>
+      <pre id="mcp-result" class="json-out">— select a tool and click "Call tool" —</pre>
+    </section>
+  </main>
+
+  <footer>
+    bdshare is intended for educational and research use. Data is scraped live from
+    dsebd.org — please respect DSE's terms of service.
+  </footer>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

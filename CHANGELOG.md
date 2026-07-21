@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.3] - 2026-07-22
+
+### Added
+- `bdshare/indicators.py` — technical indicator helpers (`add_sma`, `add_ema`, `add_rsi`, `add_macd`, `add_bollinger_bands`, `add_indicators`) built on the `ta` library, operating on the OHLCV DataFrames returned by `get_basic_historical_data()`; install with `pip install bdshare[ta]`
+- `bdshare/portfolio.py` — `Portfolio`/`Position` classes for tracking cost basis and valuing holdings against live prices (`holdings()`, `valuation()`, `summary()`); one live call for all instruments regardless of portfolio size
+- `bdshare/stream.py` — polling-based WebSocket tick streaming (`stream_ticks()`, `TickServer`); broadcasts changed rows from `get_current_trade_data()` to connected clients so another program can subscribe over `ws://` instead of polling itself. DSE has no push API, so this is poll-and-diff under a WebSocket-shaped interface, not true push. Install with `pip install bdshare[stream]`, run with `bdshare-stream`
+- `demo/streamlit/streamlit_app.py` — full-feature Streamlit dashboard showcasing every public feature in one app: live trading data, historical charts with `bdshare.indicators` overlays, market movers, news, `bdshare.portfolio` tracking, live-tick polling, and an interactive AI-agent (MCP) tool explorer. Runs via `docker compose up --build streamlit` (`demo/streamlit/Dockerfile`, builds bdshare from local source so unreleased features are included) or locally with `pip install -e ".[ta,stream]"` + `streamlit run demo/streamlit/streamlit_app.py`
+- `demo/` reorganized into `demo/flask/`, `demo/streamlit/`, and `demo/node/`, all built from `demo/docker-compose.yml` with a repo-root build context; documented in `demo/README.md` (previously an unrelated generic Flask/Plotly readme with no mention of bdshare or Docker)
+- `bdshare-mcp --transport streamable-http --host 0.0.0.0 --port 8000` — the MCP server can now run over the network instead of only stdio, for clients that can't spawn it as a local child process (a different language, another container). Binding beyond loopback auto-disables DNS-rebinding protection, since every legitimate client then arrives with a non-localhost `Host` header
+- `demo/node/` — a four-service showcase of consuming bdshare from **outside Python**: an Express UI (`demo/node/server`, never imports bdshare) talking to a FastAPI backend (`demo/node/api`, bdshare functions as JSON REST) over REST, to `bdshare-mcp --transport streamable-http` over MCP via the official `@modelcontextprotocol/sdk`, and to `bdshare-stream` over WebSocket (relayed to the browser). Run via `docker compose up --build node node-api mcp stream` or locally per `demo/README.md`
+
+### Fixed
+- `bdshare.BDShareError` (the publicly exported/documented exception) was a **different class** from `bdshare.util.helper.BDShareError`, the one every scraping function actually raises — `except bdshare.BDShareError` silently never caught real errors. `bdshare/__init__.py` now re-exports the same class instead of redefining it
+- `demo/app.py`: `convert_to_native_types()` called `pd.isna(obj)` before checking whether `obj` was a list/dict, crashing with `ValueError: The truth value of an array... is ambiguous` on any chart request; container types are now checked first
+- `demo/app.py`: `get_available_tickers()` checked for a `trading_code` column that doesn't exist on `get_current_trade_data()`'s output (`symbol` does), so it always silently fell back to the hardcoded stock list
+- `demo/Dockerfile`: base image `python:3.11-slim-buster` is EOL (Debian Buster archived), so `apt-get update` would fail on a fresh build; switched to `python:3.11-slim`
+
 ## [1.2.2] - 2026-07-22
 
 ### Added

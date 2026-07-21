@@ -11,6 +11,11 @@ Run directly:
 Or via the installed console script:
     bdshare-mcp
 
+Defaults to stdio transport (what Claude Desktop/Code expect). For a
+network-reachable server — e.g. so a non-Python program in another
+container can connect — pass --transport streamable-http --host 0.0.0.0:
+    bdshare-mcp --transport streamable-http --host 0.0.0.0 --port 8000
+
 Requires the optional 'mcp' extra:
     pip install bdshare[mcp]
 """
@@ -190,7 +195,27 @@ def agm_news() -> list:
 
 
 def main() -> None:
-    mcp.run()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="bdshare MCP server.")
+    parser.add_argument(
+        "--transport", choices=["stdio", "sse", "streamable-http"], default="stdio",
+        help="MCP transport (default: stdio, for desktop/CLI agent clients like Claude Desktop/Code)",
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind for sse/streamable-http")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind for sse/streamable-http")
+    args = parser.parse_args()
+
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+        if args.host not in ("127.0.0.1", "localhost"):
+            # Binding beyond loopback (e.g. inside a container network) means every
+            # legitimate client arrives with a non-localhost Host header — DNS-rebinding
+            # protection would otherwise reject all of them.
+            mcp.settings.transport_security.enable_dns_rebinding_protection = False
+
+    mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":

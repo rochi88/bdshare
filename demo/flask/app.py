@@ -32,9 +32,9 @@ def get_available_tickers():
     """Get available tickers from current trade data"""
     try:
         df = get_current_trade_data()
-        if not df.empty and 'trading_code' in df.columns:
-            return sorted(df['trading_code'].unique().tolist())
-    except:
+        if not df.empty and 'symbol' in df.columns:
+            return sorted(df['symbol'].unique().tolist())
+    except Exception:
         pass
     return list(POPULAR_STOCKS.keys())
 
@@ -42,24 +42,26 @@ def convert_to_native_types(obj):
     """
     Recursively convert numpy/pandas data types to Python native types
     """
-    if pd.isna(obj):
-        return None
-    elif isinstance(obj, (np.integer, np.int32, np.int64)):
-        return int(obj)
-    elif isinstance(obj, (np.floating, np.float32, np.float64)):
-        return float(obj)
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif isinstance(obj, np.ndarray):
-        return [convert_to_native_types(x) for x in obj]
-    elif isinstance(obj, pd.Timestamp):
-        return obj.isoformat()
-    elif isinstance(obj, pd.Series):
-        return [convert_to_native_types(x) for x in obj.tolist()]
-    elif isinstance(obj, dict):
+    # Containers first — pd.isna() on a list/array raises ValueError
+    # ("truth value ... ambiguous") instead of returning a single bool.
+    if isinstance(obj, dict):
         return {key: convert_to_native_types(value) for key, value in obj.items()}
     elif isinstance(obj, (list, tuple)):
         return [convert_to_native_types(x) for x in obj]
+    elif isinstance(obj, np.ndarray):
+        return [convert_to_native_types(x) for x in obj]
+    elif isinstance(obj, pd.Series):
+        return [convert_to_native_types(x) for x in obj.tolist()]
+    elif isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
+    elif isinstance(obj, (np.integer, np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float32, np.float64)):
+        return None if np.isnan(obj) else float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, float) and pd.isna(obj):
+        return None
     else:
         return obj
 

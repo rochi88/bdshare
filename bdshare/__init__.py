@@ -52,7 +52,7 @@ from bdshare.util import (
     configure_proxy,
 )
 from bdshare.util.cache import _TTLCache
-from bdshare.util.helper import deprecated
+from bdshare.util.helper import deprecated, BDShareError
 
 # ---------------------------------------------------------------------------
 # Type aliases
@@ -85,10 +85,6 @@ def _validate_date_range(start_date: str, end_date: str) -> None:
         raise ValueError("start_date cannot be after end_date.")
     if (end_dt - start_dt).days > 365 * 5:
         raise ValueError("Date range cannot exceed 5 years.")
-
-
-class BDShareError(Exception):
-    """Top-level client exception."""
 
 
 # ---------------------------------------------------------------------------
