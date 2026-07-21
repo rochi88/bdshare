@@ -264,43 +264,47 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2,
     return _to_frame(pd.DataFrame(result), as_polars)
 
 
-def get_sector_performance(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
-    """Get sector-wise performance data.
+def get_top_ten_gainers_losers(limit: int = 10, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get top ten gainers and losers.
 
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
     table = _fetch_table(
-        vs.DSE_URL + vs.DSE_SECTOR_PERF_URL,
-        vs.DSE_ALT_URL + vs.DSE_SECTOR_PERF_URL,
+        vs.DSE_URL + vs.DSE_TOP_TEN_GAINERS_URL,
+        vs.DSE_ALT_URL + vs.DSE_TOP_TEN_GAINERS_URL,
         retries=retry_count,
         pause=pause,
+        table_class=_CLS_SHARES,
     )
     rows = []
-    for row in table.find_all("tr")[1:]:
+    for row in table.find_all("tr")[1:limit + 1]:
         cols = row.find_all("td")
-        if len(cols) < 2:
+        if len(cols) < 4:
             continue
         rows.append({
-            c["class"][0] if c.get("class") else f"col_{i}": c.text.strip()
-            for i, c in enumerate(cols)
+            "symbol": cols[1].text.strip(),
+            "close":    _safe_num(cols[2].text, float),
+            "high":    _safe_num(cols[3].text, float),
+            "low":    _safe_num(cols[4].text, float),
+            "ycp":    _safe_num(cols[5].text, float),
+            "change": _safe_num(cols[6].text, float),
         })
 
     if not rows:
-        raise BDShareError("No sector performance data found.")
+        raise BDShareError("No top gainers/losers data found.")
     return _to_frame(pd.DataFrame(rows), as_polars)
 
-
-def get_top_gainers_losers(limit: int = 10, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
-    """Get top gainers and losers.
+def get_top_twenty_shares(limit: int = 20, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get top twenty shares by volume.
 
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
     table = _fetch_table(
-        vs.DSE_URL + vs.DSE_TOP_GAINERS_URL,
-        vs.DSE_ALT_URL + vs.DSE_TOP_GAINERS_URL,
+        vs.DSE_URL + vs.DSE_TOP_TWENTY_SHARES_URL,
+        vs.DSE_ALT_URL + vs.DSE_TOP_TWENTY_SHARES_URL,
         retries=retry_count,
         pause=pause,
-        table_class=_CLS_FIXED,
+        table_class=_CLS_SHARES,
     )
     rows = []
     for row in table.find_all("tr")[1:limit + 1]:
@@ -310,13 +314,16 @@ def get_top_gainers_losers(limit: int = 10, retry_count: int = 3, pause: float =
         rows.append({
             "symbol": cols[1].text.strip(),
             "ltp":    _safe_num(cols[2].text, float),
-            "change": _safe_num(cols[3].text, float),
+            "high":    _safe_num(cols[3].text, float),
+            "low":    _safe_num(cols[4].text, float),
+            "ycp":    _safe_num(cols[5].text, float),
+            "trade": _safe_num(cols[6].text.replace(",", ""), int),
+            "volume": _safe_num(cols[7].text.replace(",", ""), int),
         })
 
     if not rows:
-        raise BDShareError("No top gainers/losers data found.")
+        raise BDShareError("No top shares data found.")
     return _to_frame(pd.DataFrame(rows), as_polars)
-
 
 # ---------------------------------------------------------------------------
 # Deprecated aliases — old short names, will be removed in 2.0.0.

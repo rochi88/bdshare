@@ -178,6 +178,11 @@ class TestNews:
 class TestMarketData:
     """Tests for market summary, P/E, depth, and company data."""
 
+    def test_get_market_status(self):
+        result = bdshare.get_market_status()
+        assert isinstance(result, str)
+        assert len(result) > 0
+
     def test_get_market_info(self):
         result = bdshare.get_market_info()
         assert isinstance(result, pd.DataFrame)
@@ -204,17 +209,24 @@ class TestMarketData:
         assert len(result) > 0
         assert all(isinstance(t, pd.DataFrame) for t in result)
 
-    def test_get_sector_performance(self):
-        result = bdshare.get_sector_performance()
-        assert isinstance(result, pd.DataFrame)
-
-    def test_get_top_gainers_losers_default(self):
-        result = bdshare.get_top_gainers_losers()
+    def test_get_top_ten_gainers_losers_default(self):
+        result = bdshare.get_top_ten_gainers_losers()
         assert isinstance(result, pd.DataFrame)
         assert len(result) <= 10
 
-    def test_get_top_gainers_losers_custom_limit(self):
-        result = bdshare.get_top_gainers_losers(limit=5)
+    def test_get_top_ten_gainers_losers_custom_limit(self):
+        result = bdshare.get_top_ten_gainers_losers(limit=5)
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) <= 5
+
+    def test_get_top_twenty_shares_default(self):
+        result = bdshare.get_top_twenty_shares()
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) <= 20
+        assert set(result.columns) >= {"symbol", "ltp", "high", "low", "ycp", "trade", "volume"}
+
+    def test_get_top_twenty_shares_custom_limit(self):
+        result = bdshare.get_top_twenty_shares(limit=5)
         assert isinstance(result, pd.DataFrame)
         assert len(result) <= 5
 
@@ -277,11 +289,6 @@ class TestBDShareClient:
     def test_get_top_movers(self):
         with bdshare.BDShare() as bd:
             result = bd.get_top_movers(limit=5)
-            assert isinstance(result, pd.DataFrame)
-
-    def test_get_sector_performance(self):
-        with bdshare.BDShare() as bd:
-            result = bd.get_sector_performance()
             assert isinstance(result, pd.DataFrame)
 
     def test_get_historical_data(self, dates, symbol):
@@ -447,17 +454,23 @@ class TestPolarsOutput:
         result = bdshare.get_market_depth_data(symbol, as_polars=True)
         assert isinstance(result, pl.DataFrame)
 
-    def test_get_sector_performance_polars(self):
-        result = bdshare.get_sector_performance(as_polars=True)
-        self._pl(result, "get_sector_performance")
+    def test_get_top_ten_gainers_losers_polars(self):
+        result = bdshare.get_top_ten_gainers_losers(as_polars=True)
+        self._pl(result, "get_top_ten_gainers_losers")
+        assert {"symbol", "close", "high", "low", "ycp", "change"} <= set(result.columns)
 
-    def test_get_top_gainers_losers_polars(self):
-        result = bdshare.get_top_gainers_losers(as_polars=True)
-        self._pl(result, "get_top_gainers_losers")
-        assert {"symbol", "ltp", "change"} <= set(result.columns)
+    def test_get_top_ten_gainers_losers_limit_polars(self):
+        result = bdshare.get_top_ten_gainers_losers(limit=5, as_polars=True)
+        assert isinstance(result, pl.DataFrame)
+        assert result.shape[0] <= 5
 
-    def test_get_top_gainers_losers_limit_polars(self):
-        result = bdshare.get_top_gainers_losers(limit=5, as_polars=True)
+    def test_get_top_twenty_shares_polars(self):
+        result = bdshare.get_top_twenty_shares(as_polars=True)
+        self._pl(result, "get_top_twenty_shares")
+        assert {"symbol", "ltp", "high", "low", "ycp", "trade", "volume"} <= set(result.columns)
+
+    def test_get_top_twenty_shares_limit_polars(self):
+        result = bdshare.get_top_twenty_shares(limit=5, as_polars=True)
         assert isinstance(result, pl.DataFrame)
         assert result.shape[0] <= 5
 
@@ -618,8 +631,8 @@ def main():
             ("get_latest_pe()",                      bdshare.get_latest_pe),
             (f"get_market_depth_data('{sym}')",      bdshare.get_market_depth_data,     sym),
             (f"get_company_info('{sym}')",           bdshare.get_company_info,          sym),
-            ("get_sector_performance()",             bdshare.get_sector_performance),
-            ("get_top_gainers_losers()",             bdshare.get_top_gainers_losers),
+            ("get_top_ten_gainers_losers()",         bdshare.get_top_ten_gainers_losers),
+            ("get_top_twenty_shares()",              bdshare.get_top_twenty_shares),
         ],
         "⚠️  DEPRECATED ALIASES": [
             ("get_hist_data(start, end)",            bdshare.get_hist_data,             start_date, end_date),
@@ -640,8 +653,8 @@ def main():
             ("get_market_info(as_polars=True)",              lambda: bdshare.get_market_info(as_polars=True)),
             ("get_latest_pe(as_polars=True)",                lambda: bdshare.get_latest_pe(as_polars=True)),
             ("get_market_info_more_data(…, as_polars=True)", lambda: bdshare.get_market_info_more_data(start_date, end_date, as_polars=True)),
-            ("get_sector_performance(as_polars=True)",       lambda: bdshare.get_sector_performance(as_polars=True)),
-            ("get_top_gainers_losers(as_polars=True)",       lambda: bdshare.get_top_gainers_losers(as_polars=True)),
+            ("get_top_ten_gainers_losers(as_polars=True)",   lambda: bdshare.get_top_ten_gainers_losers(as_polars=True)),
+            ("get_top_twenty_shares(as_polars=True)",        lambda: bdshare.get_top_twenty_shares(as_polars=True)),
             ("get_current_trade_data(as_polars=True)",       lambda: bdshare.get_current_trade_data(as_polars=True)),
             ("get_dsex_data(as_polars=True)",                lambda: bdshare.get_dsex_data(as_polars=True)),
             ("get_current_trading_code(as_polars=True)",     lambda: bdshare.get_current_trading_code(as_polars=True)),

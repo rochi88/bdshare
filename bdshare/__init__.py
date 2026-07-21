@@ -27,8 +27,8 @@ from bdshare.stock.market import (
     get_latest_pe,
     get_market_info_more_data,
     get_market_depth_data,
-    get_sector_performance,
-    get_top_gainers_losers,
+    get_top_ten_gainers_losers,
+    get_top_twenty_shares,
 )
 
 # News
@@ -202,17 +202,7 @@ class BDShare:
         key = f"top_movers:{limit}"
         if use_cache and (hit := self._get_cache(key)):
             return hit
-        data = get_top_gainers_losers(limit)
-        self._set_cache(key, data, ttl=300)
-        return data
-
-    @_rate_limiter
-    def get_sector_performance(self, use_cache: bool = True):
-        """Sector-wise performance."""
-        key = "sector_performance"
-        if use_cache and (hit := self._get_cache(key)):
-            return hit
-        data = get_sector_performance()
+        data = get_top_ten_gainers_losers(limit)
         self._set_cache(key, data, ttl=300)
         return data
 
@@ -362,8 +352,8 @@ __all__ = [
     "get_latest_pe",
     "get_market_info_more_data",
     "get_market_depth_data",
-    "get_sector_performance",
-    "get_top_gainers_losers",
+    "get_top_ten_gainers_losers",
+    "get_top_twenty_shares",
 
     # Market — deprecated aliases (removed in 2.0.0)
     "get_company_inf",

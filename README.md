@@ -25,6 +25,7 @@
 - [Error Handling](#error-handling)
 - [API Reference](#api-reference)
 - [Examples](#examples)
+- [Using bdshare with AI Agents (MCP Server)](#using-bdshare-with-ai-agents-mcp-server)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
 - [Disclaimer](#disclaimer)
@@ -52,14 +53,14 @@ Dependencies installed automatically: `pandas`, `requests`, `beautifulsoup4`, `l
 ## Quick Start
 
 ```python
-from bdshare import get_current_trade_data, get_hist_data
+from bdshare import get_current_trade_data, get_historical_data
 
 # Live prices for all instruments
 df = get_current_trade_data()
 print(df.head())
 
 # Historical data for a specific symbol
-df = get_hist_data('2024-01-01', '2024-01-31', 'GP')
+df = get_historical_data('2024-01-01', '2024-01-31', 'GP')
 print(df.head())
 ```
 
@@ -111,7 +112,7 @@ print(codes['symbol'].tolist())
 ### Historical Data
 
 ```python
-from bdshare import get_hist_data, get_basic_hist_data, get_close_price_data
+from bdshare import get_historical_data, get_basic_historical_data, get_close_price_data
 import datetime as dt
 
 start = '2024-01-01'
@@ -119,38 +120,45 @@ end   = '2024-03-31'
 
 # Full historical data (ltp, open, high, low, close, volume, trade, value…)
 # Indexed by date, sorted newest-first
-df = get_hist_data(start, end, 'ACI')
+df = get_historical_data(start, end, 'ACI')
 
 # Simplified OHLCV — sorted oldest-first, ready for TA libraries
-df = get_basic_hist_data(start, end, 'ACI')
+df = get_basic_historical_data(start, end, 'ACI')
 
 # Set date as index explicitly
-df = get_basic_hist_data(start, end, 'ACI', index='date')
+df = get_basic_historical_data(start, end, 'ACI', index='date')
 
 # Rolling 2-year window
 end   = dt.date.today()
 start = end - dt.timedelta(days=2 * 365)
-df    = get_basic_hist_data(str(start), str(end), 'GP')
+df    = get_basic_historical_data(str(start), str(end), 'GP')
 
 # Close prices only
 df = get_close_price_data(start, end, 'ACI')
 ```
 
-> **Column order note:** `get_basic_hist_data` intentionally returns OHLCV in standard order
+> **Column order note:** `get_basic_historical_data` intentionally returns OHLCV in standard order
 > (`open`, `high`, `low`, `close`, `volume`) to be compatible with libraries like `ta`, `pandas-ta`, and `backtrader`.
+>
+> **Deprecated aliases:** `get_hist_data()` and `get_basic_hist_data()` still work but emit a
+> `DeprecationWarning` — migrate to `get_historical_data()` / `get_basic_historical_data()`.
 
 ### Market & Index Data
 
 ```python
 from bdshare import (
+    get_market_status,
     get_market_info,
     get_market_info_more_data,
     get_market_depth_data,
     get_latest_pe,
-    get_sector_performance,
-    get_top_gainers_losers,
+    get_top_ten_gainers_losers,
+    get_top_twenty_shares,
     get_company_info,
 )
+
+# Current market status: Open, Closed, Holiday, etc.
+status = get_market_status()
 
 # Last 30 days of market summary (DSEX, DSES, DS30, DGEN, volumes, market cap)
 df = get_market_info()
@@ -164,11 +172,11 @@ df = get_market_depth_data('ACI')
 # P/E ratios for all listed companies
 df = get_latest_pe()
 
-# Sector-wise performance
-df = get_sector_performance()
-
 # Top 10 gainers and losers (adjust limit as needed)
-df = get_top_gainers_losers(limit=10)
+df = get_top_ten_gainers_losers(limit=10)
+
+# Top 20 shares by traded volume (adjust limit as needed)
+df = get_top_twenty_shares(limit=20)
 
 # Detailed company profile
 tables = get_company_info('GP')
@@ -194,13 +202,13 @@ df = get_all_news('2024-01-01', '2024-03-31', 'GP')  # Filtered by date + symbol
 ### Saving to CSV
 
 ```python
-from bdshare import get_basic_hist_data, Store
+from bdshare import get_basic_historical_data, Store
 import datetime as dt
 
 end   = dt.date.today()
 start = end - dt.timedelta(days=365)
 
-df = get_basic_hist_data(str(start), str(end), 'GP')
+df = get_basic_historical_data(str(start), str(end), 'GP')
 Store(df).save()   # saves to current directory as a CSV
 ```
 
@@ -230,8 +238,10 @@ bd.get_market_summary()                    # DSEX/DSES/DS30 indices + stats  (1-
 bd.get_company_profile('ACI')             # Company profile                  (1-hr TTL)
 bd.get_latest_pe_ratios()                 # All P/E ratios                   (1-hr TTL)
 bd.get_top_movers(limit=10)               # Top gainers/losers               (5-min TTL)
-bd.get_sector_performance()               # Sector breakdown                 (5-min TTL)
 ```
+
+`get_market_status()` and `get_top_twenty_shares()` don't have `BDShare` wrapper methods yet —
+call the module-level functions directly (see [API Reference](#api-reference)).
 
 ### Trading methods
 
@@ -294,22 +304,26 @@ Common causes of `BDShareError`:
 | `get_current_trade_data(symbol?)` | `symbol: str` | DataFrame | Live prices (all or one symbol) |
 | `get_dsex_data(symbol?)` | `symbol: str` | DataFrame | DSEX index entries |
 | `get_current_trading_code()` | — | DataFrame | All tradeable symbols |
-| `get_hist_data(start, end, code?)` | `str, str, str` | DataFrame | Full historical OHLCV |
-| `get_basic_hist_data(start, end, code?, index?)` | `str, str, str, str` | DataFrame | Simplified OHLCV (TA-ready) |
+| `get_historical_data(start, end, code?)` | `str, str, str` | DataFrame | Full historical OHLCV |
+| `get_basic_historical_data(start, end, code?, index?)` | `str, str, str, str` | DataFrame | Simplified OHLCV (TA-ready) |
 | `get_close_price_data(start, end, code?)` | `str, str, str` | DataFrame | Close + prior close |
 | `get_last_trade_price_data()` | — | DataFrame | Last trade from DSE text file |
+
+Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_data()`,
+`get_basic_hist_data()` → `get_basic_historical_data()`.
 
 ### Market Functions
 
 | Function | Parameters | Returns | Description |
 |---|---|---|---|
+| `get_market_status()` | — | str | Current market status (Open, Closed, Holiday, etc.) |
 | `get_market_info()` | — | DataFrame | 30-day market summary |
 | `get_market_info_more_data(start, end)` | `str, str` | DataFrame | Historical market summary |
 | `get_market_depth_data(symbol)` | `str` | DataFrame | Order book (buy/sell depth) |
 | `get_latest_pe()` | — | DataFrame | P/E ratios for all companies |
 | `get_company_info(symbol)` | `str` | list[DataFrame] | Detailed company tables |
-| `get_sector_performance()` | — | DataFrame | Sector-wise performance |
-| `get_top_gainers_losers(limit?)` | `int` (default 10) | DataFrame | Top movers |
+| `get_top_ten_gainers_losers(limit?)` | `int` (default 10) | DataFrame | Top movers by price change |
+| `get_top_twenty_shares(limit?)` | `int` (default 20) | DataFrame | Top shares by traded volume |
 
 ### News Functions
 
@@ -401,12 +415,82 @@ with BDShare() as bd:
 ### Fetch and screen top gainers above 5 %
 
 ```python
-from bdshare import get_top_gainers_losers
+from bdshare import get_top_ten_gainers_losers
 
-df = get_top_gainers_losers(limit=20)
+df = get_top_ten_gainers_losers(limit=20)
 big_movers = df[df['change'] > 5]
-print(big_movers[['symbol', 'ltp', 'change']])
+print(big_movers[['symbol', 'close', 'change']])
 ```
+
+---
+
+## Using bdshare with AI Agents (MCP Server)
+
+bdshare ships an [MCP](https://modelcontextprotocol.io/) server so AI agents running in
+**another program** — Claude Desktop, Claude Code, or any other MCP-compatible client —
+can call live DSE data as tools, without you writing any glue code.
+
+### Install
+
+```bash
+pip install "bdshare[mcp]"
+```
+
+### Run
+
+```bash
+bdshare-mcp
+# or
+python -m bdshare.mcp_server
+```
+
+By default it speaks MCP over stdio, which is what desktop/CLI agent clients expect.
+
+### Connect it to a client
+
+**Claude Code:**
+
+```bash
+claude mcp add bdshare -- bdshare-mcp
+```
+
+**Claude Desktop** (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "bdshare": {
+      "command": "bdshare-mcp"
+    }
+  }
+}
+```
+
+Any other MCP client is configured the same way — point it at the `bdshare-mcp` command
+(or `python -m bdshare.mcp_server`), stdio transport.
+
+### What the agent gets
+
+15 tools covering the same data this README documents — `market_status`,
+`market_summary`, `market_summary_range`, `market_depth`, `latest_pe_ratios`,
+`top_ten_gainers_losers`, `top_twenty_shares`, `company_info`, `current_trades`,
+`dsex_index`, `trading_codes`, `historical_data`, `basic_historical_data`, `news`,
+`agm_news`. Each tool returns JSON — `DataFrame`s are converted to lists of row
+records — and a `BDShareError` (bad symbol, DSE outage, parse failure) surfaces as a
+clean tool error message instead of a raw traceback.
+
+### Notes for agent use
+
+- **No caching in the MCP server itself.** Every tool call scrapes dsebd.org live. If
+  your agent calls the same tool repeatedly in one turn (e.g. checking a price several
+  times), consider fronting it with the `BDShare` client's caching in a custom
+  wrapper — the bundled server intentionally stays stateless and simple.
+- **Rate limits are the agent's responsibility.** The `BDShare` OOP client has a
+  built-in 5 calls/second limiter; the MCP tools call the plain module-level functions,
+  which don't. Avoid tight loops of tool calls.
+- Source: [`bdshare/mcp_server.py`](bdshare/mcp_server.py) — a plain
+  [`FastMCP`](https://github.com/modelcontextprotocol/python-sdk) server, easy to fork
+  if you want a different tool surface.
 
 ---
 
@@ -437,6 +521,7 @@ Please open an issue before submitting a pull request for significant changes. S
 - [x] `BDShareError` for clean error handling
 - [x] Unified `get_news()` dispatcher
 - [x] Rate limiter and response caching
+- [x] MCP server for AI agent integration
 
 ---
 

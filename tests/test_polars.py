@@ -19,8 +19,8 @@ from bdshare import (
     get_latest_pe,
     get_market_info_more_data,
     get_market_depth_data,
-    get_sector_performance,
-    get_top_gainers_losers,
+    get_top_ten_gainers_losers,
+    get_top_twenty_shares,
     get_current_trade_data,
     get_dsex_data,
     get_current_trading_code,
@@ -139,22 +139,29 @@ class TestPolarsMarket(unittest.TestCase):
         self.assertIsInstance(result, pl.DataFrame)
         print(f"  get_market_depth_data: {result.shape[0]} rows (may be 0 off-hours)")
 
-    def test_get_sector_performance_polars(self):
-        result = get_sector_performance(as_polars=True)
-        _assert_polars(self, result, "get_sector_performance")
-        print(f"  get_sector_performance: {result.shape[0]} rows × {result.shape[1]} cols")
+    def test_get_top_ten_gainers_losers_polars(self):
+        result = get_top_ten_gainers_losers(as_polars=True)
+        _assert_polars(self, result, "get_top_ten_gainers_losers")
+        for col in ("symbol", "close", "high", "low", "ycp", "change"):
+            self.assertIn(col, result.columns)
+        print(f"  get_top_ten_gainers_losers: {result.shape[0]} rows")
 
-    def test_get_top_gainers_losers_polars(self):
-        result = get_top_gainers_losers(as_polars=True)
-        _assert_polars(self, result, "get_top_gainers_losers")
-        self.assertIn("symbol", result.columns)
-        self.assertIn("ltp",    result.columns)
-        self.assertIn("change", result.columns)
-        print(f"  get_top_gainers_losers: {result.shape[0]} rows")
-
-    def test_get_top_gainers_losers_limit_respected(self):
+    def test_get_top_ten_gainers_losers_limit_respected(self):
         limit  = 5
-        result = get_top_gainers_losers(limit=limit, as_polars=True)
+        result = get_top_ten_gainers_losers(limit=limit, as_polars=True)
+        self.assertIsInstance(result, pl.DataFrame)
+        self.assertLessEqual(result.shape[0], limit)
+
+    def test_get_top_twenty_shares_polars(self):
+        result = get_top_twenty_shares(as_polars=True)
+        _assert_polars(self, result, "get_top_twenty_shares")
+        for col in ("symbol", "ltp", "high", "low", "ycp", "trade", "volume"):
+            self.assertIn(col, result.columns)
+        print(f"  get_top_twenty_shares: {result.shape[0]} rows")
+
+    def test_get_top_twenty_shares_limit_respected(self):
+        limit  = 5
+        result = get_top_twenty_shares(limit=limit, as_polars=True)
         self.assertIsInstance(result, pl.DataFrame)
         self.assertLessEqual(result.shape[0], limit)
 

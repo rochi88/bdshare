@@ -305,7 +305,15 @@ def _to_frame(df, as_polars: bool):
         )
     if getattr(df.index, "name", None):
         df = df.reset_index()
-    return pl.DataFrame({str(col): df[col].tolist() for col in df.columns})
+    # Source columns (e.g. pd.read_html output) can mix strings with NaN
+    # floats in the same column. .tolist() alone surfaces the NaN sentinel
+    # regardless of dtype, so missing values are swapped for None via an
+    # explicit isna() mask before handing the list to polars.
+    def _column_values(col):
+        mask = df[col].isna().tolist()
+        return [None if is_na else v for v, is_na in zip(df[col].tolist(), mask)]
+
+    return pl.DataFrame({str(col): _column_values(col) for col in df.columns})
 
 
 # ---------------------------------------------------------------------------

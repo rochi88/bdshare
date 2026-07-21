@@ -101,6 +101,17 @@ def get_all_news(
     if table is None:
         raise BDShareError("News table not found.")
 
+    rows = _parse_news_rows(table, code_key="symbol")
+    return _to_frame(pd.DataFrame(rows), as_polars)
+
+
+def _parse_news_rows(table, code_key: str = "code") -> list:
+    """Parse a DSE news table's label/value row pairs.
+
+    Each news item is rendered as four separate <tr>s — a <th> label
+    ("Trading Code:", "News Title:", "News:", "Post Date:") paired with
+    a <td> value — not four <td>s in a single row.
+    """
     rows = []
     current: dict = {}
     for row in table.find_all("tr"):
@@ -113,7 +124,7 @@ def get_all_news(
         if label == "Trading Code:":
             if current:
                 rows.append(current)
-            current = {"symbol": value}
+            current = {code_key: value}
         elif label == "News Title:":
             current["title"] = value
         elif label == "News:":
@@ -122,22 +133,6 @@ def get_all_news(
             current["date"] = value
     if current:
         rows.append(current)
-
-    return _to_frame(pd.DataFrame(rows), as_polars)
-
-
-def _parse_news_rows(table) -> list:
-    """Parse standard 3-column (code, news, date) rows from a DSE news table."""
-    rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
-        if len(cols) < 3:
-            continue
-        rows.append({
-            "code": cols[0].text.strip(),
-            "news": cols[1].text.strip(),
-            "date": cols[2].text.strip(),
-        })
     return rows
 
 

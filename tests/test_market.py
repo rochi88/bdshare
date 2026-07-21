@@ -7,7 +7,10 @@ Comprehensive tests for BDShare market data functions
 import unittest
 import datetime as dt
 import pandas as pd
-from bdshare import get_latest_pe, get_market_info, get_market_depth_data, get_market_info_more_data, get_company_info
+from bdshare import (
+    get_latest_pe, get_market_info, get_market_depth_data, get_market_info_more_data,
+    get_company_info, get_top_ten_gainers_losers, get_top_twenty_shares,
+)
 from bdshare.stock.market import get_market_status
 
 _SEP = "─" * 60
@@ -57,6 +60,26 @@ class TestMarketDataFunctions(unittest.TestCase):
         self.assertFalse(df.empty)
         print(_header("Latest P/E Ratios (first 5 rows)"))
         print(df.head().to_string(index=False))
+        print(f"\n  Shape  : {_shape(df)}")
+
+    def test_get_top_ten_gainers_losers(self):
+        """Top ten gainers/losers DataFrame is valid and non-empty."""
+        df = get_top_ten_gainers_losers()
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertFalse(df.empty)
+        self.assertLessEqual(len(df), 10)
+        print(_header("Top Ten Gainers/Losers"))
+        print(df.to_string(index=False))
+        print(f"\n  Shape  : {_shape(df)}")
+
+    def test_get_top_twenty_shares(self):
+        """Top twenty shares DataFrame is valid and non-empty."""
+        df = get_top_twenty_shares()
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertFalse(df.empty)
+        self.assertLessEqual(len(df), 20)
+        print(_header("Top Twenty Shares"))
+        print(df.to_string(index=False))
         print(f"\n  Shape  : {_shape(df)}")
 
     def test_get_market_depth_data(self):

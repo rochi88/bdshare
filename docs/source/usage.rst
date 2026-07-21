@@ -106,18 +106,18 @@ Results are indexed by date, sorted newest-first.
 
 .. code-block:: python
 
-    from bdshare import get_hist_data
+    from bdshare import get_historical_data
 
     # All instruments for a date range
-    df = get_hist_data('2024-01-01', '2024-03-31')
+    df = get_historical_data('2024-01-01', '2024-03-31')
     print(df.to_string())
 
 .. code-block:: python
 
-    from bdshare import get_hist_data
+    from bdshare import get_historical_data
 
     # Specific instrument
-    df = get_hist_data('2024-01-01', '2024-03-31', 'ACI')
+    df = get_historical_data('2024-01-01', '2024-03-31', 'ACI')
     print(df.to_string())
 
 **Returned columns:**
@@ -150,8 +150,8 @@ Results are indexed by date, sorted newest-first.
 
 .. note::
 
-   Deprecated alias: ``get_historical_data()`` still works but emits a
-   ``DeprecationWarning``. Migrate to ``get_hist_data()``.
+   Deprecated alias: ``get_hist_data()`` still works but emits a
+   ``DeprecationWarning``. Migrate to ``get_historical_data()``.
 
 
 Simplified OHLCV Historical Data
@@ -163,35 +163,35 @@ This format is directly compatible with TA libraries such as ``ta``,
 
 .. code-block:: python
 
-    from bdshare import get_basic_hist_data
+    from bdshare import get_basic_historical_data
 
     # All instruments
-    df = get_basic_hist_data('2024-01-01', '2024-03-31')
+    df = get_basic_historical_data('2024-01-01', '2024-03-31')
     print(df.to_string())
 
 .. code-block:: python
 
-    from bdshare import get_basic_hist_data
+    from bdshare import get_basic_historical_data
 
     # Specific instrument
-    df = get_basic_hist_data('2024-01-01', '2024-03-31', 'GP')
+    df = get_basic_historical_data('2024-01-01', '2024-03-31', 'GP')
     print(df.to_string())
 
 .. code-block:: python
 
-    from bdshare import get_basic_hist_data
+    from bdshare import get_basic_historical_data
     import datetime as dt
 
     # Rolling 2-year window with date set as the DataFrame index
     end   = dt.date.today()
     start = end - dt.timedelta(days=2 * 365)
-    df    = get_basic_hist_data(str(start), str(end), 'GP', index='date')
+    df    = get_basic_historical_data(str(start), str(end), 'GP', index='date')
     print(df.to_string())
 
 .. note::
 
-   Deprecated alias: ``get_basic_historical_data()`` still works but emits a
-   ``DeprecationWarning``. Migrate to ``get_basic_hist_data()``.
+   Deprecated alias: ``get_basic_hist_data()`` still works but emits a
+   ``DeprecationWarning``. Migrate to ``get_basic_historical_data()``.
 
 
 Close Price Data
@@ -224,6 +224,19 @@ Fetches the DSE fixed-width text file for the most recent session.
 
 Market & Index Summary
 =======================
+
+Market Status
+-------------
+
+Get the current DSE market status (Open, Closed, Holiday, etc.).
+
+.. code-block:: python
+
+    from bdshare import get_market_status
+
+    status = get_market_status()
+    print(status)
+
 
 Current Market Summary
 -----------------------
@@ -307,37 +320,50 @@ Returns a list of DataFrames containing detailed company information
         print()
 
 
-Sector Performance
-------------------
+Top Twenty Shares
+-----------------
 
-Get sector-wise performance across the market.
-
-.. code-block:: python
-
-    from bdshare import get_sector_performance
-
-    df = get_sector_performance()
-    print(df.to_string())
-
-
-Top Gainers & Losers
----------------------
+Get the top twenty shares by traded volume.
 
 .. code-block:: python
 
-    from bdshare import get_top_gainers_losers
+    from bdshare import get_top_twenty_shares
 
-    # Default: top 10
-    df = get_top_gainers_losers()
+    # Default: top 20
+    df = get_top_twenty_shares()
     print(df.to_string())
 
 .. code-block:: python
 
-    from bdshare import get_top_gainers_losers
+    from bdshare import get_top_twenty_shares
 
     # Custom limit
-    df = get_top_gainers_losers(limit=20)
+    df = get_top_twenty_shares(limit=10)
     print(df.to_string())
+
+**Returned columns:** symbol, ltp, high, low, ycp, trade, volume.
+
+
+Top Ten Gainers & Losers
+-------------------------
+
+.. code-block:: python
+
+    from bdshare import get_top_ten_gainers_losers
+
+    # Default: top 10
+    df = get_top_ten_gainers_losers()
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_top_ten_gainers_losers
+
+    # Custom limit
+    df = get_top_ten_gainers_losers(limit=20)
+    print(df.to_string())
+
+**Returned columns:** symbol, close, high, low, ycp, change.
 
 
 ----
@@ -482,13 +508,13 @@ Save any DataFrame to CSV using the built-in ``Store`` helper.
 
 .. code-block:: python
 
-    from bdshare import get_basic_hist_data, Store
+    from bdshare import get_basic_historical_data, Store
     import datetime as dt
 
     end   = dt.date.today()
     start = end - dt.timedelta(days=365)
 
-    df = get_basic_hist_data(str(start), str(end), 'GP')
+    df = get_basic_historical_data(str(start), str(end), 'GP')
     Store(df).save()  # saved to current directory as CSV
 
 
@@ -539,7 +565,11 @@ The table below shows each method with its cache TTL.
     bd.get_company_profile('ACI')      # Company profile           — 1-hr   TTL
     bd.get_latest_pe_ratios()          # All P/E ratios            — 1-hr   TTL
     bd.get_top_movers(limit=10)        # Top gainers/losers        — 5-min  TTL
-    bd.get_sector_performance()        # Sector breakdown          — 5-min  TTL
+
+.. note::
+
+   ``get_market_status()`` and ``get_top_twenty_shares()`` don't have ``BDShare``
+   wrapper methods yet — call the module-level functions directly.
 
 **Trading methods**
 
@@ -583,10 +613,10 @@ bare ``Exception`` so unexpected bugs are never silently swallowed.
 
 .. code-block:: python
 
-    from bdshare import get_hist_data, BDShareError
+    from bdshare import get_historical_data, BDShareError
 
     try:
-        df = get_hist_data('2024-01-01', '2024-03-31', 'INVALID')
+        df = get_historical_data('2024-01-01', '2024-03-31', 'INVALID')
     except BDShareError as e:
         print(f"DSE error: {e}")
 
