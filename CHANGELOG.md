@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.5] - 2026-09-08
+
+### Fixed
+- Pinned the optional `mcp` extra to `>=1.0.0,<2` so installs keep using the v1 API expected by `bdshare/mcp_server.py`; this avoids the `mcp` 2.x `FastMCP` → `MCPServer` breakage that caused `bdshare-mcp` to fail immediately after installation.
+
 ## [1.2.3] - 2026-07-22
 
 ### Added
