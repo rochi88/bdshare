@@ -10,7 +10,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "ejs": "^3.1.10",
-    "express": "^4.19.2",
+    "express": "^5.2.1",
     "ws": "^8.18.0"
   }
 }
