@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv/bin/python -c \"import bdshare; bd = bdshare.BDShare\\(\\); print\\('BDShare instantiated, cache type:', type\\(bd._store\\).__name__\\); bd2 = bdshare.BDShare\\(cache_enabled=False\\); print\\('cache disabled:', bd2._store\\); print\\('version:', bd.version\\)\")",
+      "Bash(venv/bin/python -c ' *)",
+      "Bash(venv/bin/python -c \"import certifi; print\\(certifi.where\\(\\)\\)\")",
+      "Bash(/media/ssd/lab/active/bdshare/.venv/bin/python -c \"import certifi; print\\(certifi.where\\(\\)\\)\")",
+      "Bash(openssl s_client -connect dsebd.org:443 -showcerts)",
+      "Bash(openssl s_client -connect dsebd.org:443)",
+      "Bash(openssl x509 *)",
+      "Bash(curl -s http://crt.sectigo.com/SectigoPublicServerAuthenticationCADVR36.crt)",
+      "Bash(python -c \"from tests.test_polars import *; print\\('imports OK'\\)\")",
+      "Bash(python -m py_compile /media/ssd/lab/active/bdshare/comprehensive_test.py)",
+      "Bash(python -m pytest comprehensive_test.py --collect-only -q)"
+    ]
+  }
+}
