@@ -6,6 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.7] - 2026-09-25
+
+### Added
+- Support for the redesigned **dsebd.org** site. The new site no longer serves the legacy `.php` pages (they return 404) and loads its data from a JSON API instead. Every data function now tries the dsebd.org API first and falls back to the legacy site (old.dsebd.org) if that fails, returning the same columns either way: current trade data, trading codes, DSEX data, historical/basic historical/close price data, market status, market info (and extended market info), latest P/E, market depth, top gainers, top twenty shares, and news (all, corporate, price-sensitive).
+- `BDSHARE_SOURCE` environment variable (or `bdshare.util.vars.DSE_SOURCE` at runtime) to choose the site: `auto` (default: dsebd.org, then legacy), `new`, or `legacy`.
+
+### Changed
+- `DSE_URL` / `DSE_ALT_URL` in `bdshare/util/vars.py` now hold the current site (`https://dsebd.org/`, `https://dse.com.bd/`). The legacy hosts moved to the new `DSE_LEGACY_URL` / `DSE_LEGACY_ALT_URL`. Code that read `DSE_URL` expecting the legacy site should switch to `DSE_LEGACY_URL`.
+- `get_agm_news()` and `get_company_info()` work only on the legacy site, because dsebd.org has no equivalent data.
+- Fetching all instruments' history from dsebd.org is slower than from the legacy site. The API returns at most 500 rows per request, and one day has about 650 instruments, so bdshare fetches the instruments past the cutoff one at a time (in parallel).
+
+### Fixed
+- `_safe_num()` removed the minus sign from negative numbers (`"-1.20"` → `1.2`), so falling prices showed up as positive changes, for example in the `change` column of `get_dsex_data()`. Negative values now keep their sign. Cells containing only dashes (`"-"`, `"--"`) still parse as `None`.
+- `get_top_twenty_shares()` read the wrong columns: `trade` held the close price and `volume` held the trade count. It now reads the TRADE and VOLUME columns.
+
 ## [1.2.6] - 2026-09-25
 
 ### Fixed

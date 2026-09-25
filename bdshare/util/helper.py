@@ -16,8 +16,9 @@ Import surface expected by other modules:
 import time
 import logging
 import warnings
+from datetime import date, datetime, timedelta, timezone
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import certifi
 import requests
@@ -25,6 +26,8 @@ import tempfile
 import atexit
 from pathlib import Path
 from bs4 import BeautifulSoup
+
+from bdshare.util import vars as vs
 
 logger = logging.getLogger(__name__)
 
@@ -281,6 +284,127 @@ def _fetch_table(
 
 
 # ---------------------------------------------------------------------------
+# dsebd.org JSON API helpers
+# ---------------------------------------------------------------------------
+
+# Bangladesh has no DST, so a fixed offset is exact and needs no tzdata.
+_DHAKA_TZ = timezone(timedelta(hours=6))
+
+
+def _dhaka_today() -> str:
+    """Today's date in Dhaka as 'YYYY-MM-DD' (the API's date format)."""
+    return datetime.now(_DHAKA_TZ).date().isoformat()
+
+
+def _date_range(start: Optional[str], end: Optional[str]) -> tuple:
+    """Fill in a missing start/end: end defaults to today, start to end."""
+    end = end or _dhaka_today()
+    return start or end, end
+
+
+def _fetch_json(
+    path: str,
+    params: Optional[Dict] = None,
+    retries: int = 3,
+    pause: float = 0.2,
+    timeout: int = 15,
+) -> Any:
+    """
+    GET a dsebd.org JSON API endpoint and return the decoded body.
+
+    The API occasionally stalls a request for about a minute while an
+    immediate retry answers in well under a second, so the timeout is kept
+    short and a stalled request is retried rather than waited out.
+    """
+    r = safe_get(vs.DSE_URL + path, params=params,
+                 alt_url=vs.DSE_ALT_URL + path,
+                 retries=retries, pause=pause, timeout=timeout)
+    try:
+        return r.json()
+    except ValueError as exc:
+        raise BDShareError(f"Invalid JSON from {r.url}") from exc
+
+
+def _fetch_json_range(
+    path: str,
+    start: str,
+    end: str,
+    params: Optional[Dict] = None,
+    retries: int = 3,
+    pause: float = 0.2,
+    max_rows: Optional[int] = None,
+) -> List[Dict]:
+    """
+    Fetch every row of a ``from``/``to`` dsebd.org endpoint.
+
+    The API silently caps each response (``truncated: true``, a ``total``
+    larger than the rows returned, or simply ``max_rows`` rows), so a capped
+    range is split in half and each half fetched recursively. Rows are
+    returned newest range first, matching the API's own ordering.
+    """
+    data = _fetch_json(path, {**(params or {}), "from": start, "to": end},
+                       retries=retries, pause=pause)
+    rows = data.get("rows") or []
+    capped = (
+        bool(data.get("truncated"))
+        or (data.get("total") or 0) > len(rows)
+        or (max_rows is not None and len(rows) >= max_rows)
+    )
+    first, last = date.fromisoformat(start), date.fromisoformat(end)
+    if not capped or first >= last:
+        return rows
+    mid = first + (last - first) // 2
+    newer = _fetch_json_range(path, (mid + timedelta(days=1)).isoformat(), end,
+                              params, retries, pause, max_rows)
+    older = _fetch_json_range(path, start, mid.isoformat(),
+                              params, retries, pause, max_rows)
+    return newer + older
+
+
+# ---------------------------------------------------------------------------
+# dsebd.org → legacy fallback
+# ---------------------------------------------------------------------------
+
+T = TypeVar("T")
+
+# Failures that mean "this site didn't work": network/HTTP errors (surfaced as
+# BDShareError by safe_get) and parse errors from an unexpected page layout.
+_SOURCE_ERRORS = (BDShareError, requests.RequestException,
+                  AttributeError, IndexError, KeyError, TypeError)
+
+
+def _with_fallback(legacy: Callable[[], T], new: Callable[[], T], what: str) -> T:
+    """
+    Run a fetch against the configured DSE site(s).
+
+    ``vs.DSE_SOURCE`` selects the site: ``"legacy"`` (old.dsebd.org only),
+    ``"new"`` (dsebd.org only) or ``"auto"`` (dsebd.org first, legacy if
+    that fails). Both callables must return data in the same shape.
+    """
+    source = vs.DSE_SOURCE
+    if source == "legacy":
+        return legacy()
+    if source == "new":
+        return new()
+    if source != "auto":
+        raise ValueError(
+            f"Invalid DSE_SOURCE {source!r}; expected 'auto', 'legacy' or 'new'."
+        )
+    try:
+        return new()
+    except _SOURCE_ERRORS as new_exc:
+        logger.info("%s: dsebd.org failed (%s); trying legacy site", what, new_exc)
+        try:
+            return legacy()
+        except _SOURCE_ERRORS as legacy_exc:
+            raise BDShareError(
+                f"{what} failed on both sites. "
+                f"Current ({vs.DSE_URL}): {new_exc}. "
+                f"Legacy ({vs.DSE_LEGACY_URL}): {legacy_exc}"
+            ) from legacy_exc
+
+
+# ---------------------------------------------------------------------------
 # DataFrame conversion helper
 # ---------------------------------------------------------------------------
 
@@ -326,8 +450,7 @@ def _safe_num(value: str, cast: type) -> Optional[Any]:
 
     Handles common DSE formatting quirks:
       - Thousands separators: ``","``
-      - Double-dash placeholders: ``"--"``
-      - Lone leading/trailing dashes
+      - Dash-only placeholders: ``"-"``, ``"--"``
       - Surrounding whitespace
       - Sentinel strings: ``"N/A"``, ``"NaN"``
 
@@ -339,15 +462,10 @@ def _safe_num(value: str, cast: type) -> Optional[Any]:
     :param cast:  Target Python type — typically ``int`` or ``float``.
     :returns:     Converted value, or ``None`` on failure.
     """
-    cleaned = (
-        value
-        .strip()
-        .replace(",", "")   # thousands separator  e.g. "1,234"
-        .replace("--", "")  # DSE placeholder      e.g. "--"
-        .strip("-")         # lone leading/trailing dash
-        .strip()
-    )
-    if not cleaned or cleaned.lower() in {"n/a", "nan"}:
+    cleaned = value.strip().replace(",", "")  # thousands separator e.g. "1,234"
+    # Dash-only cells ("-", "--") are placeholders; a leading minus on a real
+    # number (e.g. "-1.20") is a sign and must be kept.
+    if not cleaned.strip("-") or cleaned.lower() in {"n/a", "nan"}:
         return None
     try:
         return cast(cleaned)

@@ -110,6 +110,7 @@ See [`demo/README.md`](demo/README.md) for local (non-Docker) setup for each.
 |---|---|
 | **Retries** | All network calls retry up to 3 times with exponential back-off |
 | **Fallback URL** | Every request has a primary and an alternate DSE endpoint |
+| **Two DSE sites** | Data comes from the current dsebd.org JSON API first; if that fails, bdshare falls back to the legacy site (old.dsebd.org) with the same columns. Set `BDSHARE_SOURCE=legacy` or `BDSHARE_SOURCE=new` to use only one site. `get_agm_news()` and `get_company_info()` work only on the legacy site |
 | **Caching** | The `BDShare` client caches responses automatically (configurable TTL) |
 | **Rate limiting** | Built-in sliding-window limiter (5 calls/second) prevents being blocked |
 | **Errors** | All failures raise `BDShareError` — never silent |

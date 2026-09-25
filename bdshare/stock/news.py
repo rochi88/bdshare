@@ -3,7 +3,10 @@ import pandas as pd
 from typing import Optional
 from bs4 import BeautifulSoup
 from bdshare.util import vars as vs
-from bdshare.util.helper import _fetch_table, _parse_html, safe_post, safe_get, BDShareError, _to_frame
+from bdshare.util.helper import (
+    _fetch_table, _parse_html, safe_post, safe_get, BDShareError, _to_frame,
+    _fetch_json, _fetch_json_range, _date_range, _with_fallback,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,50 @@ def _get_news(url: str, alt_url: str, params: dict, retry_count: int, pause: flo
     r = safe_get(url, params=params, alt_url=alt_url, retries=retry_count, pause=pause)
     return _parse_html(r.content)
 
+
+def _legacy_news_rows(params: dict, code_key: str, retry_count: int, pause: float) -> list:
+    """Fetch and parse the legacy old_news.php table."""
+    soup = _get_news(
+        vs.DSE_LEGACY_URL + vs.DSE_NEWS_URL,
+        vs.DSE_LEGACY_ALT_URL + vs.DSE_NEWS_URL,
+        params,
+        retry_count,
+        pause,
+    )
+    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
+    if table is None:
+        raise BDShareError("News table not found.")
+    return _parse_news_rows(table, code_key=code_key)
+
+
+def _news_rows_new(
+    code: Optional[str],
+    start: Optional[str],
+    end: Optional[str],
+    code_key: str,
+    retry_count: int,
+    pause: float,
+    news_type: Optional[str] = None,
+) -> list:
+    """
+    News rows from dsebd.org in the legacy row schema.
+
+    Without a date range the API returns its latest-news feed.
+    ``news_type`` filters on the API's type label (e.g. "Price sensitive").
+    """
+    params = {"code": code} if code else {}
+    if start or end:
+        rows = _fetch_json_range(vs.DSE_API_NEWS, *_date_range(start, end), params,
+                                 retries=retry_count, pause=pause)
+    else:
+        rows = _fetch_json(vs.DSE_API_NEWS, params, retries=retry_count, pause=pause).get("rows") or []
+    return [
+        {code_key: r.get("code"), "title": r.get("summary"),
+         "news": r.get("body"), "date": r.get("filedAt")}
+        for r in rows
+        if news_type is None or r.get("type") == news_type
+    ]
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -29,11 +76,14 @@ def _get_news(url: str, alt_url: str, params: dict, retry_count: int, pause: flo
 def get_agm_news(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
     """Get AGM / dividend declarations.
 
+    Only available from the legacy site (old.dsebd.org); dsebd.org has no
+    equivalent AGM table.
+
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
     table = _fetch_table(
-        vs.DSE_URL + vs.DSE_AGM_URL,
-        vs.DSE_ALT_URL + vs.DSE_AGM_URL,
+        vs.DSE_LEGACY_URL + vs.DSE_AGM_URL,
+        vs.DSE_LEGACY_ALT_URL + vs.DSE_AGM_URL,
         retries=retry_count,
         pause=pause,
     )
@@ -89,19 +139,11 @@ def get_all_news(
     if end:
         params["endDate"] = end
 
-    soup = _get_news(
-        vs.DSE_URL + vs.DSE_NEWS_URL,
-        vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
-        params,
-        retry_count,
-        pause,
+    rows = _with_fallback(
+        lambda: _legacy_news_rows(params, "symbol", retry_count, pause),
+        lambda: _news_rows_new(code, start, end, "symbol", retry_count, pause),
+        "News",
     )
-
-    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
-    if table is None:
-        raise BDShareError("News table not found.")
-
-    rows = _parse_news_rows(table, code_key="symbol")
     return _to_frame(pd.DataFrame(rows), as_polars)
 
 
@@ -146,17 +188,12 @@ def get_corporate_announcements(
 
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
-    soup = _get_news(
-        vs.DSE_URL + vs.DSE_NEWS_URL,
-        vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
-        {"inst": code, "criteria": 2, "archive": "news"},
-        retry_count,
-        pause,
+    rows = _with_fallback(
+        lambda: _legacy_news_rows({"inst": code, "criteria": 2, "archive": "news"},
+                                  "code", retry_count, pause),
+        lambda: _news_rows_new(code, None, None, "code", retry_count, pause),
+        "Corporate announcements",
     )
-    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
-    if table is None:
-        raise BDShareError("Corporate announcements table not found.")
-    rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No corporate announcements found.")
     return _to_frame(pd.DataFrame(rows), as_polars)
@@ -172,17 +209,13 @@ def get_price_sensitive_news(
 
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
-    soup = _get_news(
-        vs.DSE_URL + vs.DSE_NEWS_URL,
-        vs.DSE_ALT_URL + vs.DSE_NEWS_URL,
-        {"inst": code, "criteria": 1, "archive": "news"},
-        retry_count,
-        pause,
+    rows = _with_fallback(
+        lambda: _legacy_news_rows({"inst": code, "criteria": 1, "archive": "news"},
+                                  "code", retry_count, pause),
+        lambda: _news_rows_new(code, None, None, "code", retry_count, pause,
+                               news_type="Price sensitive"),
+        "Price sensitive news",
     )
-    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
-    if table is None:
-        raise BDShareError("Price sensitive news table not found.")
-    rows = _parse_news_rows(table)
     if not rows:
         raise BDShareError("No price-sensitive news found.")
     return _to_frame(pd.DataFrame(rows), as_polars)
