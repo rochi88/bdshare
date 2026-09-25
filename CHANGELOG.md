@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.6] - 2026-09-25
+
+### Fixed
+- Pointed `DSE_URL` and `DSE_ALT_URL` in `bdshare/util/vars.py` at the legacy DSE sites (`https://old.dsebd.org/` and `https://old.dse.com.bd/`). The legacy pages (`latest_share_price_scroll_l.php`, `day_end_archive.php`, etc.) that the scrapers parse are now served from these hosts.
+
 ## [1.2.5] - 2026-09-08
 
 ### Fixed
