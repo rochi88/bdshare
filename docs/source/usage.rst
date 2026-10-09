@@ -12,6 +12,57 @@ For the full API specification, see :doc:`api`.
 
 ----
 
+Data Sources
+============
+
+DSE runs two websites, and bdshare can read from either:
+
+- **Current site** (``https://dse.com.bd/``): a JSON API behind the
+  redesigned DSE website. bdshare tries it first.
+- **Legacy site** (``https://old.dsebd.org/``): the older server-rendered
+  HTML pages. bdshare falls back to it when the current site fails.
+
+Both return the same columns, so your code doesn't change with the source.
+
+To use only one site, set the ``BDSHARE_SOURCE`` environment variable
+before starting Python:
+
+.. code-block:: bash
+
+    export BDSHARE_SOURCE=new      # current site only
+    export BDSHARE_SOURCE=legacy   # legacy site only
+    export BDSHARE_SOURCE=auto     # current site, then legacy (default)
+
+Or change it at runtime; it is read on every call:
+
+.. code-block:: python
+
+    from bdshare.util import vars as vs
+
+    vs.DSE_SOURCE = 'legacy'
+
+A few functions exist on only one site:
+
++--------------------------------+---------------------------------------------+
+| Function                       | Available from                              |
++================================+=============================================+
+| ``get_agm_news()``             | Legacy site only, in every mode (deprecated)|
++--------------------------------+---------------------------------------------+
+| ``get_company_info()``         | Legacy site only, in every mode (deprecated)|
++--------------------------------+---------------------------------------------+
+| ``get_price_sensitive_news()`` | Current site only; raises ``BDShareError``  |
+|                                | when ``BDSHARE_SOURCE=legacy``              |
++--------------------------------+---------------------------------------------+
+| ``get_company_details()``      | Current site only, in every mode            |
++--------------------------------+---------------------------------------------+
+| ``get_dividend_declarations()``| Current site only, in every mode            |
++--------------------------------+---------------------------------------------+
+
+The two legacy-only functions are deprecated; see `Deprecated Functions`_.
+
+
+----
+
 Dhaka Stock Exchange (DSE)
 ==========================
 
@@ -112,6 +163,8 @@ Results are indexed by date, sorted newest-first.
     df = get_historical_data('2024-01-01', '2024-03-31')
     print(df.to_string())
 
+Within each date, rows are in symbol order.
+
 .. code-block:: python
 
     from bdshare import get_historical_data
@@ -152,6 +205,14 @@ Results are indexed by date, sorted newest-first.
 
    Deprecated alias: ``get_hist_data()`` still works but emits a
    ``DeprecationWarning``. Migrate to ``get_historical_data()``.
+
+.. tip::
+
+   Fetching **all instruments** over a long range means a lot of data:
+   about 650 rows per trading day. The current site serves it 500 rows per
+   page, and bdshare fetches the pages in parallel, so a month of every
+   instrument takes about 10 seconds. Pass a symbol when you only need one
+   instrument; a year of one symbol is a single request.
 
 
 Simplified OHLCV Historical Data
@@ -210,7 +271,10 @@ Returns only closing price and prior close (ycp), indexed by date.
 Last Trade Price (Text File)
 -----------------------------
 
-Fetches the DSE fixed-width text file for the most recent session.
+The last trade price of every main-board instrument for the most recent
+session (the closing price once the session ends). Comes from the current
+site's price feed, or the legacy site's ``quotes.txt``; both give the same
+figures.
 
 .. code-block:: python
 
@@ -218,6 +282,8 @@ Fetches the DSE fixed-width text file for the most recent session.
 
     df = get_last_trade_price_data()
     print(df.to_string())
+
+**Returned columns:** symbol, ltp.
 
 
 ----
@@ -258,7 +324,7 @@ Total Market Cap. (mn), DSEX Index, DSES Index, DS30 Index, DGEN Index.
 Historical Market Summary
 --------------------------
 
-Fetch extended market statistics between two dates via the DSE search form.
+Fetch daily market statistics between two dates.
 
 .. code-block:: python
 
@@ -307,8 +373,12 @@ Get the latest price-to-earnings ratios for all listed companies.
 Company Profile
 ---------------
 
+.. deprecated:: 1.2.8
+   Use `Company Details`_ (``get_company_details()``) instead.
+
 Returns a list of DataFrames containing detailed company information
-(financials, directors, shareholding, etc.).
+(financials, directors, shareholding, etc.). Available from the legacy site
+only.
 
 .. code-block:: python
 
@@ -318,6 +388,60 @@ Returns a list of DataFrames containing detailed company information
     for t in tables:
         print(t.to_string())
         print()
+
+
+Company Details
+---------------
+
+Returns a company's details from the current site as a dict: profile and
+contact fields, capital, market data, AGM date and year end, plus
+DataFrames for the tabular parts. Available from the current site only.
+
+.. code-block:: python
+
+    from bdshare import get_company_details
+
+    d = get_company_details('GP')
+    print(d['name'], d['sector'], d['agmDate'], d['yearEnd'])
+    print(d['dividendHistory'].to_string())
+    print(d['sharePattern'].to_string())
+
+Keys use the site's own field names. Commonly used ones:
+
++--------------------------+----------------------------------------------------+
+| Key                      | Contents                                           |
++==========================+====================================================+
+| name, sector, category   | Company name, sector and DSE category              |
++--------------------------+----------------------------------------------------+
+| authorizedCapital,       | Capital figures, face value and market lot         |
+| paidUpCapital, faceValue,|                                                    |
+| marketLot                |                                                    |
++--------------------------+----------------------------------------------------+
+| agmDate, yearEnd         | Last AGM date and financial year end               |
++--------------------------+----------------------------------------------------+
+| eps, nav, pe,            | Valuation figures                                  |
+| dividendYield, marketCap |                                                    |
++--------------------------+----------------------------------------------------+
+| companySecretary,        | Contact details (``companySecretary`` is a dict)   |
+| registeredOffice, email  |                                                    |
++--------------------------+----------------------------------------------------+
+| sharePattern             | DataFrame: shareholding by sponsor, government,    |
+|                          | institution, foreign and public, per date          |
++--------------------------+----------------------------------------------------+
+| dividendHistory          | DataFrame: cash and stock dividend per year        |
++--------------------------+----------------------------------------------------+
+| multiYearFinancials      | DataFrame: EPS, NAV, profit, P/E per year          |
++--------------------------+----------------------------------------------------+
+| interimFinancials        | dict: ``periodEnds`` and a ``rows`` DataFrame      |
++--------------------------+----------------------------------------------------+
+| recentAnnouncements      | DataFrame: the company's recent disclosures        |
++--------------------------+----------------------------------------------------+
+
+.. note::
+
+   DSE leaves out fields it has no data for (a bond has no ``agmDate``, for
+   example), so read optional fields with ``d.get('agmDate')``. An unknown
+   symbol raises ``BDShareError``.
 
 
 Top Twenty Shares
@@ -377,17 +501,19 @@ Unified News Dispatcher
 ``get_news()`` is the recommended entry point. Use ``news_type`` to select
 the category and ``code`` to filter by symbol.
 
-+---------------+--------------------------------------+
-| news_type     | Description                          |
-+===============+======================================+
-| ``'all'``     | All DSE news items (default)         |
-+---------------+--------------------------------------+
-| ``'agm'``     | AGM / dividend declarations          |
-+---------------+--------------------------------------+
-| ``'corporate'`` | Corporate announcements            |
-+---------------+--------------------------------------+
-| ``'psn'``     | Price-sensitive news                 |
-+---------------+--------------------------------------+
++-----------------+------------------------------------------------+
+| news_type       | Description                                    |
++=================+================================================+
+| ``'all'``       | All DSE news items (default)                   |
++-----------------+------------------------------------------------+
+| ``'dividend'``  | Dividend declarations with AGM and record dates|
++-----------------+------------------------------------------------+
+| ``'corporate'`` | Corporate announcements                        |
++-----------------+------------------------------------------------+
+| ``'psn'``       | Price-sensitive news                           |
++-----------------+------------------------------------------------+
+| ``'agm'``       | Deprecated: use ``'dividend'``                 |
++-----------------+------------------------------------------------+
 
 .. code-block:: python
 
@@ -401,8 +527,8 @@ the category and ``code`` to filter by symbol.
 
     from bdshare import get_news
 
-    # AGM declarations
-    df = get_news(news_type='agm')
+    # Dividend declarations (with AGM and record dates)
+    df = get_news(news_type='dividend')
     print(df.to_string())
 
 .. code-block:: python
@@ -422,8 +548,46 @@ the category and ``code`` to filter by symbol.
     print(df.to_string())
 
 
+Dividend Declarations
+---------------------
+
+Dividend declarations with their AGM and record dates, read from the
+"Dividend Declaration" items in the current site's news feed. Defaults to
+the last 180 days; pass a date range or a symbol to narrow it.
+
+.. code-block:: python
+
+    from bdshare import get_dividend_declarations
+
+    # Last 180 days, newest first
+    df = get_dividend_declarations()
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_dividend_declarations
+
+    # One company over a date range
+    df = get_dividend_declarations('2025-01-01', '2026-06-30', code='GP')
+    print(df.to_string())
+
+**Returned columns:** symbol, company, yearEnd, dividend, agmDate,
+recordDate, venue, time, date (the announcement date).
+
+.. note::
+
+   The fields are read from the announcement text, kept as DSE wrote them
+   (e.g. ``'26.11.2026'`` or ``'05 December 2026'``). A field the
+   announcement leaves out is ``None``: mutual funds hold no AGM, and some
+   companies announce the AGM date later.
+
+
 AGM News
 --------
+
+.. deprecated:: 1.2.8
+   The legacy AGM page has not been updated since 2020. Use
+   `Dividend Declarations`_ (``get_dividend_declarations()``) instead.
 
 .. code-block:: python
 
@@ -442,8 +606,16 @@ All News
 
     from bdshare import get_all_news
 
-    # All news (no filter)
+    # Latest news feed (the most recent few hundred items)
     df = get_all_news()
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_all_news
+
+    # All news in a date range
+    df = get_all_news('2024-01-01', '2024-03-31')
     print(df.to_string())
 
 .. code-block:: python
@@ -461,6 +633,14 @@ All News
     # Filter by date range and symbol
     df = get_all_news('2024-01-01', '2024-03-31', 'GP')
     print(df.to_string())
+
+**Returned columns:** symbol, title, news, date.
+
+.. note::
+
+   For backward compatibility, a single positional argument is treated as
+   the symbol: ``get_all_news('GP')`` is the same as
+   ``get_all_news(code='GP')``.
 
 
 Corporate Announcements
@@ -483,6 +663,10 @@ Corporate Announcements
 
 Price-Sensitive News
 ---------------------
+
+Available from the current site only. The legacy news archive doesn't mark
+which items are price sensitive, so with ``BDSHARE_SOURCE=legacy`` this
+raises ``BDShareError``.
 
 .. code-block:: python
 
@@ -562,7 +746,7 @@ The table below shows each method with its cache TTL.
 .. code-block:: python
 
     bd.get_market_summary()            # DSEX/DSES/DS30 indices    — 1-min  TTL
-    bd.get_company_profile('ACI')      # Company profile           — 1-hr   TTL
+    bd.get_company_details('ACI')      # Company details           — 1-hr   TTL
     bd.get_latest_pe_ratios()          # All P/E ratios            — 1-hr   TTL
     bd.get_top_movers(limit=10)        # Top gainers/losers        — 5-min  TTL
 
@@ -593,6 +777,7 @@ The table below shows each method with its cache TTL.
     bd.get_news(news_type='all')                      # All news   — 5-min TTL
     bd.get_news(news_type='corporate', code='GP')
     bd.get_news(news_type='psn')
+    bd.get_dividend_declarations()                    # Dividends  — 1-hr TTL
 
 **Utility methods**
 
@@ -600,7 +785,43 @@ The table below shows each method with its cache TTL.
 
     bd.clear_cache()                   # Flush all cached responses
     bd.configure(proxy_url='http://proxy:8080')
-    print(bd.version)                  # e.g. "2.0.0"
+    print(bd.version)                  # e.g. "1.2.8"
+
+
+----
+
+Deprecated Functions
+====================
+
+These read only the legacy site (``old.dsebd.org``). They still work but
+emit a ``DeprecationWarning`` naming the replacement, and will be removed in
+2.0.0.
+
++------------------------------------+------------------------------------------+
+| Deprecated                         | Use instead                              |
++====================================+==========================================+
+| ``get_agm_news()``                 | ``get_dividend_declarations()``          |
++------------------------------------+------------------------------------------+
+| ``get_news(news_type='agm')``      | ``get_news(news_type='dividend')``       |
++------------------------------------+------------------------------------------+
+| ``get_company_info(symbol)``       | ``get_company_details(symbol)``          |
++------------------------------------+------------------------------------------+
+| ``get_company_inf(symbol)``        | ``get_company_details(symbol)``          |
++------------------------------------+------------------------------------------+
+| ``BDShare.get_company_profile()``  | ``BDShare.get_company_details()``        |
++------------------------------------+------------------------------------------+
+
+The replacements return different shapes. ``get_company_details()`` returns
+a dict (tabular parts as DataFrames) rather than a list of tables, and
+``get_dividend_declarations()`` adds ``symbol`` and ``date`` columns to the
+old AGM columns.
+
+To find deprecated calls in your code, turn the warnings into errors while
+testing:
+
+.. code-block:: bash
+
+    python -W error::DeprecationWarning your_script.py
 
 
 ----
@@ -623,6 +844,8 @@ bare ``Exception`` so unexpected bugs are never silently swallowed.
 Common causes of ``BDShareError``:
 
 - Symbol not present in the response table
+- Function not available on the site selected with ``BDSHARE_SOURCE``
+- Both sites failed in ``auto`` mode (the message includes each site's error)
 - DSE site returned a non-200 status after all retries
 - Network timeout (default: 10 seconds per request)
 - Page structure changed on the DSE website — please open an issue

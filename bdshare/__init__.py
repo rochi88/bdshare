@@ -22,6 +22,7 @@ from bdshare.stock.trading import (
 # Market data
 from bdshare.stock.market import (
     get_company_info,
+    get_company_details,
     get_market_info,
     get_market_status,
     get_latest_pe,
@@ -37,6 +38,7 @@ from bdshare.stock.news import (
     get_all_news,
     get_corporate_announcements,
     get_price_sensitive_news,
+    get_dividend_declarations,
     get_news,
 )
 
@@ -171,14 +173,27 @@ class BDShare:
         self._set_cache(key, data, ttl=60)
         return data
 
+    @deprecated("It returns the legacy site's company tables. "
+                "Use BDShare.get_company_details() instead.")
     @_rate_limiter
     def get_company_profile(self, symbol: str, use_cache: bool = True) -> CompanyInfo:
-        """Detailed company profile."""
+        """Company tables from the legacy site (deprecated: use get_company_details())."""
         _validate_symbol(symbol)
         key = f"company_profile:{symbol.upper()}"
         if use_cache and (hit := self._get_cache(key)):
             return hit
-        data = get_company_info(symbol)
+        data = get_company_info.__wrapped__(symbol)
+        self._set_cache(key, data, ttl=3600)
+        return data
+
+    @_rate_limiter
+    def get_company_details(self, symbol: str, use_cache: bool = True) -> Dict[str, Any]:
+        """Company details from the current DSE site (see get_company_details())."""
+        _validate_symbol(symbol)
+        key = f"company_details:{symbol.upper()}"
+        if use_cache and (hit := self._get_cache(key)):
+            return hit
+        data = get_company_details(symbol)
         self._set_cache(key, data, ttl=3600)
         return data
 
@@ -256,6 +271,22 @@ class BDShare:
     # -- News ----------------------------------------------------------------
 
     @_rate_limiter
+    def get_dividend_declarations(
+        self,
+        start: Optional[str] = None,
+        end: Optional[str] = None,
+        code: Optional[str] = None,
+        use_cache: bool = True,
+    ):
+        """Dividend declarations with AGM and record dates (see get_dividend_declarations())."""
+        key = f"dividend_declarations:{start}:{end}:{code or 'all'}"
+        if use_cache and (hit := self._get_cache(key)):
+            return hit
+        data = get_dividend_declarations(start=start, end=end, code=code)
+        self._set_cache(key, data, ttl=3600)
+        return data
+
+    @_rate_limiter
     def get_news(
         self,
         news_type: str = "all",
@@ -265,7 +296,8 @@ class BDShare:
         """
         Fetch DSE news.
 
-        :param news_type: 'all', 'agm', 'corporate', or 'psn'
+        :param news_type: 'all', 'dividend', 'corporate', 'psn', or the
+                          deprecated 'agm'
         :param code: Optional trading code filter.
         """
         key = f"news:{news_type}:{code or 'all'}"
@@ -339,10 +371,12 @@ __all__ = [
     "get_all_news",
     "get_corporate_announcements",
     "get_price_sensitive_news",
+    "get_dividend_declarations",
     "get_news",
 
     # Market — canonical public names
     "get_company_info",
+    "get_company_details",
     "get_market_info",
     "get_market_status",
     "get_latest_pe",

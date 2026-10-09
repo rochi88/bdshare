@@ -4,13 +4,11 @@ import os
 # Current DSE site: a Next.js front-end backed by a JSON API. The legacy .php
 # pages return 404 here, so it is scraped through the API endpoints below.
 # Tried first.
-DSE_URL = "https://dsebd.org/"
-DSE_ALT_URL = "https://dse.com.bd/"
+DSE_URL = "https://dse.com.bd/"
 
 # Legacy DSE site: server-rendered HTML tables. Used as a fallback whenever
 # dsebd.org fails.
 DSE_LEGACY_URL = "https://old.dsebd.org/"
-DSE_LEGACY_ALT_URL = "https://old.dse.com.bd/"
 
 # Which site to scrape: "auto" (dsebd.org first, then legacy), "new" or "legacy".
 # Read at call time, so it can also be changed at runtime via this module.
@@ -46,3 +44,4 @@ DSE_API_DAY_END_INSTRUMENTS = "api/live/data-archive/instruments"
 DSE_API_RECENT_MARKET_INFO = "api/live/recent-market-info"
 DSE_API_NEWS = "api/live/news"
 DSE_NEW_PE_URL = "pe"
+DSE_COMPANY_PAGE_URL = "company/"

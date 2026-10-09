@@ -1,12 +1,10 @@
-import io
 import logging
-from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 from typing import Optional
 from bdshare.util import vars as vs
 from bdshare.util.helper import (
-    _fetch_table, _safe_num, BDShareError, deprecated, _to_frame, safe_get,
-    _fetch_json, _fetch_json_range, _date_range, _with_fallback,
+    _fetch_table, _safe_num, _rows, _cells, BDShareError, deprecated, _to_frame, safe_get,
+    _fetch_json, _fetch_json_pages, _date_range, _with_fallback,
 )
 
 logger = logging.getLogger(__name__)
@@ -18,12 +16,6 @@ _CLS_FIXED  = "table table-bordered background-white shares-table fixedHeader"
 _CLS_SHARES = "table table-bordered background-white shares-table"
 _CLS_PLAIN  = "table table-bordered background-white"
 
-# dsebd.org's day-end archive endpoint returns at most this many rows.
-_DAY_END_CAP = 500
-# Parallel requests used to fill in instruments cut off by that cap
-# (stays under requests' default per-host pool size of 10).
-_DAY_END_WORKERS = 8
-
 
 # ---------------------------------------------------------------------------
 # Shared internal helpers
@@ -32,21 +24,21 @@ _DAY_END_WORKERS = 8
 def _parse_trade_rows(table) -> list:
     """Parse standard 10-column trade rows from a DSE table."""
     rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
+    for row in _rows(table)[1:]:
+        cols = _cells(row)
         if len(cols) < 11:
             continue
         rows.append({
-            "symbol": cols[1].text.strip(),
-            "ltp":    _safe_num(cols[2].text, float),
-            "high":   _safe_num(cols[3].text, float),
-            "low":    _safe_num(cols[4].text, float),
-            "close":  _safe_num(cols[5].text, float),
-            "ycp":    _safe_num(cols[6].text, float),
-            "change": _safe_num(cols[7].text, float),
-            "trade":  _safe_num(cols[8].text, int),
-            "value":  _safe_num(cols[9].text, float),
-            "volume": _safe_num(cols[10].text, int),
+            "symbol": cols[1].strip(),
+            "ltp":    _safe_num(cols[2], float),
+            "high":   _safe_num(cols[3], float),
+            "low":    _safe_num(cols[4], float),
+            "close":  _safe_num(cols[5], float),
+            "ycp":    _safe_num(cols[6], float),
+            "change": _safe_num(cols[7], float),
+            "trade":  _safe_num(cols[8], int),
+            "value":  _safe_num(cols[9], float),
+            "volume": _safe_num(cols[10], int),
         })
     return rows
 
@@ -64,22 +56,22 @@ def _filter_symbol(df: pd.DataFrame, symbol: Optional[str]) -> pd.DataFrame:
 def _parse_historical_rows(table) -> list:
     """Parse all OHLCV + metadata columns from a DSE day-end archive table."""
     rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
+    for row in _rows(table)[1:]:
+        cols = _cells(row)
         if len(cols) < 12:
             continue
         rows.append({
-            "date":   cols[1].text.strip(),
-            "symbol": cols[2].text.strip(),
-            "ltp":    _safe_num(cols[3].text, float),
-            "high":   _safe_num(cols[4].text, float),
-            "low":    _safe_num(cols[5].text, float),
-            "open":   _safe_num(cols[6].text, float),
-            "close":  _safe_num(cols[7].text, float),
-            "ycp":    _safe_num(cols[8].text, float),
-            "trade":  _safe_num(cols[9].text, int),
-            "value":  _safe_num(cols[10].text, float),
-            "volume": _safe_num(cols[11].text, int),
+            "date":   cols[1].strip(),
+            "symbol": cols[2].strip(),
+            "ltp":    _safe_num(cols[3], float),
+            "high":   _safe_num(cols[4], float),
+            "low":    _safe_num(cols[5], float),
+            "open":   _safe_num(cols[6], float),
+            "close":  _safe_num(cols[7], float),
+            "ycp":    _safe_num(cols[8], float),
+            "trade":  _safe_num(cols[9], int),
+            "value":  _safe_num(cols[10], float),
+            "volume": _safe_num(cols[11], int),
         })
     return rows
 
@@ -94,7 +86,6 @@ def _fetch_archive_table(
     """Fetch the DSE day-end archive table for the given parameters."""
     return _fetch_table(
         vs.DSE_LEGACY_URL + vs.DSE_DEA_URL,
-        vs.DSE_LEGACY_ALT_URL + vs.DSE_DEA_URL,
         params={"startDate": start, "endDate": end, "inst": code, "archive": "data"},
         retries=retry_count,
         pause=pause,
@@ -138,7 +129,6 @@ def _trade_rows(retry_count: int, pause: float) -> list:
     def legacy():
         return _parse_trade_rows(_fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_LSP_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_LSP_URL,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_FIXED,
@@ -151,41 +141,13 @@ def _day_end_rows_new(start: str, end: str, code: Optional[str], retry_count: in
     """
     Raw dsebd.org day-end archive rows for one instrument or all of them.
 
-    The endpoint returns at most 500 rows per request with no paging, and one
-    day of all instruments exceeds that, so a single capped day is cut off
-    alphabetically. Instruments missing from a capped day are therefore
-    fetched one at a time over the whole range (each fits under the cap).
+    The endpoint returns 500 rows per page (one day of all instruments is
+    about 650), so every page of the range is fetched, in parallel.
     """
+    params = {"from": start, "to": end}
     if code:
-        return _fetch_json_range(vs.DSE_API_DAY_END, start, end, {"inst": code},
-                                 retries=retry_count, pause=pause)
-
-    rows = _fetch_json_range(vs.DSE_API_DAY_END, start, end,
-                             retries=retry_count, pause=pause)
-    codes_by_date: dict = {}
-    for r in rows:
-        codes_by_date.setdefault(r["date"], set()).add(r["tradingCode"])
-    capped = [codes for codes in codes_by_date.values() if len(codes) >= _DAY_END_CAP]
-    if not capped:
-        return rows
-
-    instruments = _fetch_json(vs.DSE_API_DAY_END_INSTRUMENTS, retries=retry_count,
-                              pause=pause).get("instruments") or []
-    missing = sorted({i for i in instruments for codes in capped if i not in codes})
-    logger.info("Day-end archive capped at %d rows; fetching %d instruments individually",
-                _DAY_END_CAP, len(missing))
-    def fetch(inst):
-        return _fetch_json_range(vs.DSE_API_DAY_END, start, end, {"inst": inst},
-                                 retries=retry_count, pause=pause)
-
-    seen = {(r["date"], r["tradingCode"]) for r in rows}
-    with ThreadPoolExecutor(max_workers=_DAY_END_WORKERS) as pool:
-        for inst_rows in pool.map(fetch, missing):
-            for r in inst_rows:
-                if (r["date"], r["tradingCode"]) not in seen:
-                    seen.add((r["date"], r["tradingCode"]))
-                    rows.append(r)
-    return rows
+        params["inst"] = code
+    return _fetch_json_pages(vs.DSE_API_DAY_END, params, retries=retry_count, pause=pause)
 
 
 def _historical_rows_new(start, end, code, retry_count, pause) -> list:
@@ -266,7 +228,6 @@ def get_dsex_data(
     def legacy():
         rows = _parse_trade_rows(_fetch_table(
             vs.DSE_LEGACY_URL + vs.DSEX_INDEX_VALUE,
-            vs.DSE_LEGACY_ALT_URL + vs.DSEX_INDEX_VALUE,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_SHARES,
@@ -382,22 +343,21 @@ def get_close_price_data(
     def legacy():
         table = _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_CLOSE_PRICE_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_CLOSE_PRICE_URL,
             params={"startDate": start, "endDate": end, "inst": code, "archive": "data"},
             retries=retry_count,
             pause=pause,
             table_class=_CLS_PLAIN,
         )
         rows = []
-        for row in table.find_all("tr")[1:]:
-            cols = row.find_all("td")
+        for row in _rows(table)[1:]:
+            cols = _cells(row)
             if len(cols) < 5:
                 continue
             rows.append({
-                "date":   cols[1].text.strip(),
-                "symbol": cols[2].text.strip(),
-                "close":  _safe_num(cols[3].text, float),
-                "ycp":    _safe_num(cols[4].text, float),
+                "date":   cols[1].strip(),
+                "symbol": cols[2].strip(),
+                "close":  _safe_num(cols[3], float),
+                "ycp":    _safe_num(cols[4], float),
             })
         if not rows:
             raise BDShareError("No close price data found.")
@@ -417,22 +377,51 @@ def get_close_price_data(
 
 def get_last_trade_price_data(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
     """
-    Get last trade price data from the DSE fixed-width text file.
+    Get the last trade price of every main-board instrument.
+
+    The figures match the legacy site's ``quotes.txt``: the last trade price
+    during the session, the closing price after it.
 
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
-    :return: DataFrame parsed from dsebd.org/datafile/quotes.txt.
+    :return: DataFrame - symbol, ltp.
     """
-    # dsebd.org has no quotes.txt of its own; it redirects to the legacy file.
-    r = safe_get(
-        vs.DSE_LEGACY_URL + "datafile/quotes.txt",
-        alt_url=vs.DSE_LEGACY_ALT_URL + "datafile/quotes.txt",
-        retries=retry_count,
-        pause=pause,
-    )
-    df = pd.read_fwf(io.BytesIO(r.content), sep="\t", skiprows=4)
+    def legacy():
+        r = safe_get(
+            vs.DSE_LEGACY_URL + "datafile/quotes.txt",
+            retries=retry_count,
+            pause=pause,
+        )
+        return _parse_quotes(r.text)
+
+    def new():
+        data = _fetch_json(vs.DSE_API_PRICES, retries=retry_count, pause=pause)
+        cols = data["cols"]
+        rows = (dict(zip(cols, values)) for values in data["rows"])
+        return sorted(
+            (r["code"], r["close"] or r["ltp"])
+            for r in rows if r.get("board") == "PUBLIC"
+        )
+
+    df = pd.DataFrame(_with_fallback(legacy, new, "Last trade prices"), columns=["symbol", "ltp"])
     if df.empty:
-        raise BDShareError("quotes.txt returned an empty dataset.")
+        raise BDShareError("No last trade price data found.")
     return _to_frame(df, as_polars)
+
+
+def _parse_quotes(text: str) -> list:
+    """
+    Parse quotes.txt: a two-line title and column header, then one
+    ``CODE <tabs> PRICE`` line per instrument.
+    """
+    rows = []
+    for line in text.splitlines():
+        parts = line.split()
+        if len(parts) != 2:
+            continue
+        price = _safe_num(parts[1], float)
+        if price is not None:
+            rows.append((parts[0], price))
+    return rows
 
 
 # ---------------------------------------------------------------------------

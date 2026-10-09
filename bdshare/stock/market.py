@@ -1,15 +1,17 @@
 import logging
+import lxml.html
 import pandas as pd
 from datetime import date, timedelta
 from io import BytesIO
-from typing import Optional
+from typing import Any, Optional
+from urllib.parse import quote
 from bdshare.util import vars as vs
 from bdshare.util.helper import (
-    _fetch_table, _safe_num, _parse_html,
+    _fetch_table, _safe_num, _parse_html, _find, _find_all, _first, _rows, _cells,
     safe_get, safe_post,
     BDShareError, _session, deprecated,
     _to_frame, _fetch_json, _fetch_json_range, _date_range, _dhaka_today,
-    _with_fallback,
+    _with_fallback, _rsc_rows, _rsc_resolve, _rsc_find,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,6 +68,20 @@ def _market_summary_rows_new(
     ]
 
 
+def _company_tables_html(content: bytes) -> bytes:
+    """
+    The company page reduced to its data tables (those from
+    ``_COMPANY_INFO_TABLE_OFFSET`` on), so pandas only converts those
+    instead of all ~400 layout tables.
+    """
+    tables = _parse_html(content).xpath("//table")[_COMPANY_INFO_TABLE_OFFSET:]
+    # A table nested in another kept table is serialised with its parent,
+    # and pandas finds it there again; emitting it twice would duplicate it.
+    kept = set(tables)
+    top = [t for t in tables if not any(a in kept for a in t.iterancestors("table"))]
+    return b"<html><body>" + b"".join(lxml.html.tostring(t) for t in top) + b"</body></html>"
+
+
 def _price_rows_new(retry_count: int, pause: float) -> list:
     """Main-board (PUBLIC) price rows from dsebd.org as dicts."""
     data = _fetch_json(vs.DSE_API_PRICES, retries=retry_count, pause=pause)
@@ -82,20 +98,19 @@ def get_market_status(retry_count: int = 3, pause: float = 0.2) -> str:
     def legacy():
         r = safe_get(
             vs.DSE_LEGACY_URL,
-            alt_url=vs.DSE_LEGACY_ALT_URL,
             retries=retry_count,
             pause=pause,
         )
-        soup = _parse_html(r.content)
+        root = _parse_html(r.content)
         for div_class in ("HeaderTop", "HeaderTopMobile"):
-            header = soup.find("div", class_=div_class)
+            header = _find(root, "div", div_class)
             if header is None:
                 continue
-            for span in header.find_all("span", class_="time"):
-                if "Market Status" in span.text:
-                    status_span = span.find("span", class_="green") or span.find("b")
-                    if status_span:
-                        return status_span.text.strip()
+            for span in _find_all(header, "span", "time"):
+                if "Market Status" in span.text_content():
+                    status_span = _first(_find(span, "span", "green"), _find(span, "b"))
+                    if status_span is not None:
+                        return status_span.text_content().strip()
         raise BDShareError("Market status not found.")
 
     def new():
@@ -116,31 +131,27 @@ def get_market_info(retry_count: int = 3, pause: float = 0.2, as_polars: bool = 
     def legacy():
         table = _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_MARKET_INFO_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_MARKET_INFO_URL,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_CENTER,
             table_id="data-table",
         )
         rows = []
-        for row in table.find_all("tr")[1:]:
-            cols = row.find_all("td")
+        for row in _rows(table)[1:]:
+            cols = _cells(row)
             if len(cols) < 9:
                 continue
-            try:
-                rows.append({
-                    "Date":                   cols[0].text.strip(),
-                    "Total Trade":            _safe_num(cols[1].text, int),
-                    "Total Volume":           _safe_num(cols[2].text, int),
-                    "Total Value (mn)":       _safe_num(cols[3].text, float),
-                    "Total Market Cap. (mn)": _safe_num(cols[4].text, float),
-                    "DSEX Index":             _safe_num(cols[5].text, float),
-                    "DSES Index":             _safe_num(cols[6].text, float),
-                    "DS30 Index":             _safe_num(cols[7].text, float),
-                    "DGEN Index":             _safe_num(cols[8].text, float),
-                })
-            except (IndexError, AttributeError) as exc:
-                logger.warning("Skipping malformed market info row: %s", exc)
+            rows.append({
+                "Date":                   cols[0].strip(),
+                "Total Trade":            _safe_num(cols[1], int),
+                "Total Volume":           _safe_num(cols[2], int),
+                "Total Value (mn)":       _safe_num(cols[3], float),
+                "Total Market Cap. (mn)": _safe_num(cols[4], float),
+                "DSEX Index":             _safe_num(cols[5], float),
+                "DSES Index":             _safe_num(cols[6], float),
+                "DS30 Index":             _safe_num(cols[7], float),
+                "DGEN Index":             _safe_num(cols[8], float),
+            })
         if not rows:
             raise BDShareError("No market info data found.")
         return rows
@@ -159,12 +170,16 @@ def get_market_info(retry_count: int = 3, pause: float = 0.2, as_polars: bool = 
     return _to_frame(pd.DataFrame(rows), as_polars)
 
 
+@deprecated("It reads the legacy site's company page. "
+            "Use get_company_details() for the current site's company data.")
 def get_company_info(symbol: str, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> list:
     """
-    Get company information tables for a given symbol.
+    Get company information tables for a given symbol from the legacy site.
 
-    Only available from the legacy site (old.dsebd.org); dsebd.org renders
-    company pages client-side with no equivalent tables.
+    .. deprecated:: 1.2.8
+       Use :func:`get_company_details`, which returns the current site's
+       company data (profile, capital, AGM date, shareholding, dividends,
+       financials) as a dict.
 
     :param as_polars: Return polars DataFrames instead of pandas (requires polars installed).
     :return: list of DataFrames (relevant tables start at index 400 in the page).
@@ -172,18 +187,72 @@ def get_company_info(symbol: str, retry_count: int = 3, pause: float = 0.2, as_p
     r = safe_get(
         vs.DSE_LEGACY_URL + vs.DSE_COMPANY_INFO_URL,
         params={"name": symbol},
-        alt_url=vs.DSE_LEGACY_ALT_URL + vs.DSE_COMPANY_INFO_URL,
         retries=retry_count,
         pause=pause,
     )
     try:
-        tables = pd.read_html(BytesIO(r.content))
-        result = tables[_COMPANY_INFO_TABLE_OFFSET:]
+        result = pd.read_html(BytesIO(_company_tables_html(r.content)))
         if as_polars:
             return [_to_frame(t, True) for t in result]
         return result
     except Exception as exc:
         raise BDShareError(f"Failed to parse company info for {symbol}: {exc}") from exc
+
+
+# Paging state in the company page payload, not company data.
+_COMPANY_DETAILS_DROP = {"disclosuresNextCursor"}
+
+
+def _tabulate(value: Any, as_polars: bool) -> Any:
+    """Turn the tabular parts of a company payload into DataFrames.
+
+    A list of records becomes one row per record (nested dicts flattened
+    into ``parent_child`` columns); a dict of equal-length lists becomes one
+    column per key. Other values are returned as they are.
+    """
+    if isinstance(value, list) and all(isinstance(v, dict) for v in value):
+        return _to_frame(pd.json_normalize(value, sep="_") if value else pd.DataFrame(), as_polars)
+    if isinstance(value, dict):
+        lists = list(value.values())
+        if lists and all(isinstance(v, list) and not any(isinstance(x, dict) for x in v)
+                         for v in lists) and len({len(v) for v in lists}) == 1:
+            return _to_frame(pd.DataFrame(value), as_polars)
+        return {k: _tabulate(v, as_polars) for k, v in value.items()}
+    return value
+
+
+def get_company_details(symbol: str, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> dict:
+    """
+    Get a company's details from the current DSE site.
+
+    Reads the data behind the site's company page: profile and contact
+    fields, capital, market data, AGM date and year end, plus tables for
+    the shareholding pattern, dividend history, multi-year and interim
+    financials, P/E trend and recent announcements.
+
+    Only available from the current site (dse.com.bd). For the legacy
+    site's company tables, see the deprecated :func:`get_company_info`.
+
+    :param symbol: Trading code, e.g. 'GP' (case-insensitive).
+    :param as_polars: Return polars DataFrames instead of pandas (requires polars installed).
+    :return: dict keyed by the site's field names (``name``, ``sector``,
+             ``authorizedCapital``, ``agmDate``...). Tabular fields such as
+             ``dividendHistory`` and ``sharePattern`` are DataFrames.
+    :raises BDShareError: If the page cannot be fetched or has no data for ``symbol``.
+    """
+    code = symbol.strip().upper()
+    r = safe_get(vs.DSE_URL + vs.DSE_COMPANY_PAGE_URL + quote(code),
+                 retries=retry_count, pause=pause, timeout=30)
+    rows = _rsc_rows(r.text)
+    company = _rsc_find(
+        list(rows.values()),
+        lambda d: str(d.get("code", "")).upper() == code and "authorizedCapital" in d,
+    )
+    if company is None:
+        raise BDShareError(f"Company not found: {symbol!r}")
+    details = _rsc_resolve(company, rows)
+    return {k: _tabulate(v, as_polars) for k, v in details.items()
+            if k not in _COMPANY_DETAILS_DROP}
 
 
 def get_latest_pe(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
@@ -196,14 +265,12 @@ def get_latest_pe(retry_count: int = 3, pause: float = 0.2, as_polars: bool = Fa
     table = _with_fallback(
         lambda: _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_LPE_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_LPE_URL,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_FIXED,
         ),
         lambda: _fetch_table(
             vs.DSE_URL + vs.DSE_NEW_PE_URL,
-            vs.DSE_ALT_URL + vs.DSE_NEW_PE_URL,
             retries=retry_count,
             pause=pause,
             timeout=30,
@@ -211,14 +278,11 @@ def get_latest_pe(retry_count: int = 3, pause: float = 0.2, as_polars: bool = Fa
         "Latest P/E",
     )
     rows = []
-    for row in table.find_all("tr")[1:]:
-        cols = row.find_all("td")
+    for row in _rows(table)[1:]:
+        cols = _cells(row)
         if len(cols) < 10:
             continue
-        try:
-            rows.append(tuple(c.text.strip().replace(",", "") for c in cols[1:10]))
-        except (IndexError, AttributeError) as exc:
-            logger.warning("Skipping malformed P/E row: %s", exc)
+        rows.append(tuple(c.strip().replace(",", "") for c in cols[1:10]))
 
     if not rows:
         raise BDShareError("No P/E data found.")
@@ -262,39 +326,35 @@ def get_market_info_more_data(
                 "endDate": end,
                 "searchRecentMarket": "Search Recent Market",
             },
-            alt_url=vs.DSE_LEGACY_ALT_URL + vs.DSE_MARKET_INFO_MORE_URL,
             retries=retry_count,
             pause=pause,
         )
 
-        soup = _parse_html(r.content)
-        table = (
-            soup.find("table", attrs={"class": _CLS_CENTER})
-            or soup.find("table", attrs={"class": _CLS_PLAIN})
-            or soup.find("table")
+        root = _parse_html(r.content)
+        table = _first(
+            _find(root, "table", _CLS_CENTER),
+            _find(root, "table", _CLS_PLAIN),
+            _find(root, "table"),
         )
         if table is None:
             raise BDShareError("Extended market data table not found.")
 
         rows = []
-        for row in table.find_all("tr")[1:]:
-            cols = row.find_all("td")
+        for row in _rows(table)[1:]:
+            cols = _cells(row)
             if len(cols) < 9:
                 continue
-            try:
-                rows.append({
-                    "Date":                          cols[0].text.strip(),
-                    "Total Trade":                   _safe_num(cols[1].text, int),
-                    "Total Volume":                  _safe_num(cols[2].text, int),
-                    "Total Value in Taka(mn)":       _safe_num(cols[3].text, float),
-                    "Total Market Cap. in Taka(mn)": _safe_num(cols[4].text, float),
-                    "DSEX Index":                    _safe_num(cols[5].text, float),
-                    "DSES Index":                    _safe_num(cols[6].text, float),
-                    "DS30 Index":                    _safe_num(cols[7].text, float),
-                    "DGEN Index":                    _safe_num(cols[8].text.replace("-", "0"), float),
-                })
-            except (IndexError, AttributeError) as exc:
-                logger.warning("Skipping malformed extended market row: %s", exc)
+            rows.append({
+                "Date":                          cols[0].strip(),
+                "Total Trade":                   _safe_num(cols[1], int),
+                "Total Volume":                  _safe_num(cols[2], int),
+                "Total Value in Taka(mn)":       _safe_num(cols[3], float),
+                "Total Market Cap. in Taka(mn)": _safe_num(cols[4], float),
+                "DSEX Index":                    _safe_num(cols[5], float),
+                "DSES Index":                    _safe_num(cols[6], float),
+                "DS30 Index":                    _safe_num(cols[7], float),
+                "DGEN Index":                    _safe_num(cols[8].replace("-", "0"), float),
+            })
         return rows
 
     def new():
@@ -340,24 +400,23 @@ def get_market_depth_data(symbol: str, retry_count: int = 3, pause: float = 0.2,
             pause=pause,
         )
 
-        soup = _parse_html(r.content)
-        table = soup.find("table", attrs={"class": _CLS_STRIPPED})
+        table = _find(_parse_html(r.content), "table", _CLS_STRIPPED)
         if table is None:
             raise BDShareError(f"Market depth table not found for {symbol}.")
 
         result = []
         matrix = ["buy_price", "buy_volume", "sell_price", "sell_volume"]
 
-        for row in table.find_all("tr")[:1]:
-            cols = row.find_all("td", valign="top")
+        for row in _rows(table)[:1]:
+            cols = _find_all(row, "td", valign="top")
             for idx, mainrow in enumerate(cols):
-                for inner_row in mainrow.find_all("tr")[2:]:
-                    newcols = inner_row.find_all("td")
+                for inner_row in _rows(mainrow)[2:]:
+                    newcols = _cells(inner_row)
                     if len(newcols) >= 2:
                         m = idx * 2
                         result.append({
-                            matrix[m]:     _safe_num(newcols[0].text, float),
-                            matrix[m + 1]: _safe_num(newcols[1].text, int),
+                            matrix[m]:     _safe_num(newcols[0], float),
+                            matrix[m + 1]: _safe_num(newcols[1], int),
                         })
         return result
 
@@ -384,23 +443,22 @@ def get_top_ten_gainers_losers(limit: int = 10, retry_count: int = 3, pause: flo
     def legacy():
         table = _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_TOP_TEN_GAINERS_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_TOP_TEN_GAINERS_URL,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_SHARES,
         )
         rows = []
-        for row in table.find_all("tr")[1:limit + 1]:
-            cols = row.find_all("td")
+        for row in _rows(table)[1:limit + 1]:
+            cols = _cells(row)
             if len(cols) < 7:
                 continue
             rows.append({
-                "symbol": cols[1].text.strip(),
-                "close":    _safe_num(cols[2].text, float),
-                "high":    _safe_num(cols[3].text, float),
-                "low":    _safe_num(cols[4].text, float),
-                "ycp":    _safe_num(cols[5].text, float),
-                "change": _safe_num(cols[6].text, float),
+                "symbol": cols[1].strip(),
+                "close":  _safe_num(cols[2], float),
+                "high":   _safe_num(cols[3], float),
+                "low":    _safe_num(cols[4], float),
+                "ycp":    _safe_num(cols[5], float),
+                "change": _safe_num(cols[6], float),
             })
         if not rows:
             raise BDShareError("No top gainers/losers data found.")
@@ -437,25 +495,24 @@ def get_top_twenty_shares(limit: int = 20, retry_count: int = 3, pause: float = 
     def legacy():
         table = _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_TOP_TWENTY_SHARES_URL,
-            vs.DSE_LEGACY_ALT_URL + vs.DSE_TOP_TWENTY_SHARES_URL,
             retries=retry_count,
             pause=pause,
             table_class=_CLS_SHARES,
         )
         # Columns: #, code, LTP, HIGH, LOW, YCP, CLOSEP, TRADE, VALUE(mn), VOLUME
         rows = []
-        for row in table.find_all("tr")[1:limit + 1]:
-            cols = row.find_all("td")
+        for row in _rows(table)[1:limit + 1]:
+            cols = _cells(row)
             if len(cols) < 10:
                 continue
             rows.append({
-                "symbol": cols[1].text.strip(),
-                "ltp":    _safe_num(cols[2].text, float),
-                "high":    _safe_num(cols[3].text, float),
-                "low":    _safe_num(cols[4].text, float),
-                "ycp":    _safe_num(cols[5].text, float),
-                "trade": _safe_num(cols[7].text, int),
-                "volume": _safe_num(cols[9].text, int),
+                "symbol": cols[1].strip(),
+                "ltp":    _safe_num(cols[2], float),
+                "high":   _safe_num(cols[3], float),
+                "low":    _safe_num(cols[4], float),
+                "ycp":    _safe_num(cols[5], float),
+                "trade":  _safe_num(cols[7], int),
+                "volume": _safe_num(cols[9], int),
             })
         if not rows:
             raise BDShareError("No top shares data found.")
@@ -500,6 +557,6 @@ def get_market_inf_more_data(
                                      retry_count=retry_count, pause=pause, as_polars=as_polars)
 
 
-@deprecated("Use get_company_info() instead.")
+@deprecated("Use get_company_details() instead.")
 def get_company_inf(symbol: str, retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> list:
-    return get_company_info(symbol, retry_count=retry_count, pause=pause, as_polars=as_polars)
+    return get_company_info.__wrapped__(symbol, retry_count=retry_count, pause=pause, as_polars=as_polars)

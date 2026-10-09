@@ -36,9 +36,11 @@ from bdshare import (
     BDShareError,
     get_agm_news,
     get_basic_historical_data,
+    get_company_details,
     get_company_info,
     get_current_trade_data,
     get_current_trading_code,
+    get_dividend_declarations,
     get_dsex_data,
     get_historical_data,
     get_latest_pe,
@@ -132,12 +134,30 @@ def top_twenty_shares(limit: int = 20) -> list:
 
 @mcp.tool()
 def company_info(symbol: str) -> list:
-    """Detailed company profile tables (financials, directors, shareholding) for a symbol.
+    """Deprecated: use company_details. Company tables from the legacy DSE site.
 
     Returns a list of tables, each as a list of row records.
     """
-    tables = _call(get_company_info, symbol)
+    tables = _call(get_company_info.__wrapped__, symbol)
     return [_records(t) for t in tables]
+
+
+@mcp.tool()
+def company_details(symbol: str) -> dict:
+    """Company details from the current DSE site: profile, contacts, capital,
+    market data, AGM date and year end, shareholding pattern, dividend history,
+    multi-year and interim financials, P/E trend and recent announcements.
+
+    Tables are returned as lists of row records.
+    """
+    def plain(value):
+        if isinstance(value, pd.DataFrame):
+            return _records(value)
+        if isinstance(value, dict):
+            return {k: plain(v) for k, v in value.items()}
+        return value
+
+    return plain(_call(get_company_details, symbol))
 
 
 @mcp.tool()
@@ -190,8 +210,19 @@ def news(news_type: str = "all", code: Optional[str] = None) -> list:
 
 @mcp.tool()
 def agm_news() -> list:
-    """AGM / dividend declaration announcements."""
-    return _records(_call(get_agm_news))
+    """Deprecated: use dividend_declarations. The legacy AGM page, last updated in 2020."""
+    return _records(_call(get_agm_news.__wrapped__))
+
+
+@mcp.tool()
+def dividend_declarations(
+    start: Optional[str] = None, end: Optional[str] = None, code: Optional[str] = None,
+) -> list:
+    """Dividend declarations with year end, AGM date, time, venue and record date.
+
+    Defaults to the last 180 days. Dates are YYYY-MM-DD; `code` filters to one symbol.
+    """
+    return _records(_call(get_dividend_declarations, **_clean(start=start, end=end, code=code)))
 
 
 def main() -> None:

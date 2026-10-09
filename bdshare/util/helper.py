@@ -7,29 +7,37 @@ used across all bdshare sub-modules (trading, market, news).
 Import surface expected by other modules:
     from bdshare.util.helper import (
         _fetch_table, _safe_num, _parse_html,
+        _find, _find_all, _first, _rows, _cells,
         safe_get, safe_post,
         BDShareError, _session, deprecated,
-        _to_frame,
+        _to_frame, _parallel_map,
     )
 """
 
+import json
+import math
+import re
 import time
 import logging
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 
 import certifi
+import lxml.html
 import requests
 import tempfile
 import atexit
 from pathlib import Path
-from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
 
 from bdshare.util import vars as vs
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +99,12 @@ _CA_BUNDLE = _build_ca_bundle()
 # centralises headers/cookies so sub-modules don't each manage them.
 _session = requests.Session()
 _session.verify = _CA_BUNDLE
+# Parallel fetches (paged archives, split date ranges) run up to
+# _MAX_WORKERS requests at once; size the per-host pool to match so
+# connections are reused rather than opened and discarded.
+_MAX_WORKERS = 8
+for _scheme in ("http://", "https://"):
+    _session.mount(_scheme, HTTPAdapter(pool_connections=4, pool_maxsize=_MAX_WORKERS))
 _session.headers.update({
     "User-Agent":      "bdshare/2.0 (https://github.com/bdshare/bdshare)",
     "Accept-Encoding": "gzip, deflate",
@@ -99,15 +113,177 @@ _session.headers.update({
 
 
 # ---------------------------------------------------------------------------
-# HTML parsing helper
+# HTML parsing helpers
 # ---------------------------------------------------------------------------
+# lxml is used directly rather than through BeautifulSoup: on DSE's large
+# table pages it is roughly 10x faster and yields the same text.
 
-def _parse_html(content: bytes) -> BeautifulSoup:
-    """Parse HTML bytes with lxml (fast), falling back to html.parser."""
-    try:
-        return BeautifulSoup(content, "lxml")
-    except Exception:
-        return BeautifulSoup(content, "html.parser")
+def _parse_html(content: bytes) -> lxml.html.HtmlElement:
+    """Parse HTML bytes into an lxml element tree (charset from <meta>)."""
+    # lxml rejects an empty document; treat it as a page with no content.
+    return lxml.html.document_fromstring(content if content.strip() else b"<html></html>")
+
+
+def _class_test(cls: str) -> str:
+    """XPath predicate matching a class attribute the way BeautifulSoup does.
+
+    A multi-word value must equal the whole (whitespace-normalised) attribute;
+    a single word matches any one of the element's classes.
+    """
+    if " " in cls:
+        return f"normalize-space(@class)='{cls}'"
+    return f"contains(concat(' ', normalize-space(@class), ' '), ' {cls} ')"
+
+
+def _xpath(tag: str, cls: Optional[str] = None, **attrs: str) -> str:
+    preds = [_class_test(cls)] if cls else []
+    preds += [f"@{k}='{v}'" for k, v in attrs.items()]
+    return f".//{tag}" + "".join(f"[{p}]" for p in preds)
+
+
+def _find_all(el, tag: str, cls: Optional[str] = None, **attrs: str) -> list:
+    """All descendants of ``el`` named ``tag`` with the given class/attributes."""
+    return el.xpath(_xpath(tag, cls, **attrs))
+
+
+def _find(el, tag: str, cls: Optional[str] = None, **attrs: str):
+    """First match of :func:`_find_all`, or ``None``."""
+    found = _find_all(el, tag, cls, **attrs)
+    return found[0] if found else None
+
+
+def _first(*elements):
+    """First of ``elements`` that is not ``None``.
+
+    Use this instead of ``a or b``: an lxml element with no children is falsy.
+    """
+    return next((e for e in elements if e is not None), None)
+
+
+def _cells(row, tag: str = "td") -> List[str]:
+    """Text of every ``tag`` cell under ``row`` (nested ones included)."""
+    return [c.text_content() for c in row.iter(tag)]
+
+
+def _rows(table) -> list:
+    """Every ``<tr>`` under ``table``, nested ones included, in document order."""
+    return list(table.iter("tr"))
+
+
+# ---------------------------------------------------------------------------
+# Next.js page data (React Server Components payload)
+# ---------------------------------------------------------------------------
+# Pages on the current DSE site carry their data inline as an RSC payload
+# split across ``self.__next_f.push([1, "..."])`` scripts. The payload is a
+# series of rows, each ``<hex id>:<JSON>\n`` or ``<hex id>:T<hex byte
+# length>,<text>`` (long text, not newline-terminated). Values point at other
+# rows with ``"$<id>"`` or at part of one with ``"$<id>:key:key..."``.
+
+_RSC_CHUNK = re.compile(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)</script>', re.S)
+_RSC_REF = re.compile(r"\$([0-9a-f]+)((?::[^:]+)*)")
+_RSC_SPECIAL = {"$undefined": None, "$NaN": float("nan"),
+                "$Infinity": float("inf"), "$-Infinity": float("-inf"), "$-0": -0.0}
+
+
+def _rsc_rows(html: str) -> Dict[str, Any]:
+    """Decode a Next.js page's inline RSC payload into ``{row id: value}``.
+
+    Rows that are not JSON (component and asset references) are kept as raw
+    strings.
+    """
+    chunks = _RSC_CHUNK.findall(html)
+    data = "".join(json.loads(f'"{c}"') for c in chunks).encode("utf-8")
+    rows: Dict[str, Any] = {}
+    i = 0
+    while i < len(data):
+        colon = data.find(b":", i)
+        if colon < 0:
+            break
+        rid, j = data[i:colon].decode(), colon + 1
+        if data[j:j + 1] == b"T":  # length is in bytes, so slice the bytes
+            comma = data.index(b",", j)
+            end = comma + 1 + int(data[j + 1:comma], 16)
+            rows[rid] = data[comma + 1:end].decode("utf-8")
+            i = end
+            continue
+        nl = data.find(b"\n", j)
+        end = len(data) if nl < 0 else nl
+        raw = data[j:end].decode("utf-8")
+        try:
+            rows[rid] = json.loads(raw)
+        except ValueError:
+            rows[rid] = raw
+        i = end + 1
+    return rows
+
+
+def _rsc_resolve(value: Any, rows: Dict[str, Any], _hops: int = 0) -> Any:
+    """``value`` with RSC references and special ``$`` strings replaced."""
+    if isinstance(value, dict):
+        return {k: _rsc_resolve(v, rows, _hops) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_rsc_resolve(v, rows, _hops) for v in value]
+    if not isinstance(value, str) or not value.startswith("$"):
+        return value
+    if value in _RSC_SPECIAL:
+        return _RSC_SPECIAL[value]
+    if value.startswith("$$"):
+        return value[1:]
+    if value.startswith("$D"):  # Date
+        return value[2:]
+    if value.startswith("$n"):  # BigInt
+        return int(value[2:])
+    target = _rsc_follow(value, rows, _hops)
+    return value if target is value else _rsc_resolve(target, rows, _hops + 1)
+
+
+def _rsc_follow(value: Any, rows: Dict[str, Any], hops: int) -> Any:
+    """The raw value a reference string points at (``value`` itself if not one).
+
+    Only the reference chain is followed; the target is not resolved, so a
+    path into a large row (such as the whole page tree) stays cheap.
+    """
+    while isinstance(value, str):
+        ref = _RSC_REF.fullmatch(value)
+        if ref is None or ref.group(1) not in rows:
+            return value
+        if hops > 50:
+            raise BDShareError("RSC payload references form a cycle.")
+        hops += 1
+        target = rows[ref.group(1)]
+        for key in filter(None, ref.group(2).split(":")):
+            target = _rsc_follow(target, rows, hops)
+            target = _rsc_step(target, key)
+        value = target
+    return value
+
+
+# A React element is serialised as ["$", type, key, props]; paths name these
+# slots rather than index them.
+_RSC_ELEMENT_SLOTS = {"type": 1, "key": 2, "props": 3}
+
+
+def _rsc_step(target: Any, key: str) -> Any:
+    """``target[key]`` for one segment of a reference path."""
+    if isinstance(target, list):
+        if target[:1] == ["$"] and key in _RSC_ELEMENT_SLOTS:
+            return target[_RSC_ELEMENT_SLOTS[key]]
+        return target[int(key)]
+    return target[key]
+
+
+def _rsc_find(value: Any, match: Callable[[dict], bool]) -> Optional[dict]:
+    """First dict in ``value`` (searched depth-first) for which ``match`` is true."""
+    stack = [value]
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, dict):
+            if match(cur):
+                return cur
+            stack.extend(reversed(list(cur.values())))
+        elif isinstance(cur, list):
+            stack.extend(reversed(cur))
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -234,12 +410,9 @@ def _fetch_table(
     timeout: int = 10,
     table_class: Optional[str] = None,
     table_id: Optional[str] = None,
-) -> Any:  # returns a bs4 Tag
+) -> lxml.html.HtmlElement:
     """
-    Fetch a page and return the matching ``<table>`` element as a
-    BeautifulSoup tag.
-
-    Parser preference: ``lxml`` → ``html.parser`` (stdlib fallback).
+    Fetch a page and return the matching ``<table>`` element.
 
     :param url:         Primary page URL.
     :param alt_url:     Optional fallback URL.
@@ -249,27 +422,19 @@ def _fetch_table(
     :param timeout:     Passed through to :func:`safe_get`.
     :param table_class: CSS class string to locate the target table.
     :param table_id:    HTML id attribute of the target table.
-    :returns:           BeautifulSoup Tag for the matched table.
+    :returns:           lxml element for the matched table.
     :raises BDShareError: If the page cannot be fetched or the table is not found.
     """
     r = safe_get(url, params=params, alt_url=alt_url,
                  retries=retries, pause=pause, timeout=timeout)
 
-    soup = _parse_html(r.content)
+    root = _parse_html(r.content)
 
-    table = None
-    if table_class or table_id:
-        attrs: Dict[str, str] = {}
-        if table_class:
-            attrs["class"] = table_class
-        if table_id:
-            table = soup.find("table", attrs={**attrs, "id": table_id})
-            if table is None:
-                table = soup.find("table", attrs={**attrs, "_id": table_id})
-        else:
-            table = soup.find("table", attrs=attrs)
+    if table_id:
+        table = _first(_find(root, "table", table_class, id=table_id),
+                       _find(root, "table", table_class, _id=table_id))
     else:
-        table = soup.find("table")
+        table = _find(root, "table", table_class)
 
     if table is None:
         parts = []
@@ -281,6 +446,19 @@ def _fetch_table(
         raise BDShareError(f"Table{detail} not found at {url}")
 
     return table
+
+
+# ---------------------------------------------------------------------------
+# Parallel fetch helper
+# ---------------------------------------------------------------------------
+
+def _parallel_map(fn: Callable[[Any], T], items: Iterable[Any]) -> List[T]:
+    """``[fn(x) for x in items]``, run concurrently on the shared session."""
+    items = list(items)
+    if len(items) <= 1:
+        return [fn(x) for x in items]
+    with ThreadPoolExecutor(max_workers=min(_MAX_WORKERS, len(items))) as pool:
+        return list(pool.map(fn, items))
 
 
 # ---------------------------------------------------------------------------
@@ -317,7 +495,6 @@ def _fetch_json(
     short and a stalled request is retried rather than waited out.
     """
     r = safe_get(vs.DSE_URL + path, params=params,
-                 alt_url=vs.DSE_ALT_URL + path,
                  retries=retries, pause=pause, timeout=timeout)
     try:
         return r.json()
@@ -339,33 +516,67 @@ def _fetch_json_range(
 
     The API silently caps each response (``truncated: true``, a ``total``
     larger than the rows returned, or simply ``max_rows`` rows), so a capped
-    range is split in half and each half fetched recursively. Rows are
-    returned newest range first, matching the API's own ordering.
+    range is split in half and both halves re-fetched. Each round of splits
+    is fetched in parallel. Rows are returned newest range first, matching
+    the API's own ordering.
     """
-    data = _fetch_json(path, {**(params or {}), "from": start, "to": end},
-                       retries=retries, pause=pause)
-    rows = data.get("rows") or []
-    capped = (
-        bool(data.get("truncated"))
-        or (data.get("total") or 0) > len(rows)
-        or (max_rows is not None and len(rows) >= max_rows)
-    )
-    first, last = date.fromisoformat(start), date.fromisoformat(end)
-    if not capped or first >= last:
-        return rows
-    mid = first + (last - first) // 2
-    newer = _fetch_json_range(path, (mid + timedelta(days=1)).isoformat(), end,
-                              params, retries, pause, max_rows)
-    older = _fetch_json_range(path, start, mid.isoformat(),
-                              params, retries, pause, max_rows)
-    return newer + older
+    def fetch(span):
+        return _fetch_json(path, {**(params or {}), "from": span[0], "to": span[1]},
+                           retries=retries, pause=pause)
+
+    done: List[tuple] = []  # (range start, rows) of ranges that came back whole
+    pending = [(start, end)]
+    while pending:
+        split = []
+        for (lo, hi), data in zip(pending, _parallel_map(fetch, pending)):
+            rows = data.get("rows") or []
+            capped = (
+                bool(data.get("truncated"))
+                or (data.get("total") or 0) > len(rows)
+                or (max_rows is not None and len(rows) >= max_rows)
+            )
+            first, last = date.fromisoformat(lo), date.fromisoformat(hi)
+            if not capped or first >= last:
+                done.append((lo, rows))
+                continue
+            mid = first + (last - first) // 2
+            split += [(lo, mid.isoformat()), ((mid + timedelta(days=1)).isoformat(), hi)]
+        pending = split
+    done.sort(key=lambda d: d[0], reverse=True)
+    return [r for _, rows in done for r in rows]
+
+
+def _fetch_json_pages(
+    path: str,
+    params: Optional[Dict] = None,
+    retries: int = 3,
+    pause: float = 0.2,
+) -> List[Dict]:
+    """
+    Fetch every row of a paged dsebd.org endpoint.
+
+    Paged endpoints report ``total`` and ``pageSize`` and take a 1-based
+    ``page`` parameter. The first page gives the page count; the rest are
+    fetched in parallel and returned in page order.
+    """
+    params = params or {}
+    first = _fetch_json(path, params, retries=retries, pause=pause)
+    rows = list(first.get("rows") or [])
+    size = first.get("pageSize") or len(rows)
+    pages = math.ceil((first.get("total") or 0) / size) if size else 1
+
+    def fetch(page):
+        data = _fetch_json(path, {**params, "page": page}, retries=retries, pause=pause)
+        return data.get("rows") or []
+
+    for page_rows in _parallel_map(fetch, range(2, pages + 1)):
+        rows += page_rows
+    return rows
 
 
 # ---------------------------------------------------------------------------
 # dsebd.org → legacy fallback
 # ---------------------------------------------------------------------------
-
-T = TypeVar("T")
 
 # Failures that mean "this site didn't work": network/HTTP errors (surfaced as
 # BDShareError by safe_get) and parse errors from an unexpected page layout.

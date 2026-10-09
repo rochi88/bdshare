@@ -6,6 +6,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.8] - 2026-10-09
+
+### Added
+- `get_dividend_declarations(start?, end?, code?)` (and `BDShare.get_dividend_declarations()`, `get_news(news_type='dividend')`, plus a `dividend_declarations` MCP tool): dividend declarations with year end, dividend, AGM date, time, venue and record date, read from the "Dividend Declaration" items in the current site's news feed. Defaults to the last 180 days. Fields an announcement leaves out are `None`.
+- `get_company_details(symbol)` (and `BDShare.get_company_details()`, plus a `company_details` MCP tool): a company's details from the current DSE site, as a dict. It includes profile and contact fields, capital, market data, AGM date and year end, with DataFrames for the shareholding pattern, dividend history, multi-year and interim financials, P/E trend and recent announcements. Fields DSE has no data for are left out, so read optional ones with `.get()`. `get_company_info()` still returns the legacy site's tables.
+
+### Changed
+- `get_last_trade_price_data()` now reads the current site's price feed first and falls back to the legacy `quotes.txt`, like the other data functions. Both give the same figures.
+- `DSE_URL` in `bdshare/util/vars.py` now points to `https://dse.com.bd/` (was `https://dsebd.org/`).
+- Faster all-instrument history from dsebd.org: `get_historical_data()`, `get_basic_historical_data()` and `get_close_price_data()` now page through the day-end archive (500 rows per page, pages fetched in parallel) instead of fetching every instrument past the row cap one at a time. A month of all instruments drops from about 90s and ~200 requests to about 10s and ~28 requests. Rows within a date now come back in symbol order.
+- Legacy-site HTML is parsed with lxml directly instead of BeautifulSoup, which cuts parse time about 5–10x (for example, the latest-share-price page from ~250ms to ~40ms of CPU). `get_company_info()` converts only the data tables after the page's ~400 layout tables, which brings parsing from ~0.6s to ~0.03s.
+- Date ranges that dsebd.org truncates (news, extended market info) are split and re-fetched in parallel rather than one half at a time.
+- The shared HTTP session keeps up to 8 connections per host open, so parallel requests reuse connections.
+- `get_price_sensitive_news()` works only on dsebd.org. The legacy news archive does not mark price-sensitive items, so with `BDSHARE_SOURCE=legacy` it now raises `BDShareError` saying so, instead of "No price-sensitive news found."
+
+### Deprecated
+These read only the legacy site. Each still works, and now emits a `DeprecationWarning` naming its replacement. They will be removed in 2.0.0.
+- `get_agm_news()` → `get_dividend_declarations()`. The legacy AGM page has not been updated since 2020, so it returns six-year-old data.
+- `get_news(news_type='agm')` → `get_news(news_type='dividend')`.
+- `get_company_info()` → `get_company_details()`. The returned shape differs: a dict with DataFrames for the tabular parts, not the legacy page's list of tables.
+- `get_company_inf()` (already deprecated) now points to `get_company_details()`.
+- `BDShare.get_company_profile()` → `BDShare.get_company_details()`.
+- The `agm_news` and `company_info` MCP tools → `dividend_declarations` and `company_details`. Their descriptions say so; MCP tools have no warning mechanism.
+
+### Fixed
+- `get_last_trade_price_data()` returned a single garbled column whose header was the first instrument's row (e.g. `1JANATAMF \t 3.4`). It now returns `symbol` and `ltp` columns with one row per instrument.
+- On the legacy site, `get_all_news()` returned no rows unless called with a symbol. With no arguments it now reads the latest-news feed, and with a date range it sends both dates (filling in a missing one), which the archive needs. Dates passed with a symbol are now applied as a filter, as on dsebd.org.
+
+### Removed
+- `DSE_ALT_URL` and `DSE_LEGACY_ALT_URL` from `bdshare/util/vars.py`. Requests now go only to `DSE_URL` (`https://dse.com.bd/`) and `DSE_LEGACY_URL` (`https://old.dsebd.org/`), with no alternate host tried within an attempt.
+
 ## [1.2.7] - 2026-09-25
 
 ### Added

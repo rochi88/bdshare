@@ -24,6 +24,7 @@
   - [Saving to CSV](#saving-to-csv)
 - [OOP Client (BDShare)](#oop-client-bdshare)
 - [Error Handling](#error-handling)
+- [Deprecated Functions](#deprecated-functions)
 - [API Reference](#api-reference)
 - [Examples](#examples)
 - [Advanced Features](#advanced-features)
@@ -109,8 +110,8 @@ See [`demo/README.md`](demo/README.md) for local (non-Docker) setup for each.
 | Concept | Details |
 |---|---|
 | **Retries** | All network calls retry up to 3 times with exponential back-off |
-| **Fallback URL** | Every request has a primary and an alternate DSE endpoint |
-| **Two DSE sites** | Data comes from the current dsebd.org JSON API first; if that fails, bdshare falls back to the legacy site (old.dsebd.org) with the same columns. Set `BDSHARE_SOURCE=legacy` or `BDSHARE_SOURCE=new` to use only one site. `get_agm_news()` and `get_company_info()` work only on the legacy site |
+| **Two DSE sites** | Data comes from the current DSE site's JSON API (dse.com.bd) first; if that fails, bdshare falls back to the legacy site (old.dsebd.org) with the same columns. Set `BDSHARE_SOURCE=legacy` or `BDSHARE_SOURCE=new` (or `bdshare.util.vars.DSE_SOURCE` at runtime) to use only one site. `get_price_sensitive_news()`, `get_company_details()` and `get_dividend_declarations()` work only on the current site. The legacy-only `get_agm_news()` and `get_company_info()` are deprecated |
+| **Large ranges** | All-instrument history is fetched page by page in parallel; a month of every instrument takes about 10 seconds |
 | **Caching** | The `BDShare` client caches responses automatically (configurable TTL) |
 | **Rate limiting** | Built-in sliding-window limiter (5 calls/second) prevents being blocked |
 | **Errors** | All failures raise `BDShareError` — never silent |
@@ -183,7 +184,7 @@ from bdshare import (
     get_latest_pe,
     get_top_ten_gainers_losers,
     get_top_twenty_shares,
-    get_company_info,
+    get_company_details,
 )
 
 # Current market status: Open, Closed, Holiday, etc.
@@ -207,23 +208,27 @@ df = get_top_ten_gainers_losers(limit=10)
 # Top 20 shares by traded volume (adjust limit as needed)
 df = get_top_twenty_shares(limit=20)
 
-# Detailed company profile
-tables = get_company_info('GP')
+# Detailed company profile (dict; tabular parts are DataFrames)
+details = get_company_details('GP')
+details['agmDate'], details['dividendHistory']
 ```
 
 ### News & Announcements
 
 ```python
-from bdshare import get_news, get_agm_news, get_all_news
+from bdshare import get_news, get_dividend_declarations, get_all_news
 
-# Unified dispatcher — news_type: 'all' | 'agm' | 'corporate' | 'psn'
+# Unified dispatcher — news_type: 'all' | 'dividend' | 'corporate' | 'psn'
 df = get_news(news_type='all')
-df = get_news(news_type='agm')
+df = get_news(news_type='dividend')
 df = get_news(news_type='corporate', code='GP')
 df = get_news(news_type='psn', code='ACI')   # price-sensitive news
 
 # Direct function calls
-df = get_agm_news()                          # AGM / dividend declarations
+df = get_dividend_declarations()             # Dividends + AGM/record dates, last 180 days
+df = get_dividend_declarations('2026-01-01', '2026-06-30', code='GP')
+df = get_all_news()                          # Latest news feed
+df = get_all_news('2024-01-01', '2024-03-31')  # All news in a date range
 df = get_all_news(code='BEXIMCO')            # All news for one symbol
 df = get_all_news('2024-01-01', '2024-03-31', 'GP')  # Filtered by date + symbol
 ```
@@ -264,7 +269,7 @@ with BDShare() as bd:
 
 ```python
 bd.get_market_summary()                    # DSEX/DSES/DS30 indices + stats  (1-min TTL)
-bd.get_company_profile('ACI')             # Company profile                  (1-hr TTL)
+bd.get_company_details('ACI')             # Company details                  (1-hr TTL)
 bd.get_latest_pe_ratios()                 # All P/E ratios                   (1-hr TTL)
 bd.get_top_movers(limit=10)               # Top gainers/losers               (5-min TTL)
 ```
@@ -324,6 +329,23 @@ Common causes of `BDShareError`:
 
 ---
 
+## Deprecated Functions
+
+These read only the legacy site (old.dsebd.org). They still work but emit a
+`DeprecationWarning`, and will be removed in 2.0.0.
+
+| Deprecated | Use instead | Why |
+|---|---|---|
+| `get_agm_news()` | `get_dividend_declarations()` | The legacy AGM page has not been updated since 2020 |
+| `get_news(news_type='agm')` | `get_news(news_type='dividend')` | Same as above |
+| `get_company_info(symbol)` | `get_company_details(symbol)` | Returns a dict with DataFrames instead of the legacy page's list of tables |
+| `get_company_inf(symbol)` | `get_company_details(symbol)` | Old alias of `get_company_info` |
+| `BDShare.get_company_profile(symbol)` | `BDShare.get_company_details(symbol)` | Wraps `get_company_info` |
+| `get_hist_data()`, `get_basic_hist_data()` | `get_historical_data()`, `get_basic_historical_data()` | Old short names |
+| `get_market_inf()`, `get_market_inf_more_data()` | `get_market_info()`, `get_market_info_more_data()` | Old short names |
+
+---
+
 ## API Reference
 
 ### Trading Functions
@@ -336,7 +358,7 @@ Common causes of `BDShareError`:
 | `get_historical_data(start, end, code?)` | `str, str, str` | DataFrame | Full historical OHLCV |
 | `get_basic_historical_data(start, end, code?, index?)` | `str, str, str, str` | DataFrame | Simplified OHLCV (TA-ready) |
 | `get_close_price_data(start, end, code?)` | `str, str, str` | DataFrame | Close + prior close |
-| `get_last_trade_price_data()` | — | DataFrame | Last trade from DSE text file |
+| `get_last_trade_price_data()` | — | DataFrame | Last trade price per symbol (`symbol`, `ltp`) |
 
 Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_data()`,
 `get_basic_hist_data()` → `get_basic_historical_data()`.
@@ -350,7 +372,7 @@ Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_dat
 | `get_market_info_more_data(start, end)` | `str, str` | DataFrame | Historical market summary |
 | `get_market_depth_data(symbol)` | `str` | DataFrame | Order book (buy/sell depth) |
 | `get_latest_pe()` | — | DataFrame | P/E ratios for all companies |
-| `get_company_info(symbol)` | `str` | list[DataFrame] | Detailed company tables |
+| `get_company_details(symbol)` | `str` | dict | Company profile, capital, AGM date, shareholding, dividends, financials (current site only) |
 | `get_top_ten_gainers_losers(limit?)` | `int` (default 10) | DataFrame | Top movers by price change |
 | `get_top_twenty_shares(limit?)` | `int` (default 20) | DataFrame | Top shares by traded volume |
 
@@ -359,17 +381,17 @@ Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_dat
 | Function | Parameters | Returns | Description |
 |---|---|---|---|
 | `get_news(news_type?, code?)` | `str, str` | DataFrame | Unified news dispatcher |
-| `get_agm_news()` | — | DataFrame | AGM / dividend declarations |
-| `get_all_news(start?, end?, code?)` | `str, str, str` | DataFrame | All DSE news |
+| `get_dividend_declarations(start?, end?, code?)` | `str, str, str` | DataFrame | Dividend declarations with year end, AGM date, time, venue, record date (current site only) |
+| `get_all_news(start?, end?, code?)` | `str, str, str` | DataFrame | All DSE news; latest feed when called with no arguments |
 | `get_corporate_announcements(code?)` | `str` | DataFrame | Corporate actions |
-| `get_price_sensitive_news(code?)` | `str` | DataFrame | Price-sensitive news |
+| `get_price_sensitive_news(code?)` | `str` | DataFrame | Price-sensitive news (current site only) |
 
 ### `get_news` `news_type` values
 
 | Value | Equivalent direct function |
 |---|---|
 | `'all'` | `get_all_news()` |
-| `'agm'` | `get_agm_news()` |
+| `'dividend'` | `get_dividend_declarations()` |
 | `'corporate'` | `get_corporate_announcements()` |
 | `'psn'` | `get_price_sensitive_news()` |
 
@@ -611,11 +633,11 @@ internal Docker network, not the public internet).
 
 ### What the agent gets
 
-15 tools covering the same data this README documents — `market_status`,
+17 tools covering the same data this README documents — `market_status`,
 `market_summary`, `market_summary_range`, `market_depth`, `latest_pe_ratios`,
-`top_ten_gainers_losers`, `top_twenty_shares`, `company_info`, `current_trades`,
+`top_ten_gainers_losers`, `top_twenty_shares`, `company_details`, `current_trades`,
 `dsex_index`, `trading_codes`, `historical_data`, `basic_historical_data`, `news`,
-`agm_news`. Each tool returns JSON — `DataFrame`s are converted to lists of row
+`dividend_declarations`, and the deprecated `company_info` and `agm_news`. Each tool returns JSON — `DataFrame`s are converted to lists of row
 records — and a `BDShareError` (bad symbol, DSE outage, parse failure) surfaces as a
 clean tool error message instead of a raw traceback.
 
