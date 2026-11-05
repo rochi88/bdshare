@@ -30,6 +30,30 @@ def _get_news(url: str, params: dict, retry_count: int, pause: float) -> lxml.ht
     return _parse_html(r.content)
 
 
+def _ajax_news_rows(criteria: int, referer_path: str, retry_count: int, pause: float) -> list:
+    """
+    News rows from the legacy site's ``ajax/load-news.php`` feed, which backs
+    its "Today's News" (criteria=1) and "News Archive (7 Days)" (criteria=2)
+    pages. The feed only returns content when called with an XMLHttpRequest
+    header and a Referer matching the page that embeds it.
+    """
+    r = safe_post(
+        vs.DSE_LEGACY_URL + vs.DSE_NEWS_AJAX_URL,
+        data={"criteria": criteria},
+        headers={
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": vs.DSE_LEGACY_URL + referer_path,
+        },
+        retries=retry_count,
+        pause=pause,
+    )
+    root = _parse_html(r.content)
+    table = _first(_find(root, "table", "table-news"), _find(root, "table"))
+    if table is None:
+        raise BDShareError("News table not found.")
+    return _parse_news_rows(table, code_key="symbol")
+
+
 def _legacy_news_rows(params: dict, code_key: str, retry_count: int, pause: float) -> list:
     """Fetch and parse the legacy old_news.php table."""
     root = _get_news(
@@ -241,6 +265,45 @@ def get_price_sensitive_news(
     return _to_frame(pd.DataFrame(rows), as_polars)
 
 
+# How far back get_news_archive_7days() looks, matching the legacy feed's window.
+_NEWS_ARCHIVE_DAYS = 7
+
+
+def get_today_news(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get today's DSE news.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    :return: DataFrame with symbol, title, news, date.
+    """
+    today = _date_range(None, None)[1]
+    rows = _with_fallback(
+        lambda: _ajax_news_rows(1, vs.DSE_TODAY_NEWS_URL, retry_count, pause),
+        lambda: _news_rows_new(None, today, today, "symbol", retry_count, pause),
+        "Today's news",
+    )
+    if not rows:
+        raise BDShareError("No news found for today.")
+    return _to_frame(pd.DataFrame(rows), as_polars)
+
+
+def get_news_archive_7days(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get DSE news from the last 7 days.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    :return: DataFrame with symbol, title, news, date.
+    """
+    end = _date_range(None, None)[1]
+    start = (date.fromisoformat(end) - timedelta(days=_NEWS_ARCHIVE_DAYS)).isoformat()
+    rows = _with_fallback(
+        lambda: _ajax_news_rows(2, vs.DSE_NEWS_ARCHIVE_7DAYS_URL, retry_count, pause),
+        lambda: _news_rows_new(None, start, end, "symbol", retry_count, pause),
+        "News archive",
+    )
+    if not rows:
+        raise BDShareError("No news found in the 7-day archive.")
+    return _to_frame(pd.DataFrame(rows), as_polars)
+
+
 # ---------------------------------------------------------------------------
 # Dividend declarations (current site's news feed)
 # ---------------------------------------------------------------------------
@@ -370,8 +433,8 @@ def get_news(
     """
     Unified news dispatcher.
 
-    :param news_type: One of 'all', 'dividend', 'corporate', 'psn', or the
-                      deprecated 'agm' (use 'dividend').
+    :param news_type: One of 'all', 'dividend', 'corporate', 'psn', 'today',
+                      'archive7d', or the deprecated 'agm' (use 'dividend').
     :param code: Optional trading code filter
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
@@ -385,6 +448,8 @@ def get_news(
         "agm":       lambda: get_agm_news.__wrapped__(retry_count=retry_count, pause=pause, as_polars=as_polars),
         "corporate": lambda: get_corporate_announcements(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
         "psn":       lambda: get_price_sensitive_news(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "today":     lambda: get_today_news(retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "archive7d": lambda: get_news_archive_7days(retry_count=retry_count, pause=pause, as_polars=as_polars),
     }
     if news_type not in _dispatch:
         raise ValueError(f"Invalid news_type '{news_type}'. Choose from: {list(_dispatch)}")

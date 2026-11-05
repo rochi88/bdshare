@@ -202,7 +202,8 @@ def basic_historical_data(start: str, end: str, code: Optional[str] = None) -> l
 def news(news_type: str = "all", code: Optional[str] = None) -> list:
     """DSE news and announcements.
 
-    :param news_type: One of 'all', 'agm', 'corporate', 'psn' (price-sensitive).
+    :param news_type: One of 'all', 'agm', 'corporate', 'psn' (price-sensitive),
+        'today' (live feed), 'archive7d' (live feed, last 7 days).
     :param code: Optional trading code filter.
     """
     return _records(_call(get_news, news_type=news_type, **_clean(code=code)))

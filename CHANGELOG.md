@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.9] - 2026-11-05
+
+### Added
+- `get_today_news()`: today's DSE news.
+- `get_news_archive_7days()`: DSE news from the last 7 days.
+- `get_news(news_type='today')` and `get_news(news_type='archive7d')`, which also work through `BDShare.get_news()`.
+
+Both functions read the current site's news API first and fall back to the legacy site's `ajax/load-news.php` feed, following `BDSHARE_SOURCE` like the other data functions.
+
+### Changed
+- `safe_get()` and `safe_post()` take an optional `headers` parameter. The legacy news feed only returns content for requests with an `X-Requested-With: XMLHttpRequest` header and a matching `Referer`.
+
 ## [1.2.8] - 2026-10-09
 
 ### Added

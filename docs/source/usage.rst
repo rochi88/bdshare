@@ -512,6 +512,10 @@ the category and ``code`` to filter by symbol.
 +-----------------+------------------------------------------------+
 | ``'psn'``       | Price-sensitive news                           |
 +-----------------+------------------------------------------------+
+| ``'today'``     | Today's news                                   |
++-----------------+------------------------------------------------+
+| ``'archive7d'`` | News from the last 7 days                      |
++-----------------+------------------------------------------------+
 | ``'agm'``       | Deprecated: use ``'dividend'``                 |
 +-----------------+------------------------------------------------+
 
@@ -545,6 +549,22 @@ the category and ``code`` to filter by symbol.
 
     # Price-sensitive news
     df = get_news(news_type='psn', code='ACI')
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_news
+
+    # Today's news
+    df = get_news(news_type='today')
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_news
+
+    # News from the last 7 days
+    df = get_news(news_type='archive7d')
     print(df.to_string())
 
 
@@ -683,6 +703,36 @@ raises ``BDShareError``.
     print(df.to_string())
 
 
+Today's News
+------------
+
+Reads the current site's news API and falls back to the legacy site's news feed.
+
+.. code-block:: python
+
+    from bdshare import get_today_news
+
+    df = get_today_news()
+    print(df.to_string())
+
+**Returned columns:** symbol, title, news, date.
+
+
+News Archive (7 Days)
+----------------------
+
+Reads the current site's news API and falls back to the legacy site's news feed.
+
+.. code-block:: python
+
+    from bdshare import get_news_archive_7days
+
+    df = get_news_archive_7days()
+    print(df.to_string())
+
+**Returned columns:** symbol, title, news, date.
+
+
 ----
 
 Saving Data
@@ -778,6 +828,8 @@ The table below shows each method with its cache TTL.
     bd.get_news(news_type='corporate', code='GP')
     bd.get_news(news_type='psn')
     bd.get_dividend_declarations()                    # Dividends  — 1-hr TTL
+    bd.get_news(news_type='today')                    # Today's news
+    bd.get_news(news_type='archive7d')                # Last 7 days of news
 
 **Utility methods**
 
@@ -785,7 +837,7 @@ The table below shows each method with its cache TTL.
 
     bd.clear_cache()                   # Flush all cached responses
     bd.configure(proxy_url='http://proxy:8080')
-    print(bd.version)                  # e.g. "1.2.8"
+    print(bd.version)                  # e.g. "1.2.9"
 
 
 ----

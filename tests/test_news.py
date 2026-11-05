@@ -7,7 +7,7 @@ Comprehensive tests for BDShare news functions
 import unittest
 import pandas as pd
 from datetime import datetime, timedelta
-from bdshare import get_agm_news, get_all_news
+from bdshare import get_agm_news, get_all_news, get_today_news, get_news_archive_7days, get_news
 
 
 class TestNewsFunctions(unittest.TestCase):
@@ -218,6 +218,52 @@ class TestNewsFunctions(unittest.TestCase):
                 
                 common_news = agm_news_set.intersection(company_news_set)
                 print(f"Common news items: {len(common_news)}")
+
+    def test_get_today_news(self):
+        """Test get_today_news function returns today's DSE news (live feed)."""
+        df = get_today_news()
+
+        self.assertIsInstance(df, pd.DataFrame, "Today's news should return a DataFrame")
+        self.assertGreater(len(df), 0, "Today's news should contain records")
+
+        expected_columns = ['symbol', 'title', 'news', 'date']
+        for col in expected_columns:
+            self.assertIn(col, df.columns, f"Column '{col}' should be present in today's news")
+
+        symbols = df['symbol'].dropna()
+        self.assertFalse(symbols.empty, "Trading codes should not be empty")
+
+        print(f"Total news records for today: {len(df)}")
+        print(df.head(5).to_string())
+
+    def test_get_news_archive_7days(self):
+        """Test get_news_archive_7days function returns the last 7 days of DSE news (live feed)."""
+        df = get_news_archive_7days()
+
+        self.assertIsInstance(df, pd.DataFrame, "7-day news archive should return a DataFrame")
+        self.assertGreater(len(df), 0, "7-day news archive should contain records")
+
+        expected_columns = ['symbol', 'title', 'news', 'date']
+        for col in expected_columns:
+            self.assertIn(col, df.columns, f"Column '{col}' should be present in the 7-day archive")
+
+        # The 7-day archive covers today plus the preceding days, so it can
+        # never contain fewer items than today's news alone.
+        today_df = get_today_news()
+        self.assertGreaterEqual(len(df), len(today_df),
+                                 "7-day archive should contain at least as many items as today's news")
+
+        print(f"Total news records in 7-day archive: {len(df)}")
+
+    def test_get_news_dispatcher_today_and_archive7d(self):
+        """Test the get_news() dispatcher for the 'today' and 'archive7d' news types."""
+        today_df = get_news(news_type='today')
+        archive_df = get_news(news_type='archive7d')
+
+        self.assertIsInstance(today_df, pd.DataFrame)
+        self.assertIsInstance(archive_df, pd.DataFrame)
+        self.assertGreater(len(today_df), 0)
+        self.assertGreater(len(archive_df), 0)
 
     @classmethod
     def setUpClass(cls):
