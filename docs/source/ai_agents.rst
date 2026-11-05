@@ -62,7 +62,7 @@ command (or ``python -m bdshare.mcp_server``), stdio transport.
 What the agent gets
 ====================
 
-The server exposes 15 tools covering the same data described in :doc:`usage`:
+The server exposes 17 tools covering the same data described in :doc:`usage`:
 
 - ``market_status`` — wraps ``get_market_status()``
 - ``market_summary`` — wraps ``get_market_info()``
@@ -71,14 +71,16 @@ The server exposes 15 tools covering the same data described in :doc:`usage`:
 - ``latest_pe_ratios`` — wraps ``get_latest_pe()``
 - ``top_ten_gainers_losers`` — wraps ``get_top_ten_gainers_losers(limit?)``
 - ``top_twenty_shares`` — wraps ``get_top_twenty_shares(limit?)``
-- ``company_info`` — wraps ``get_company_info(symbol)``
+- ``company_info`` — deprecated: use ``company_details``
+- ``company_details`` — wraps ``get_company_details(symbol)``
 - ``current_trades`` — wraps ``get_current_trade_data(symbol?)``
 - ``dsex_index`` — wraps ``get_dsex_data(symbol?)``
 - ``trading_codes`` — wraps ``get_current_trading_code()``
 - ``historical_data`` — wraps ``get_historical_data(start, end, code?)``
 - ``basic_historical_data`` — wraps ``get_basic_historical_data(start, end, code?)``
 - ``news`` — wraps ``get_news(news_type?, code?)``
-- ``agm_news`` — wraps ``get_agm_news()``
+- ``dividend_declarations`` — wraps ``get_dividend_declarations(start?, end?, code?)``
+- ``agm_news`` — deprecated: use ``dividend_declarations``
 
 Each tool returns JSON — ``DataFrame`` results are converted to lists of row records
 (``df.to_dict(orient="records")``) — and a ``BDShareError`` (bad symbol, DSE outage,

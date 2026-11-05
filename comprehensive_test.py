@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Suite for BDShare v1.2.4 using pytest
+Comprehensive Test Suite for BDShare v1.2.9 using pytest
 """
 
 import os

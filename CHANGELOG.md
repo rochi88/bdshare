@@ -6,15 +6,73 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [1.2.4] - 2026-08-17
+## [1.2.9] - 2026-11-05
 
 ### Added
-- `get_today_news()` — today's DSE news, scraped live from `display_news.php`
-- `get_news_archive_7days()` — the last 7 days of DSE news, scraped live from `news_archive_7days.php`
-- `get_news(news_type='today')` and `get_news(news_type='archive7d')` — the two new functions are also reachable through the unified dispatcher and `BDShare.get_news()`
+- `get_today_news()`: today's DSE news.
+- `get_news_archive_7days()`: DSE news from the last 7 days.
+- `get_news(news_type='today')` and `get_news(news_type='archive7d')`, which also work through `BDShare.get_news()`.
+
+Both functions read the current site's news API first and fall back to the legacy site's `ajax/load-news.php` feed, following `BDSHARE_SOURCE` like the other data functions.
+
+### Changed
+- `safe_get()` and `safe_post()` take an optional `headers` parameter. The legacy news feed only returns content for requests with an `X-Requested-With: XMLHttpRequest` header and a matching `Referer`.
+
+## [1.2.8] - 2026-10-09
+
+### Added
+- `get_dividend_declarations(start?, end?, code?)` (and `BDShare.get_dividend_declarations()`, `get_news(news_type='dividend')`, plus a `dividend_declarations` MCP tool): dividend declarations with year end, dividend, AGM date, time, venue and record date, read from the "Dividend Declaration" items in the current site's news feed. Defaults to the last 180 days. Fields an announcement leaves out are `None`.
+- `get_company_details(symbol)` (and `BDShare.get_company_details()`, plus a `company_details` MCP tool): a company's details from the current DSE site, as a dict. It includes profile and contact fields, capital, market data, AGM date and year end, with DataFrames for the shareholding pattern, dividend history, multi-year and interim financials, P/E trend and recent announcements. Fields DSE has no data for are left out, so read optional ones with `.get()`. `get_company_info()` still returns the legacy site's tables.
+
+### Changed
+- `get_last_trade_price_data()` now reads the current site's price feed first and falls back to the legacy `quotes.txt`, like the other data functions. Both give the same figures.
+- `DSE_URL` in `bdshare/util/vars.py` now points to `https://dse.com.bd/` (was `https://dsebd.org/`).
+- Faster all-instrument history from dsebd.org: `get_historical_data()`, `get_basic_historical_data()` and `get_close_price_data()` now page through the day-end archive (500 rows per page, pages fetched in parallel) instead of fetching every instrument past the row cap one at a time. A month of all instruments drops from about 90s and ~200 requests to about 10s and ~28 requests. Rows within a date now come back in symbol order.
+- Legacy-site HTML is parsed with lxml directly instead of BeautifulSoup, which cuts parse time about 5–10x (for example, the latest-share-price page from ~250ms to ~40ms of CPU). `get_company_info()` converts only the data tables after the page's ~400 layout tables, which brings parsing from ~0.6s to ~0.03s.
+- Date ranges that dsebd.org truncates (news, extended market info) are split and re-fetched in parallel rather than one half at a time.
+- The shared HTTP session keeps up to 8 connections per host open, so parallel requests reuse connections.
+- `get_price_sensitive_news()` works only on dsebd.org. The legacy news archive does not mark price-sensitive items, so with `BDSHARE_SOURCE=legacy` it now raises `BDShareError` saying so, instead of "No price-sensitive news found."
+
+### Deprecated
+These read only the legacy site. Each still works, and now emits a `DeprecationWarning` naming its replacement. They will be removed in 2.0.0.
+- `get_agm_news()` → `get_dividend_declarations()`. The legacy AGM page has not been updated since 2020, so it returns six-year-old data.
+- `get_news(news_type='agm')` → `get_news(news_type='dividend')`.
+- `get_company_info()` → `get_company_details()`. The returned shape differs: a dict with DataFrames for the tabular parts, not the legacy page's list of tables.
+- `get_company_inf()` (already deprecated) now points to `get_company_details()`.
+- `BDShare.get_company_profile()` → `BDShare.get_company_details()`.
+- The `agm_news` and `company_info` MCP tools → `dividend_declarations` and `company_details`. Their descriptions say so; MCP tools have no warning mechanism.
 
 ### Fixed
-- `display_news.php` and `news_archive_7days.php` render their news table client-side via `ajax/load-news.php`, which only returns content for requests carrying an `X-Requested-With: XMLHttpRequest` header and a matching `Referer` — `safe_get()`/`safe_post()` gained an optional `headers` parameter so `bdshare/stock/news.py` can send them
+- `get_last_trade_price_data()` returned a single garbled column whose header was the first instrument's row (e.g. `1JANATAMF \t 3.4`). It now returns `symbol` and `ltp` columns with one row per instrument.
+- On the legacy site, `get_all_news()` returned no rows unless called with a symbol. With no arguments it now reads the latest-news feed, and with a date range it sends both dates (filling in a missing one), which the archive needs. Dates passed with a symbol are now applied as a filter, as on dsebd.org.
+
+### Removed
+- `DSE_ALT_URL` and `DSE_LEGACY_ALT_URL` from `bdshare/util/vars.py`. Requests now go only to `DSE_URL` (`https://dse.com.bd/`) and `DSE_LEGACY_URL` (`https://old.dsebd.org/`), with no alternate host tried within an attempt.
+
+## [1.2.7] - 2026-09-25
+
+### Added
+- Support for the redesigned **dsebd.org** site. The new site no longer serves the legacy `.php` pages (they return 404) and loads its data from a JSON API instead. Every data function now tries the dsebd.org API first and falls back to the legacy site (old.dsebd.org) if that fails, returning the same columns either way: current trade data, trading codes, DSEX data, historical/basic historical/close price data, market status, market info (and extended market info), latest P/E, market depth, top gainers, top twenty shares, and news (all, corporate, price-sensitive).
+- `BDSHARE_SOURCE` environment variable (or `bdshare.util.vars.DSE_SOURCE` at runtime) to choose the site: `auto` (default: dsebd.org, then legacy), `new`, or `legacy`.
+
+### Changed
+- `DSE_URL` / `DSE_ALT_URL` in `bdshare/util/vars.py` now hold the current site (`https://dsebd.org/`, `https://dse.com.bd/`). The legacy hosts moved to the new `DSE_LEGACY_URL` / `DSE_LEGACY_ALT_URL`. Code that read `DSE_URL` expecting the legacy site should switch to `DSE_LEGACY_URL`.
+- `get_agm_news()` and `get_company_info()` work only on the legacy site, because dsebd.org has no equivalent data.
+- Fetching all instruments' history from dsebd.org is slower than from the legacy site. The API returns at most 500 rows per request, and one day has about 650 instruments, so bdshare fetches the instruments past the cutoff one at a time (in parallel).
+
+### Fixed
+- `_safe_num()` removed the minus sign from negative numbers (`"-1.20"` → `1.2`), so falling prices showed up as positive changes, for example in the `change` column of `get_dsex_data()`. Negative values now keep their sign. Cells containing only dashes (`"-"`, `"--"`) still parse as `None`.
+- `get_top_twenty_shares()` read the wrong columns: `trade` held the close price and `volume` held the trade count. It now reads the TRADE and VOLUME columns.
+
+## [1.2.6] - 2026-09-25
+
+### Fixed
+- Pointed `DSE_URL` and `DSE_ALT_URL` in `bdshare/util/vars.py` at the legacy DSE sites (`https://old.dsebd.org/` and `https://old.dse.com.bd/`). The legacy pages (`latest_share_price_scroll_l.php`, `day_end_archive.php`, etc.) that the scrapers parse are now served from these hosts.
+
+## [1.2.5] - 2026-09-08
+
+### Fixed
+- Pinned the optional `mcp` extra to `>=1.0.0,<2` so installs keep using the v1 API expected by `bdshare/mcp_server.py`; this avoids the `mcp` 2.x `FastMCP` → `MCPServer` breakage that caused `bdshare-mcp` to fail immediately after installation.
 
 ## [1.2.3] - 2026-07-22
 
