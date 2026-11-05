@@ -118,6 +118,7 @@ def safe_get(
     retries: int = 3,
     pause: float = 0.2,
     timeout: int = 10,
+    headers: Optional[Dict] = None,
 ) -> requests.Response:
     """
     Fetch a URL via GET with retries, an optional fallback URL, and
@@ -136,11 +137,12 @@ def safe_get(
     :param retries:  Total number of attempts.
     :param pause:    Base pause in seconds (doubles each retry).
     :param timeout:  Per-request socket timeout in seconds.
+    :param headers:  Optional extra headers layered on top of the shared session's defaults.
     :returns:        The first successful :class:`requests.Response`.
     :raises BDShareError: After all retries are exhausted without success.
     """
     return _request("GET", url, alt_url=alt_url, params=params,
-                    retries=retries, pause=pause, timeout=timeout)
+                    retries=retries, pause=pause, timeout=timeout, headers=headers)
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +156,7 @@ def safe_post(
     retries: int = 3,
     pause: float = 0.2,
     timeout: int = 10,
+    headers: Optional[Dict] = None,
 ) -> requests.Response:
     """
     POST to a URL with retries, an optional fallback URL, and exponential
@@ -165,11 +168,12 @@ def safe_post(
     :param retries:  Total number of attempts.
     :param pause:    Base pause in seconds (doubles each retry).
     :param timeout:  Per-request socket timeout in seconds.
+    :param headers:  Optional extra headers layered on top of the shared session's defaults.
     :returns:        The first successful :class:`requests.Response`.
     :raises BDShareError: After all retries are exhausted without success.
     """
     return _request("POST", url, alt_url=alt_url, data=data,
-                    retries=retries, pause=pause, timeout=timeout)
+                    retries=retries, pause=pause, timeout=timeout, headers=headers)
 
 
 # ---------------------------------------------------------------------------
@@ -185,6 +189,7 @@ def _request(
     retries: int = 3,
     pause: float = 0.2,
     timeout: int = 10,
+    headers: Optional[Dict] = None,
 ) -> requests.Response:
     urls = [u for u in (url, alt_url) if u]
     last_exc: Optional[Exception] = None
@@ -196,7 +201,7 @@ def _request(
         for target in urls:
             try:
                 r = _session.request(
-                    method, target, params=params, data=data, timeout=timeout
+                    method, target, params=params, data=data, timeout=timeout, headers=headers
                 )
                 if r.status_code == 200:
                     return r

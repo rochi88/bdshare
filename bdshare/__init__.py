@@ -37,6 +37,8 @@ from bdshare.stock.news import (
     get_all_news,
     get_corporate_announcements,
     get_price_sensitive_news,
+    get_today_news,
+    get_news_archive_7days,
     get_news,
 )
 
@@ -265,7 +267,7 @@ class BDShare:
         """
         Fetch DSE news.
 
-        :param news_type: 'all', 'agm', 'corporate', or 'psn'
+        :param news_type: 'all', 'agm', 'corporate', 'psn', 'today', or 'archive7d'
         :param code: Optional trading code filter.
         """
         key = f"news:{news_type}:{code or 'all'}"
@@ -339,6 +341,8 @@ __all__ = [
     "get_all_news",
     "get_corporate_announcements",
     "get_price_sensitive_news",
+    "get_today_news",
+    "get_news_archive_7days",
     "get_news",
 
     # Market — canonical public names

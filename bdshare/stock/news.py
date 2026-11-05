@@ -22,6 +22,27 @@ def _get_news(url: str, alt_url: str, params: dict, retry_count: int, pause: flo
     r = safe_get(url, params=params, alt_url=alt_url, retries=retry_count, pause=pause)
     return _parse_html(r.content)
 
+
+def _get_ajax_news(criteria: int, referer_path: str, retry_count: int, pause: float) -> BeautifulSoup:
+    """
+    POST to DSE's ``ajax/load-news.php`` endpoint — the feed that backs the
+    live "Today's News" (criteria=1) and "News Archive (7 Days)" (criteria=2)
+    pages. The endpoint only returns content when called with an
+    XMLHttpRequest header and a Referer matching the page that embeds it.
+    """
+    r = safe_post(
+        vs.DSE_URL + vs.DSE_NEWS_AJAX_URL,
+        data={"criteria": criteria},
+        alt_url=vs.DSE_ALT_URL + vs.DSE_NEWS_AJAX_URL,
+        headers={
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": vs.DSE_URL + referer_path,
+        },
+        retries=retry_count,
+        pause=pause,
+    )
+    return _parse_html(r.content)
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -188,6 +209,36 @@ def get_price_sensitive_news(
     return _to_frame(pd.DataFrame(rows), as_polars)
 
 
+def get_today_news(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get today's DSE news, scraped live from https://www.dsebd.org/display_news.php.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    """
+    soup = _get_ajax_news(1, vs.DSE_TODAY_NEWS_URL, retry_count, pause)
+    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
+    if table is None:
+        raise BDShareError("Today's news table not found.")
+    rows = _parse_news_rows(table, code_key="symbol")
+    if not rows:
+        raise BDShareError("No news found for today.")
+    return _to_frame(pd.DataFrame(rows), as_polars)
+
+
+def get_news_archive_7days(retry_count: int = 3, pause: float = 0.2, as_polars: bool = False) -> pd.DataFrame:
+    """Get the last 7 days of DSE news, scraped live from https://www.dsebd.org/news_archive_7days.php.
+
+    :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
+    """
+    soup = _get_ajax_news(2, vs.DSE_NEWS_ARCHIVE_7DAYS_URL, retry_count, pause)
+    table = soup.find("table", attrs={"class": "table-news"}) or soup.find("table")
+    if table is None:
+        raise BDShareError("News archive table not found.")
+    rows = _parse_news_rows(table, code_key="symbol")
+    if not rows:
+        raise BDShareError("No news found in the 7-day archive.")
+    return _to_frame(pd.DataFrame(rows), as_polars)
+
+
 # Unified dispatcher (matches __init__.py import)
 def get_news(
     news_type: str = "all",
@@ -199,7 +250,7 @@ def get_news(
     """
     Unified news dispatcher.
 
-    :param news_type: One of 'all', 'agm', 'corporate', 'psn'
+    :param news_type: One of 'all', 'agm', 'corporate', 'psn', 'today', 'archive7d'
     :param code: Optional trading code filter
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     """
@@ -208,6 +259,8 @@ def get_news(
         "agm":       lambda: get_agm_news(retry_count=retry_count, pause=pause, as_polars=as_polars),
         "corporate": lambda: get_corporate_announcements(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
         "psn":       lambda: get_price_sensitive_news(code=code, retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "today":     lambda: get_today_news(retry_count=retry_count, pause=pause, as_polars=as_polars),
+        "archive7d": lambda: get_news_archive_7days(retry_count=retry_count, pause=pause, as_polars=as_polars),
     }
     if news_type not in _dispatch:
         raise ValueError(f"Invalid news_type '{news_type}'. Choose from: {list(_dispatch)}")

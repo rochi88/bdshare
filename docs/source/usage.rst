@@ -377,17 +377,21 @@ Unified News Dispatcher
 ``get_news()`` is the recommended entry point. Use ``news_type`` to select
 the category and ``code`` to filter by symbol.
 
-+---------------+--------------------------------------+
-| news_type     | Description                          |
-+===============+======================================+
-| ``'all'``     | All DSE news items (default)         |
-+---------------+--------------------------------------+
-| ``'agm'``     | AGM / dividend declarations          |
-+---------------+--------------------------------------+
-| ``'corporate'`` | Corporate announcements            |
-+---------------+--------------------------------------+
-| ``'psn'``     | Price-sensitive news                 |
-+---------------+--------------------------------------+
++-----------------+--------------------------------------+
+| news_type       | Description                          |
++=================+=======================================+
+| ``'all'``       | All DSE news items (default)         |
++-----------------+--------------------------------------+
+| ``'agm'``       | AGM / dividend declarations          |
++-----------------+--------------------------------------+
+| ``'corporate'`` | Corporate announcements              |
++-----------------+--------------------------------------+
+| ``'psn'``       | Price-sensitive news                 |
++-----------------+--------------------------------------+
+| ``'today'``     | Today's news (live feed)             |
++-----------------+--------------------------------------+
+| ``'archive7d'`` | News from the last 7 days (live feed)|
++-----------------+--------------------------------------+
 
 .. code-block:: python
 
@@ -419,6 +423,22 @@ the category and ``code`` to filter by symbol.
 
     # Price-sensitive news
     df = get_news(news_type='psn', code='ACI')
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_news
+
+    # Today's news
+    df = get_news(news_type='today')
+    print(df.to_string())
+
+.. code-block:: python
+
+    from bdshare import get_news
+
+    # News from the last 7 days
+    df = get_news(news_type='archive7d')
     print(df.to_string())
 
 
@@ -497,6 +517,36 @@ Price-Sensitive News
 
     df = get_price_sensitive_news(code='ACI')
     print(df.to_string())
+
+
+Today's News
+------------
+
+Scraped live from `display_news.php <https://www.dsebd.org/display_news.php>`_.
+
+.. code-block:: python
+
+    from bdshare import get_today_news
+
+    df = get_today_news()
+    print(df.to_string())
+
+**Returned columns:** symbol, title, news, date.
+
+
+News Archive (7 Days)
+----------------------
+
+Scraped live from `news_archive_7days.php <https://www.dsebd.org/news_archive_7days.php>`_.
+
+.. code-block:: python
+
+    from bdshare import get_news_archive_7days
+
+    df = get_news_archive_7days()
+    print(df.to_string())
+
+**Returned columns:** symbol, title, news, date.
 
 
 ----
@@ -593,6 +643,8 @@ The table below shows each method with its cache TTL.
     bd.get_news(news_type='all')                      # All news   — 5-min TTL
     bd.get_news(news_type='corporate', code='GP')
     bd.get_news(news_type='psn')
+    bd.get_news(news_type='today')                    # Today's news (live feed)
+    bd.get_news(news_type='archive7d')                # Last 7 days of news (live feed)
 
 **Utility methods**
 

@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [1.2.4] - 2026-08-17
+
+### Added
+- `get_today_news()` — today's DSE news, scraped live from `display_news.php`
+- `get_news_archive_7days()` — the last 7 days of DSE news, scraped live from `news_archive_7days.php`
+- `get_news(news_type='today')` and `get_news(news_type='archive7d')` — the two new functions are also reachable through the unified dispatcher and `BDShare.get_news()`
+
+### Fixed
+- `display_news.php` and `news_archive_7days.php` render their news table client-side via `ajax/load-news.php`, which only returns content for requests carrying an `X-Requested-With: XMLHttpRequest` header and a matching `Referer` — `safe_get()`/`safe_post()` gained an optional `headers` parameter so `bdshare/stock/news.py` can send them
+
 ## [1.2.3] - 2026-07-22
 
 ### Added

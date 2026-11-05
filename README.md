@@ -213,18 +213,22 @@ tables = get_company_info('GP')
 ### News & Announcements
 
 ```python
-from bdshare import get_news, get_agm_news, get_all_news
+from bdshare import get_news, get_agm_news, get_all_news, get_today_news, get_news_archive_7days
 
-# Unified dispatcher — news_type: 'all' | 'agm' | 'corporate' | 'psn'
+# Unified dispatcher — news_type: 'all' | 'agm' | 'corporate' | 'psn' | 'today' | 'archive7d'
 df = get_news(news_type='all')
 df = get_news(news_type='agm')
 df = get_news(news_type='corporate', code='GP')
 df = get_news(news_type='psn', code='ACI')   # price-sensitive news
+df = get_news(news_type='today')             # today's news (live feed)
+df = get_news(news_type='archive7d')         # last 7 days of news (live feed)
 
 # Direct function calls
 df = get_agm_news()                          # AGM / dividend declarations
 df = get_all_news(code='BEXIMCO')            # All news for one symbol
 df = get_all_news('2024-01-01', '2024-03-31', 'GP')  # Filtered by date + symbol
+df = get_today_news()                        # Today's news, scraped live from display_news.php
+df = get_news_archive_7days()                # Last 7 days of news, scraped live from news_archive_7days.php
 ```
 
 ### Saving to CSV
@@ -287,6 +291,8 @@ bd.get_historical_data('GP', '2024-01-01', '2024-03-31')    # OHLCV history
 bd.get_news(news_type='all')              # All news                         (5-min TTL)
 bd.get_news(news_type='corporate', code='GP')
 bd.get_news(news_type='psn')             # Price-sensitive news
+bd.get_news(news_type='today')           # Today's news (live feed)
+bd.get_news(news_type='archive7d')       # Last 7 days of news (live feed)
 ```
 
 ### Utility methods
@@ -362,6 +368,8 @@ Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_dat
 | `get_all_news(start?, end?, code?)` | `str, str, str` | DataFrame | All DSE news |
 | `get_corporate_announcements(code?)` | `str` | DataFrame | Corporate actions |
 | `get_price_sensitive_news(code?)` | `str` | DataFrame | Price-sensitive news |
+| `get_today_news()` | — | DataFrame | Today's news, scraped live from `display_news.php` |
+| `get_news_archive_7days()` | — | DataFrame | Last 7 days of news, scraped live from `news_archive_7days.php` |
 
 ### `get_news` `news_type` values
 
@@ -371,6 +379,8 @@ Deprecated aliases (removed in 2.0.0): `get_hist_data()` → `get_historical_dat
 | `'agm'` | `get_agm_news()` |
 | `'corporate'` | `get_corporate_announcements()` |
 | `'psn'` | `get_price_sensitive_news()` |
+| `'today'` | `get_today_news()` |
+| `'archive7d'` | `get_news_archive_7days()` |
 
 ---
 

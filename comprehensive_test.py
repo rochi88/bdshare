@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Suite for BDShare v1.2.3 using pytest
+Comprehensive Test Suite for BDShare v1.2.4 using pytest
 """
 
 import os
@@ -159,7 +159,21 @@ class TestNews:
         result = bdshare.get_price_sensitive_news(code=symbol)
         assert isinstance(result, pd.DataFrame)
 
-    @pytest.mark.parametrize("news_type", ["all", "agm", "corporate", "psn"])
+    def test_get_today_news(self):
+        result = bdshare.get_today_news()
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) > 0
+        assert set(result.columns) >= {"symbol", "title", "news", "date"}
+
+    def test_get_news_archive_7days(self):
+        result = bdshare.get_news_archive_7days()
+        assert isinstance(result, pd.DataFrame)
+        assert len(result) > 0
+        assert set(result.columns) >= {"symbol", "title", "news", "date"}
+        # The 7-day archive is a superset of today's news.
+        assert len(result) >= len(bdshare.get_today_news())
+
+    @pytest.mark.parametrize("news_type", ["all", "agm", "corporate", "psn", "today", "archive7d"])
     def test_get_news_dispatcher(self, news_type):
         """get_news() dispatcher must return a DataFrame for every valid news_type."""
         result = bdshare.get_news(news_type=news_type)
@@ -331,6 +345,11 @@ class TestBDShareClient:
     def test_get_news(self):
         with bdshare.BDShare() as bd:
             result = bd.get_news(news_type="all")
+            assert isinstance(result, pd.DataFrame)
+
+    def test_get_news_today(self):
+        with bdshare.BDShare() as bd:
+            result = bd.get_news(news_type="today")
             assert isinstance(result, pd.DataFrame)
 
     def test_cache_enabled(self):
@@ -562,7 +581,16 @@ class TestPolarsOutput:
         result = bdshare.get_price_sensitive_news(as_polars=True)
         self._pl(result, "get_price_sensitive_news")
 
-    @pytest.mark.parametrize("news_type", ["all", "agm", "corporate", "psn"])
+    def test_get_today_news_polars(self):
+        result = bdshare.get_today_news(as_polars=True)
+        self._pl(result, "get_today_news")
+        self._same_cols(bdshare.get_today_news(), result, "get_today_news")
+
+    def test_get_news_archive_7days_polars(self):
+        result = bdshare.get_news_archive_7days(as_polars=True)
+        self._pl(result, "get_news_archive_7days")
+
+    @pytest.mark.parametrize("news_type", ["all", "agm", "corporate", "psn", "today", "archive7d"])
     def test_get_news_dispatcher_polars(self, news_type):
         result = bdshare.get_news(news_type=news_type, as_polars=True)
         assert isinstance(result, pl.DataFrame)
@@ -638,8 +666,12 @@ def main():
             (f"get_all_news(…, '{sym}')",            bdshare.get_all_news,              start_date, end_date, sym),
             ("get_corporate_announcements()",        bdshare.get_corporate_announcements),
             ("get_price_sensitive_news()",           bdshare.get_price_sensitive_news),
+            ("get_today_news()",                     bdshare.get_today_news),
+            ("get_news_archive_7days()",             bdshare.get_news_archive_7days),
             ("get_news('all')",                      bdshare.get_news,                  ),
             ("get_news('agm')",                      bdshare.get_news,                  ),
+            ("get_news('today')",                    lambda: bdshare.get_news(news_type="today")),
+            ("get_news('archive7d')",                lambda: bdshare.get_news(news_type="archive7d")),
         ],
         "📈 MARKET DATA": [
             ("get_market_info()",                    bdshare.get_market_info),
@@ -680,6 +712,8 @@ def main():
             ("get_agm_news(as_polars=True)",                 lambda: bdshare.get_agm_news(as_polars=True)),
             ("get_corporate_announcements(as_polars=True)",  lambda: bdshare.get_corporate_announcements(as_polars=True)),
             ("get_price_sensitive_news(as_polars=True)",     lambda: bdshare.get_price_sensitive_news(as_polars=True)),
+            ("get_today_news(as_polars=True)",               lambda: bdshare.get_today_news(as_polars=True)),
+            ("get_news_archive_7days(as_polars=True)",       lambda: bdshare.get_news_archive_7days(as_polars=True)),
             ("get_news('all', as_polars=True)",              lambda: bdshare.get_news(as_polars=True)),
         ]
 
