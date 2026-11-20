@@ -589,13 +589,33 @@ _SOURCE_ERRORS = (BDShareError, requests.RequestException,
                   AttributeError, IndexError, KeyError, TypeError)
 
 
+def _is_empty(result: Any) -> bool:
+    """True for a fetch result that carries no data: None, an empty
+    list/tuple/dict/str, or an empty DataFrame. Anything else (an lxml table
+    element, a number) counts as data."""
+    if result is None:
+        return True
+    if isinstance(result, (list, tuple, dict, str)):
+        return len(result) == 0
+    empty = getattr(result, "empty", None)
+    return empty if isinstance(empty, bool) else False
+
+
 def _with_fallback(legacy: Callable[[], T], new: Callable[[], T], what: str) -> T:
     """
     Run a fetch against the configured DSE site(s).
 
     ``vs.DSE_SOURCE`` selects the site: ``"legacy"`` (old.dsebd.org only),
     ``"new"`` (dsebd.org only) or ``"auto"`` (dsebd.org first, legacy if
-    that fails). Both callables must return data in the same shape.
+    that fails or comes back empty). Both callables must return data in the
+    same shape.
+
+    An empty answer from dsebd.org is not the same as "there is no data":
+    its API has its own coverage (dates, instruments, news) that doesn't
+    always match the legacy site's. So in ``"auto"`` mode an empty result is
+    retried on the legacy site, and the legacy result is used if it has
+    data. If the legacy site fails or is empty too, dsebd.org's empty result
+    is returned, so callers still report "no data" rather than an error.
     """
     source = vs.DSE_SOURCE
     if source == "legacy":
@@ -607,7 +627,7 @@ def _with_fallback(legacy: Callable[[], T], new: Callable[[], T], what: str) -> 
             f"Invalid DSE_SOURCE {source!r}; expected 'auto', 'legacy' or 'new'."
         )
     try:
-        return new()
+        result = new()
     except _SOURCE_ERRORS as new_exc:
         logger.info("%s: dsebd.org failed (%s); trying legacy site", what, new_exc)
         try:
@@ -618,6 +638,15 @@ def _with_fallback(legacy: Callable[[], T], new: Callable[[], T], what: str) -> 
                 f"Current ({vs.DSE_URL}): {new_exc}. "
                 f"Legacy ({vs.DSE_LEGACY_URL}): {legacy_exc}"
             ) from legacy_exc
+    if not _is_empty(result):
+        return result
+    logger.info("%s: dsebd.org returned no data; trying legacy site", what)
+    try:
+        legacy_result = legacy()
+    except _SOURCE_ERRORS as legacy_exc:
+        logger.info("%s: legacy site has none either (%s)", what, legacy_exc)
+        return result
+    return result if _is_empty(legacy_result) else legacy_result
 
 
 # ---------------------------------------------------------------------------
