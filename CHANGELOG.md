@@ -6,7 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [1.2.10] - 2026-11-20
 
 ### Changed
 - With `BDSHARE_SOURCE=auto` (the default), an **empty** answer from dsebd.org now falls back to the legacy site, the same as a failed one. Before, only errors triggered the fallback, so data that dsebd.org doesn't have but old.dsebd.org does (older dates, some instruments and news) came back as "No ... data found." If the legacy site has nothing either, the result is still empty and callers raise the same "No ... data found." error as before. `BDSHARE_SOURCE=new` still never consults the legacy site.
