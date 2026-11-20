@@ -82,6 +82,81 @@ class TestWithFallback(_SourceMixin, unittest.TestCase):
         with self.assertRaises(ValueError):
             _with_fallback(lambda: 1, lambda: 2, "x")
 
+    def test_auto_tries_legacy_when_new_site_is_empty(self):
+        self.assertEqual(_with_fallback(lambda: ["old"], lambda: [], "x"), ["old"])
+        self.assertEqual(_with_fallback(lambda: "legacy", lambda: None, "x"), "legacy")
+        legacy_df = pd.DataFrame({"a": [1]})
+        self.assertIs(_with_fallback(lambda: legacy_df, lambda: pd.DataFrame(), "x"), legacy_df)
+
+    def test_auto_keeps_empty_new_result_when_legacy_has_nothing(self):
+        def down():
+            raise BDShareError("No historical data found.")
+        self.assertEqual(_with_fallback(down, lambda: [], "x"), [])
+        self.assertEqual(_with_fallback(lambda: [], lambda: [], "x"), [])
+
+    def test_forced_new_source_does_not_fall_back_when_empty(self):
+        vs.DSE_SOURCE = "new"
+        legacy = mock.Mock(return_value=["old"])
+        self.assertEqual(_with_fallback(legacy, lambda: [], "x"), [])
+        legacy.assert_not_called()
+
+
+def _day(d, symbol="ACI", close=10.0):
+    return {"date": d, "symbol": symbol, "ltp": close, "high": close, "low": close, "open": close,
+            "close": close, "ycp": close, "trade": 1, "value": 1.0, "volume": 1}
+
+
+class TestHistoricalBackfill(_SourceMixin, unittest.TestCase):
+    """dsebd.org's archive may start later than the requested range; the
+    older part comes from the legacy site."""
+
+    def _run(self, new_rows, legacy_rows, start="2025-01-01", end="2025-03-31"):
+        calls = []
+
+        def legacy_table(s, e, code, retry_count, pause):
+            calls.append((s, e))
+            return legacy_rows
+
+        with mock.patch.object(trading, "_historical_rows_new", return_value=new_rows), \
+             mock.patch.object(trading, "_fetch_archive_table", side_effect=legacy_table), \
+             mock.patch.object(trading, "_parse_historical_rows", side_effect=lambda rows: rows):
+            rows = trading._historical_rows(start, end, "ACI", 1, 0)
+        return rows, calls
+
+    def test_older_days_come_from_legacy_in_the_same_order(self):
+        new_rows = [_day("2025-03-02"), _day("2025-03-03")]
+        legacy_rows = [_day("2025-01-06"), _day("2025-01-05"), _day("2025-03-02")]
+        rows, calls = self._run(new_rows, legacy_rows)
+        self.assertEqual(calls, [("2025-01-01", "2025-03-01")])
+        self.assertEqual([r["date"] for r in rows],
+                         ["2025-01-05", "2025-01-06", "2025-03-02", "2025-03-03"])
+
+    def test_descending_rows_get_older_days_appended(self):
+        rows, _ = self._run([_day("2025-03-03"), _day("2025-03-02")], [_day("2025-01-05")])
+        self.assertEqual([r["date"] for r in rows], ["2025-03-03", "2025-03-02", "2025-01-05"])
+
+    def test_holiday_sized_gap_is_not_backfilled(self):
+        rows, calls = self._run([_day("2025-01-10")], [_day("2025-01-02")])
+        self.assertEqual(calls, [])
+        self.assertEqual(len(rows), 1)
+
+    def test_legacy_failure_keeps_new_rows(self):
+        rows, calls = self._run([_day("2025-03-02")], [])  # legacy() raises "No historical data"
+        self.assertEqual(len(calls), 1)
+        self.assertEqual([r["date"] for r in rows], ["2025-03-02"])
+
+    def test_no_backfill_without_a_start_date_or_outside_auto(self):
+        _, calls = self._run([_day("2025-03-02")], [_day("2025-01-05")], start=None)
+        self.assertEqual(calls, [])
+        vs.DSE_SOURCE = "new"
+        _, calls = self._run([_day("2025-03-02")], [_day("2025-01-05")])
+        self.assertEqual(calls, [])
+
+    def test_empty_new_range_falls_back_to_legacy_entirely(self):
+        rows, calls = self._run([], [_day("2025-01-05")])
+        self.assertEqual(calls, [("2025-01-01", "2025-03-31")])
+        self.assertEqual([r["date"] for r in rows], ["2025-01-05"])
+
 
 class TestFetchJsonRange(unittest.TestCase):
 

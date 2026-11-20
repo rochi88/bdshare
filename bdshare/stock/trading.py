@@ -1,10 +1,11 @@
 import logging
+from datetime import date, timedelta
 import pandas as pd
-from typing import Optional
+from typing import Callable, Optional
 from bdshare.util import vars as vs
 from bdshare.util.helper import (
     _fetch_table, _safe_num, _rows, _cells, BDShareError, deprecated, _to_frame, safe_get,
-    _fetch_json, _fetch_json_pages, _date_range, _with_fallback,
+    _fetch_json, _fetch_json_pages, _date_range, _with_fallback, _SOURCE_ERRORS,
 )
 
 logger = logging.getLogger(__name__)
@@ -93,6 +94,65 @@ def _fetch_archive_table(
     )
 
 
+# dsebd.org's rows are taken to stop short of the requested start when the
+# earliest one is more than this many days after it. Longer than any DSE
+# closure (a weekend joined to the Eid holidays runs to about ten days), so a
+# holiday at the start of a range doesn't send a request to the legacy site.
+_BACKFILL_GAP_DAYS = 12
+
+
+def _iso_day(value) -> Optional[date]:
+    try:
+        return date.fromisoformat(str(value)[:10])
+    except ValueError:
+        return None
+
+
+def _backfill_older(
+    rows: list,
+    start: Optional[str],
+    fetch_legacy: Callable[[str, str], list],
+    what: str,
+) -> list:
+    """
+    Fill in the part of [start, ...] that dsebd.org's rows don't reach back to.
+
+    dsebd.org's archive and the legacy site's don't cover the same dates, so
+    a range that starts before dsebd.org's earliest day used to come back
+    silently cut short. In ``"auto"`` mode, when the earliest row is more
+    than ``_BACKFILL_GAP_DAYS`` after ``start``, the missing days are read
+    from the legacy site with ``fetch_legacy(start, day_before_earliest)``
+    and joined on, keeping the rows' existing date order. A legacy failure
+    (including "no data") leaves the rows as they were.
+    """
+    if vs.DSE_SOURCE != "auto" or not rows or not start:
+        return rows
+    begin = _iso_day(start)
+    days = [d for d in (_iso_day(r.get("date")) for r in rows) if d is not None]
+    if begin is None or not days:
+        return rows
+    first = min(days)
+    if (first - begin).days <= _BACKFILL_GAP_DAYS:
+        return rows
+    gap_end = (first - timedelta(days=1)).isoformat()
+    try:
+        older = fetch_legacy(begin.isoformat(), gap_end)
+    except _SOURCE_ERRORS as exc:
+        logger.info("%s: legacy site has nothing before %s (%s)", what, first, exc)
+        return rows
+    have = {(r.get("date"), r.get("symbol")) for r in rows}
+    older = [r for r in older
+             if (r.get("date"), r.get("symbol")) not in have
+             and (_iso_day(r.get("date")) or first) < first]
+    if not older:
+        return rows
+    logger.info("%s: dsebd.org starts at %s; %d earlier rows from the legacy site",
+                what, first, len(older))
+    ascending = str(rows[0].get("date")) <= str(rows[-1].get("date"))
+    older.sort(key=lambda r: str(r.get("date")), reverse=not ascending)
+    return older + rows if ascending else rows + older
+
+
 def _change(ltp, ycp, percent):
     """Absolute change as shown on the legacy LSP page; None when untraded."""
     if percent is None or ltp is None or ycp is None:
@@ -173,17 +233,20 @@ def _historical_rows_new(start, end, code, retry_count, pause) -> list:
 
 
 def _historical_rows(start, end, code, retry_count, pause) -> list:
-    """Day-end archive rows (legacy archive page, falling back to dsebd.org)."""
-    def legacy():
-        rows = _parse_historical_rows(_fetch_archive_table(start, end, code, retry_count, pause))
+    """Day-end archive rows: dsebd.org first, the legacy archive page if that
+    fails or is empty, and the legacy page again for any older part of the
+    range dsebd.org doesn't cover (see _backfill_older)."""
+    def legacy(s=start, e=end):
+        rows = _parse_historical_rows(_fetch_archive_table(s, e, code, retry_count, pause))
         if not rows:
             raise BDShareError("No historical data found.")
         return rows
-    return _with_fallback(
-        legacy,
-        lambda: _historical_rows_new(start, end, code, retry_count, pause),
-        "Historical data",
-    )
+
+    def new():
+        rows = _historical_rows_new(start, end, code, retry_count, pause)
+        return _backfill_older(rows, start, legacy, "Historical data")
+
+    return _with_fallback(legacy, new, "Historical data")
 
 
 # ---------------------------------------------------------------------------
@@ -340,10 +403,10 @@ def get_close_price_data(
     :param as_polars: Return a polars DataFrame instead of pandas (requires polars installed).
     :return: DataFrame - symbol, close, ycp.
     """
-    def legacy():
+    def legacy(s=start, e=end):
         table = _fetch_table(
             vs.DSE_LEGACY_URL + vs.DSE_CLOSE_PRICE_URL,
-            params={"startDate": start, "endDate": end, "inst": code, "archive": "data"},
+            params={"startDate": s, "endDate": e, "inst": code, "archive": "data"},
             retries=retry_count,
             pause=pause,
             table_class=_CLS_PLAIN,
@@ -364,10 +427,11 @@ def get_close_price_data(
         return rows
 
     def new():
-        return [
+        rows = [
             {"date": r["date"], "symbol": r["symbol"], "close": r["close"], "ycp": r["ycp"]}
             for r in _historical_rows_new(start, end, code, retry_count, pause)
         ]
+        return _backfill_older(rows, start, legacy, "Close price data")
 
     rows = _with_fallback(legacy, new, "Close price data")
     if not rows:
